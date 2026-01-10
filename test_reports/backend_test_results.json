@@ -1,37 +1,134 @@
 {
-  "timestamp": "2026-01-10T02:29:20.481734",
-  "total_tests": 2,
-  "passed_tests": 1,
-  "success_rate": 50.0,
+  "timestamp": "2026-01-10T02:29:58.025108",
+  "total_tests": 18,
+  "passed_tests": 18,
+  "success_rate": 100.0,
   "detailed_results": [
     {
       "test_name": "Health Check",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:20.423266"
+      "timestamp": "2026-01-10T02:29:32.788125"
     },
     {
       "test_name": "User Registration",
-      "success": false,
-      "details": "Status: 422 (expected 200)",
-      "response_data": {
-        "detail": [
-          {
-            "type": "value_error",
-            "loc": [
-              "body",
-              "email"
-            ],
-            "msg": "value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.",
-            "input": "test_user_022920@justice.test",
-            "ctx": {
-              "reason": "The part after the @-sign is a special-use or reserved name that cannot be used with email."
-            }
-          }
-        ]
-      },
-      "timestamp": "2026-01-10T02:29:20.481678"
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.052827"
+    },
+    {
+      "test_name": "User Login",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.285809"
+    },
+    {
+      "test_name": "Get User Profile",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.293227"
+    },
+    {
+      "test_name": "Create Case",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.359407"
+    },
+    {
+      "test_name": "Get Cases",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.367532"
+    },
+    {
+      "test_name": "Get Case Detail",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.377225"
+    },
+    {
+      "test_name": "Create Evidence",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.401069"
+    },
+    {
+      "test_name": "Get All Evidence",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.416348"
+    },
+    {
+      "test_name": "Get Attorneys",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.445634"
+    },
+    {
+      "test_name": "Create SOS Alert",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.502906"
+    },
+    {
+      "test_name": "Get Active SOS",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:33.511658"
+    },
+    {
+      "test_name": "AI Chat",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:57.924777"
+    },
+    {
+      "test_name": "Get Rights Info",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:57.930649"
+    },
+    {
+      "test_name": "Dashboard Analytics",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:57.981162"
+    },
+    {
+      "test_name": "Public Analytics",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:57.990416"
+    },
+    {
+      "test_name": "Send Message",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:58.013564"
+    },
+    {
+      "test_name": "Get Messages",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:58.025062"
     }
   ]
 }
