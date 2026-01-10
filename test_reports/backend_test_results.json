@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-01-10T02:29:20.481734",
+  "total_tests": 2,
+  "passed_tests": 1,
+  "success_rate": 50.0,
+  "detailed_results": [
+    {
+      "test_name": "Health Check",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:29:20.423266"
+    },
+    {
+      "test_name": "User Registration",
+      "success": false,
+      "details": "Status: 422 (expected 200)",
+      "response_data": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "email"
+            ],
+            "msg": "value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.",
+            "input": "test_user_022920@justice.test",
+            "ctx": {
+              "reason": "The part after the @-sign is a special-use or reserved name that cannot be used with email."
+            }
+          }
+        ]
+      },
+      "timestamp": "2026-01-10T02:29:20.481678"
+    }
+  ]
+}
