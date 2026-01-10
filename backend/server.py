@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -7,7 +8,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Set
 import uuid
 from datetime import datetime, timezone, timedelta
 import hashlib
@@ -15,6 +16,8 @@ import jwt
 import bcrypt
 import httpx
 import json
+import asyncio
+import shutil
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -29,8 +32,14 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'justice-platform-secret-key-change-in
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 168  # 7 days
 
+# File Storage Settings
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
+ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mp3', '.wav', '.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx'}
+
 # Create the main app
-app = FastAPI(title="JUSTICE Platform API", version="1.0.0")
+app = FastAPI(title="JUSTICE Platform API", version="2.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -38,6 +47,52 @@ api_router = APIRouter(prefix="/api")
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# ============== WEBSOCKET CONNECTION MANAGER ==============
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, Set[WebSocket]] = {}  # user_id -> set of websockets
+        self.all_connections: Set[WebSocket] = set()
+    
+    async def connect(self, websocket: WebSocket, user_id: str):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = set()
+        self.active_connections[user_id].add(websocket)
+        self.all_connections.add(websocket)
+        logger.info(f"WebSocket connected for user {user_id}")
+    
+    def disconnect(self, websocket: WebSocket, user_id: str):
+        if user_id in self.active_connections:
+            self.active_connections[user_id].discard(websocket)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
+        self.all_connections.discard(websocket)
+        logger.info(f"WebSocket disconnected for user {user_id}")
+    
+    async def send_to_user(self, user_id: str, message: dict):
+        if user_id in self.active_connections:
+            disconnected = set()
+            for ws in self.active_connections[user_id]:
+                try:
+                    await ws.send_json(message)
+                except Exception:
+                    disconnected.add(ws)
+            for ws in disconnected:
+                self.active_connections[user_id].discard(ws)
+    
+    async def broadcast(self, message: dict, exclude_user: str = None):
+        disconnected = set()
+        for ws in self.all_connections:
+            try:
+                await ws.send_json(message)
+            except Exception:
+                disconnected.add(ws)
+        for ws in disconnected:
+            self.all_connections.discard(ws)
+
+manager = ConnectionManager()
 
 # ============== MODELS ==============
 
@@ -182,16 +237,46 @@ class MessageCreate(BaseModel):
     recipient_id: str
     case_id: Optional[str] = None
     content: str
+    attachments: Optional[List[str]] = None
 
 class MessageResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     message_id: str
+    conversation_id: str
     sender_id: str
     recipient_id: str
     case_id: Optional[str] = None
     content: str
+    attachments: Optional[List[str]] = None
     read: bool = False
     created_at: datetime
+
+class ConversationResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    conversation_id: str
+    participants: List[str]
+    case_id: Optional[str] = None
+    last_message: Optional[str] = None
+    last_message_at: Optional[datetime] = None
+    unread_count: int = 0
+    created_at: datetime
+
+class DepartmentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    department_id: str
+    name: str
+    city: str
+    state: str
+    chief_name: Optional[str] = None
+    officer_count: int = 0
+    budget: Optional[float] = None
+    risk_score: float = 0.0
+    complaint_rate: float = 0.0
+    use_of_force_rate: float = 0.0
+    body_cam_adoption: float = 0.0
+    transparency_score: float = 0.0
+    total_incidents: int = 0
+    resolved_incidents: int = 0
 
 # ============== AUTH HELPERS ==============
 
@@ -247,6 +332,17 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+def get_file_type(filename: str) -> str:
+    ext = Path(filename).suffix.lower()
+    if ext in {'.mp4', '.mov', '.avi', '.mkv', '.webm'}:
+        return 'video'
+    elif ext in {'.mp3', '.wav', '.ogg', '.m4a'}:
+        return 'audio'
+    elif ext in {'.jpg', '.jpeg', '.png', '.gif', '.webp'}:
+        return 'image'
+    else:
+        return 'document'
 
 # ============== AUTH ENDPOINTS ==============
 
@@ -422,6 +518,106 @@ async def logout(request: Request, current_user: dict = Depends(get_current_user
     response.delete_cookie("session_token", path="/")
     return response
 
+# ============== FILE UPLOAD ENDPOINTS ==============
+
+@api_router.post("/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    case_id: str = None,
+    description: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a file to local storage (will be S3 later)"""
+    # Validate file extension
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"File type {ext} not allowed")
+    
+    # Generate unique filename
+    file_id = f"{uuid.uuid4().hex[:12]}"
+    safe_filename = f"{file_id}{ext}"
+    file_path = UPLOAD_DIR / safe_filename
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+    
+    # Get file size
+    file_size = file_path.stat().st_size
+    if file_size > MAX_FILE_SIZE:
+        file_path.unlink()  # Delete the file
+        raise HTTPException(status_code=400, detail="File too large (max 500MB)")
+    
+    # Generate file URL
+    file_url = f"/api/files/{safe_filename}"
+    
+    # If case_id provided, create evidence record
+    evidence_id = None
+    blockchain_hash = None
+    if case_id:
+        # Verify case exists and belongs to user
+        case = await db.cases.find_one(
+            {"case_id": case_id, "user_id": current_user["user_id"]},
+            {"_id": 0}
+        )
+        if not case:
+            file_path.unlink()
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        evidence_id = f"ev_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc)
+        
+        # Generate blockchain-style hash
+        hash_input = f"{file_url}{now.isoformat()}{evidence_id}"
+        blockchain_hash = hashlib.sha256(hash_input.encode()).hexdigest()
+        
+        evidence_doc = {
+            "evidence_id": evidence_id,
+            "case_id": case_id,
+            "user_id": current_user["user_id"],
+            "file_name": file.filename,
+            "file_url": file_url,
+            "file_type": get_file_type(file.filename),
+            "file_size": file_size,
+            "description": description,
+            "blockchain_hash": blockchain_hash,
+            "uploaded_at": now.isoformat()
+        }
+        
+        await db.evidence.insert_one(evidence_doc)
+        await db.cases.update_one(
+            {"case_id": case_id},
+            {"$inc": {"evidence_count": 1}}
+        )
+        
+        # Send WebSocket notification
+        await manager.send_to_user(current_user["user_id"], {
+            "type": "evidence_added",
+            "case_id": case_id,
+            "evidence_id": evidence_id,
+            "file_name": file.filename
+        })
+    
+    return {
+        "file_url": file_url,
+        "file_name": file.filename,
+        "file_size": file_size,
+        "file_type": get_file_type(file.filename),
+        "evidence_id": evidence_id,
+        "blockchain_hash": blockchain_hash
+    }
+
+@api_router.get("/files/{filename}")
+async def get_file(filename: str):
+    """Serve uploaded files"""
+    file_path = UPLOAD_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path)
+
 # ============== CASES ENDPOINTS ==============
 
 @api_router.post("/cases", response_model=CaseResponse)
@@ -449,6 +645,13 @@ async def create_case(case_data: CaseCreate, current_user: dict = Depends(get_cu
     }
     
     await db.cases.insert_one(case_doc)
+    
+    # Send WebSocket notification
+    await manager.send_to_user(current_user["user_id"], {
+        "type": "case_created",
+        "case_id": case_id,
+        "title": case_data.title
+    })
     
     return CaseResponse(
         case_id=case_id,
@@ -514,6 +717,8 @@ async def update_case(case_id: str, case_data: CaseUpdate, current_user: dict = 
     update_data = {k: v for k, v in case_data.model_dump().items() if v is not None}
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
+    old_status = case.get("status")
+    
     await db.cases.update_one(
         {"case_id": case_id},
         {"$set": update_data}
@@ -524,6 +729,15 @@ async def update_case(case_id: str, case_data: CaseUpdate, current_user: dict = 
     for field in ["incident_date", "created_at", "updated_at"]:
         if isinstance(updated_case.get(field), str):
             updated_case[field] = datetime.fromisoformat(updated_case[field])
+    
+    # Send WebSocket notification for status change
+    if case_data.status and case_data.status != old_status:
+        await manager.send_to_user(current_user["user_id"], {
+            "type": "case_status_changed",
+            "case_id": case_id,
+            "old_status": old_status,
+            "new_status": case_data.status
+        })
     
     return CaseResponse(**updated_case)
 
@@ -642,6 +856,13 @@ async def delete_evidence(evidence_id: str, current_user: dict = Depends(get_cur
         {"case_id": evidence["case_id"]},
         {"$inc": {"evidence_count": -1}}
     )
+    
+    # Delete local file if exists
+    if evidence["file_url"].startswith("/api/files/"):
+        filename = evidence["file_url"].split("/")[-1]
+        file_path = UPLOAD_DIR / filename
+        if file_path.exists():
+            file_path.unlink()
     
     return {"message": "Evidence deleted successfully"}
 
@@ -785,6 +1006,147 @@ async def seed_sample_attorneys():
     
     await db.attorneys.insert_many(sample_attorneys)
 
+# ============== MESSAGING ENDPOINTS ==============
+
+@api_router.post("/messages", response_model=MessageResponse)
+async def send_message(message_data: MessageCreate, current_user: dict = Depends(get_current_user)):
+    message_id = f"msg_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    # Find or create conversation
+    participants = sorted([current_user["user_id"], message_data.recipient_id])
+    conversation = await db.conversations.find_one({
+        "participants": participants,
+        "case_id": message_data.case_id
+    }, {"_id": 0})
+    
+    if conversation:
+        conversation_id = conversation["conversation_id"]
+    else:
+        conversation_id = f"conv_{uuid.uuid4().hex[:12]}"
+        await db.conversations.insert_one({
+            "conversation_id": conversation_id,
+            "participants": participants,
+            "case_id": message_data.case_id,
+            "created_at": now.isoformat()
+        })
+    
+    message_doc = {
+        "message_id": message_id,
+        "conversation_id": conversation_id,
+        "sender_id": current_user["user_id"],
+        "recipient_id": message_data.recipient_id,
+        "case_id": message_data.case_id,
+        "content": message_data.content,
+        "attachments": message_data.attachments,
+        "read": False,
+        "created_at": now.isoformat()
+    }
+    
+    await db.messages.insert_one(message_doc)
+    
+    # Update conversation
+    await db.conversations.update_one(
+        {"conversation_id": conversation_id},
+        {"$set": {
+            "last_message": message_data.content[:100],
+            "last_message_at": now.isoformat()
+        }}
+    )
+    
+    # Send WebSocket notification to recipient
+    await manager.send_to_user(message_data.recipient_id, {
+        "type": "new_message",
+        "message_id": message_id,
+        "conversation_id": conversation_id,
+        "sender_id": current_user["user_id"],
+        "sender_name": current_user["name"],
+        "content_preview": message_data.content[:50] + "..." if len(message_data.content) > 50 else message_data.content
+    })
+    
+    return MessageResponse(
+        message_id=message_id,
+        conversation_id=conversation_id,
+        sender_id=current_user["user_id"],
+        recipient_id=message_data.recipient_id,
+        case_id=message_data.case_id,
+        content=message_data.content,
+        attachments=message_data.attachments,
+        read=False,
+        created_at=now
+    )
+
+@api_router.get("/messages/conversations", response_model=List[ConversationResponse])
+async def get_conversations(current_user: dict = Depends(get_current_user)):
+    conversations = await db.conversations.find(
+        {"participants": current_user["user_id"]},
+        {"_id": 0}
+    ).sort("last_message_at", -1).to_list(50)
+    
+    result = []
+    for conv in conversations:
+        # Count unread messages
+        unread_count = await db.messages.count_documents({
+            "conversation_id": conv["conversation_id"],
+            "recipient_id": current_user["user_id"],
+            "read": False
+        })
+        
+        for field in ["last_message_at", "created_at"]:
+            if isinstance(conv.get(field), str):
+                conv[field] = datetime.fromisoformat(conv[field])
+        
+        conv["unread_count"] = unread_count
+        result.append(ConversationResponse(**conv))
+    
+    return result
+
+@api_router.get("/messages/conversation/{conversation_id}", response_model=List[MessageResponse])
+async def get_conversation_messages(conversation_id: str, current_user: dict = Depends(get_current_user)):
+    # Verify user is participant
+    conversation = await db.conversations.find_one({
+        "conversation_id": conversation_id,
+        "participants": current_user["user_id"]
+    }, {"_id": 0})
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    messages = await db.messages.find(
+        {"conversation_id": conversation_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(200)
+    
+    # Mark messages as read
+    await db.messages.update_many(
+        {
+            "conversation_id": conversation_id,
+            "recipient_id": current_user["user_id"],
+            "read": False
+        },
+        {"$set": {"read": True}}
+    )
+    
+    result = []
+    for msg in messages:
+        if isinstance(msg.get("created_at"), str):
+            msg["created_at"] = datetime.fromisoformat(msg["created_at"])
+        result.append(MessageResponse(**msg))
+    
+    return result
+
+@api_router.post("/messages/{message_id}/read")
+async def mark_message_read(message_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.messages.update_one(
+        {"message_id": message_id, "recipient_id": current_user["user_id"]},
+        {"$set": {"read": True}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    return {"message": "Message marked as read"}
+
 # ============== SOS ALERTS ==============
 
 @api_router.post("/sos", response_model=SOSAlertResponse)
@@ -805,11 +1167,20 @@ async def create_sos_alert(alert_data: SOSAlertCreate, current_user: dict = Depe
     
     await db.sos_alerts.insert_one(alert_doc)
     
-    # TODO: In production, this would trigger:
+    # MOCKED: In production, this would trigger:
     # - SMS notifications via Twilio
     # - Email notifications to emergency contacts
     # - Attorney notifications for emergency responders
     logger.info(f"SOS Alert created: {alert_id} by user {current_user['user_id']}")
+    
+    # Broadcast SOS to emergency-available attorneys (simulated)
+    await manager.broadcast({
+        "type": "sos_alert",
+        "alert_id": alert_id,
+        "user_name": current_user["name"],
+        "latitude": alert_data.latitude,
+        "longitude": alert_data.longitude
+    }, exclude_user=current_user["user_id"])
     
     return SOSAlertResponse(
         alert_id=alert_id,
@@ -976,64 +1347,191 @@ async def get_chat_history(session_id: str, current_user: dict = Depends(get_cur
     
     return history
 
-# ============== MESSAGING ==============
+# ============== DEPARTMENTS (TRANSPARENCY PORTAL) ==============
 
-@api_router.post("/messages", response_model=MessageResponse)
-async def send_message(message_data: MessageCreate, current_user: dict = Depends(get_current_user)):
-    message_id = f"msg_{uuid.uuid4().hex[:12]}"
-    now = datetime.now(timezone.utc)
+@api_router.get("/departments", response_model=List[DepartmentResponse])
+async def get_departments(
+    state: Optional[str] = None,
+    min_risk_score: Optional[float] = None,
+    sort_by: str = "risk_score"
+):
+    """Get department data for transparency portal"""
+    query = {}
+    if state:
+        query["state"] = state
+    if min_risk_score:
+        query["risk_score"] = {"$gte": min_risk_score}
     
-    message_doc = {
-        "message_id": message_id,
-        "sender_id": current_user["user_id"],
-        "recipient_id": message_data.recipient_id,
-        "case_id": message_data.case_id,
-        "content": message_data.content,
-        "read": False,
-        "created_at": now.isoformat()
-    }
+    departments = await db.departments.find(query, {"_id": 0}).to_list(100)
     
-    await db.messages.insert_one(message_doc)
+    # If no departments, seed sample data
+    if not departments:
+        await seed_sample_departments()
+        departments = await db.departments.find(query, {"_id": 0}).to_list(100)
     
-    return MessageResponse(
-        message_id=message_id,
-        sender_id=current_user["user_id"],
-        recipient_id=message_data.recipient_id,
-        case_id=message_data.case_id,
-        content=message_data.content,
-        read=False,
-        created_at=now
-    )
+    # Sort
+    if sort_by == "risk_score":
+        departments.sort(key=lambda x: x.get("risk_score", 0), reverse=True)
+    elif sort_by == "transparency_score":
+        departments.sort(key=lambda x: x.get("transparency_score", 0), reverse=True)
+    elif sort_by == "complaint_rate":
+        departments.sort(key=lambda x: x.get("complaint_rate", 0), reverse=True)
+    
+    return [DepartmentResponse(**d) for d in departments]
 
-@api_router.get("/messages", response_model=List[MessageResponse])
-async def get_messages(current_user: dict = Depends(get_current_user)):
-    messages = await db.messages.find(
-        {"$or": [
-            {"sender_id": current_user["user_id"]},
-            {"recipient_id": current_user["user_id"]}
-        ]},
-        {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+@api_router.get("/departments/{department_id}", response_model=DepartmentResponse)
+async def get_department(department_id: str):
+    department = await db.departments.find_one({"department_id": department_id}, {"_id": 0})
     
-    result = []
-    for msg in messages:
-        if isinstance(msg.get("created_at"), str):
-            msg["created_at"] = datetime.fromisoformat(msg["created_at"])
-        result.append(MessageResponse(**msg))
+    if not department:
+        raise HTTPException(status_code=404, detail="Department not found")
     
-    return result
+    return DepartmentResponse(**department)
 
-@api_router.post("/messages/{message_id}/read")
-async def mark_message_read(message_id: str, current_user: dict = Depends(get_current_user)):
-    result = await db.messages.update_one(
-        {"message_id": message_id, "recipient_id": current_user["user_id"]},
-        {"$set": {"read": True}}
-    )
+@api_router.get("/departments/{department_id}/incidents")
+async def get_department_incidents(department_id: str, limit: int = 50):
+    """Get incidents for a specific department"""
+    incidents = await db.cases.find(
+        {"department": {"$regex": department_id, "$options": "i"}},
+        {"_id": 0, "case_id": 1, "title": 1, "violation_type": 1, "severity": 1, "status": 1, "incident_date": 1, "location": 1}
+    ).sort("incident_date", -1).to_list(limit)
     
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Message not found")
+    return incidents
+
+async def seed_sample_departments():
+    """Seed sample department data for transparency portal"""
+    sample_departments = [
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Los Angeles Police Department",
+            "city": "Los Angeles",
+            "state": "California",
+            "chief_name": "Michel Moore",
+            "officer_count": 9500,
+            "budget": 1760000000,
+            "risk_score": 7.2,
+            "complaint_rate": 12.5,
+            "use_of_force_rate": 8.3,
+            "body_cam_adoption": 95.0,
+            "transparency_score": 6.8,
+            "total_incidents": 1250,
+            "resolved_incidents": 890
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "New York Police Department",
+            "city": "New York",
+            "state": "New York",
+            "chief_name": "Keechant Sewell",
+            "officer_count": 36000,
+            "budget": 5440000000,
+            "risk_score": 6.8,
+            "complaint_rate": 9.2,
+            "use_of_force_rate": 5.7,
+            "body_cam_adoption": 98.0,
+            "transparency_score": 7.5,
+            "total_incidents": 3200,
+            "resolved_incidents": 2450
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Chicago Police Department",
+            "city": "Chicago",
+            "state": "Illinois",
+            "chief_name": "Larry Snelling",
+            "officer_count": 11900,
+            "budget": 1920000000,
+            "risk_score": 8.1,
+            "complaint_rate": 18.3,
+            "use_of_force_rate": 11.2,
+            "body_cam_adoption": 88.0,
+            "transparency_score": 5.4,
+            "total_incidents": 2100,
+            "resolved_incidents": 1200
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Houston Police Department",
+            "city": "Houston",
+            "state": "Texas",
+            "chief_name": "Troy Finner",
+            "officer_count": 5300,
+            "budget": 946000000,
+            "risk_score": 6.5,
+            "complaint_rate": 10.1,
+            "use_of_force_rate": 7.8,
+            "body_cam_adoption": 82.0,
+            "transparency_score": 6.2,
+            "total_incidents": 890,
+            "resolved_incidents": 620
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Phoenix Police Department",
+            "city": "Phoenix",
+            "state": "Arizona",
+            "chief_name": "Michael Sullivan",
+            "officer_count": 2900,
+            "budget": 740000000,
+            "risk_score": 7.8,
+            "complaint_rate": 14.7,
+            "use_of_force_rate": 9.5,
+            "body_cam_adoption": 78.0,
+            "transparency_score": 5.8,
+            "total_incidents": 720,
+            "resolved_incidents": 410
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Minneapolis Police Department",
+            "city": "Minneapolis",
+            "state": "Minnesota",
+            "chief_name": "Brian O'Hara",
+            "officer_count": 580,
+            "budget": 191000000,
+            "risk_score": 8.9,
+            "complaint_rate": 22.1,
+            "use_of_force_rate": 15.8,
+            "body_cam_adoption": 92.0,
+            "transparency_score": 4.2,
+            "total_incidents": 340,
+            "resolved_incidents": 145
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Atlanta Police Department",
+            "city": "Atlanta",
+            "state": "Georgia",
+            "chief_name": "Darin Schierbaum",
+            "officer_count": 1800,
+            "budget": 240000000,
+            "risk_score": 6.2,
+            "complaint_rate": 8.9,
+            "use_of_force_rate": 6.4,
+            "body_cam_adoption": 96.0,
+            "transparency_score": 7.8,
+            "total_incidents": 420,
+            "resolved_incidents": 335
+        },
+        {
+            "department_id": f"dept_{uuid.uuid4().hex[:12]}",
+            "name": "Seattle Police Department",
+            "city": "Seattle",
+            "state": "Washington",
+            "chief_name": "Adrian Diaz",
+            "officer_count": 1000,
+            "budget": 363000000,
+            "risk_score": 5.5,
+            "complaint_rate": 7.2,
+            "use_of_force_rate": 4.8,
+            "body_cam_adoption": 99.0,
+            "transparency_score": 8.5,
+            "total_incidents": 280,
+            "resolved_incidents": 230
+        }
+    ]
     
-    return {"message": "Message marked as read"}
+    await db.departments.insert_many(sample_departments)
 
 # ============== ANALYTICS ==============
 
@@ -1048,6 +1546,12 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     
     # Get evidence count
     total_evidence = await db.evidence.count_documents({"user_id": user_id})
+    
+    # Get unread messages
+    unread_messages = await db.messages.count_documents({
+        "recipient_id": user_id,
+        "read": False
+    })
     
     # Get violation types distribution
     violation_pipeline = [
@@ -1068,6 +1572,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "open_cases": open_cases,
         "resolved_cases": resolved_cases,
         "total_evidence": total_evidence,
+        "unread_messages": unread_messages,
         "violations_by_type": [{"type": v["_id"], "count": v["count"]} for v in violations],
         "recent_cases": recent_cases
     }
@@ -1078,6 +1583,7 @@ async def get_public_stats():
     total_cases = await db.cases.count_documents({})
     total_users = await db.users.count_documents({})
     resolved_cases = await db.cases.count_documents({"status": "resolved"})
+    total_departments = await db.departments.count_documents({})
     
     # Get violation types distribution
     violation_pipeline = [
@@ -1087,12 +1593,22 @@ async def get_public_stats():
     ]
     violations = await db.cases.aggregate(violation_pipeline).to_list(10)
     
+    # Get state distribution
+    state_pipeline = [
+        {"$group": {"_id": "$state", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    states = await db.departments.aggregate(state_pipeline).to_list(10)
+    
     return {
         "total_cases": total_cases,
         "total_users": total_users,
         "resolved_cases": resolved_cases,
+        "total_departments": total_departments,
         "success_rate": round((resolved_cases / total_cases * 100) if total_cases > 0 else 0, 1),
-        "violations_by_type": [{"type": v["_id"], "count": v["count"]} for v in violations]
+        "violations_by_type": [{"type": v["_id"], "count": v["count"]} for v in violations],
+        "departments_by_state": [{"state": s["_id"], "count": s["count"]} for s in states]
     }
 
 # ============== KNOW YOUR RIGHTS ==============
@@ -1175,11 +1691,55 @@ async def get_rights_info():
     
     return {"rights": rights}
 
+# ============== WEBSOCKET ENDPOINT ==============
+
+@api_router.websocket("/ws/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    """WebSocket connection for real-time updates"""
+    try:
+        # Verify token
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload["user_id"]
+    except jwt.InvalidTokenError:
+        await websocket.close(code=4001)
+        return
+    
+    await manager.connect(websocket, user_id)
+    
+    try:
+        # Send connection confirmation
+        await websocket.send_json({
+            "type": "connected",
+            "user_id": user_id,
+            "message": "WebSocket connected successfully"
+        })
+        
+        while True:
+            # Keep connection alive and handle incoming messages
+            data = await websocket.receive_json()
+            
+            if data.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+            elif data.get("type") == "typing":
+                # Broadcast typing indicator to conversation participants
+                recipient_id = data.get("recipient_id")
+                if recipient_id:
+                    await manager.send_to_user(recipient_id, {
+                        "type": "typing",
+                        "user_id": user_id,
+                        "conversation_id": data.get("conversation_id")
+                    })
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+    except Exception as e:
+        logger.error(f"WebSocket error: {str(e)}")
+        manager.disconnect(websocket, user_id)
+
 # ============== HEALTH CHECK ==============
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "2.0.0"}
 
 # Include the router
 app.include_router(api_router)
