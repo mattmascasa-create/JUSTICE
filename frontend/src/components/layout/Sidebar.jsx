@@ -19,7 +19,9 @@ import {
   X,
   Moon,
   Sun,
-  Shield
+  Shield,
+  MessageCircle,
+  Building
 } from 'lucide-react';
 
 const navItems = [
@@ -29,7 +31,9 @@ const navItems = [
   { icon: Bot, label: 'AI Attorney', path: '/ai-attorney' },
   { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
   { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
+  { icon: MessageCircle, label: 'Messages', path: '/messages' },
   { icon: BookOpen, label: 'Know Your Rights', path: '/rights' },
+  { icon: Building, label: 'Transparency', path: '/transparency' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 

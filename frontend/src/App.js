@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { Toaster } from "./components/ui/sonner";
 
 // Pages
@@ -18,7 +19,22 @@ import AIAttorneyPage from "./pages/AIAttorneyPage";
 import SOSPage from "./pages/SOSPage";
 import AttorneysPage from "./pages/AttorneysPage";
 import KnowYourRightsPage from "./pages/KnowYourRightsPage";
+import MessagesPage from "./pages/MessagesPage";
+import TransparencyPage from "./pages/TransparencyPage";
 import SettingsPage from "./pages/SettingsPage";
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('SW registered:', registration);
+      })
+      .catch((error) => {
+        console.log('SW registration failed:', error);
+      });
+  });
+}
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -37,7 +53,7 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <WebSocketProvider>{children}</WebSocketProvider>;
 }
 
 // App Router with OAuth handling
@@ -55,6 +71,7 @@ function AppRouter() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/transparency" element={<TransparencyPage />} />
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -65,6 +82,7 @@ function AppRouter() {
       <Route path="/ai-attorney" element={<ProtectedRoute><AIAttorneyPage /></ProtectedRoute>} />
       <Route path="/sos" element={<ProtectedRoute><SOSPage /></ProtectedRoute>} />
       <Route path="/attorneys" element={<ProtectedRoute><AttorneysPage /></ProtectedRoute>} />
+      <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
       <Route path="/rights" element={<ProtectedRoute><KnowYourRightsPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       
