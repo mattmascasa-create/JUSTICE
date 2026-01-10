@@ -274,8 +274,8 @@ class JusticeAPITester:
     def test_websocket_endpoint_exists(self):
         """Test WebSocket endpoint exists (will fail connection but endpoint should exist)"""
         # Test with invalid token to check if endpoint exists
-        import websocket
         try:
+            import websocket
             ws_url = self.base_url.replace('https://', 'wss://').replace('http://', 'ws://')
             ws = websocket.create_connection(f"{ws_url}/ws/invalid_token", timeout=2)
             ws.close()
