@@ -345,6 +345,16 @@ class JusticeAPITester:
         message_id = self.test_send_message()
         self.test_get_messages()
         
+        # Test 13: Phase 2 - Departments API (Transparency Portal)
+        self.test_departments_api()
+        self.test_departments_filtering()
+        
+        # Test 14: Phase 2 - File Upload
+        self.test_file_upload_endpoint()
+        
+        # Test 15: Phase 2 - WebSocket Endpoint
+        self.test_websocket_endpoint_exists()
+        
         return self.generate_report()
 
     def generate_report(self):
