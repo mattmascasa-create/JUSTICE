@@ -1184,11 +1184,19 @@ async def health_check():
 # Include the router
 app.include_router(api_router)
 
-# CORS middleware
+# CORS middleware - properly configured for credentials
+cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+# For credentials to work, we need specific origins, not wildcard
+if cors_origins == ['*']:
+    cors_origins = [
+        "http://localhost:3000",
+        "https://change-catalyst-5.preview.emergentagent.com"
+    ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
