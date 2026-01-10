@@ -53,6 +53,15 @@ export const evidenceAPI = {
   getByCase: (caseId) => api.get(`/evidence/case/${caseId}`),
   create: (data) => api.post('/evidence', data),
   delete: (id) => api.delete(`/evidence/${id}`),
+  upload: (file, caseId, description) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (caseId) formData.append('case_id', caseId);
+    if (description) formData.append('description', description);
+    return api.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
 };
 
 // Attorneys API
@@ -76,9 +85,17 @@ export const aiAPI = {
 
 // Messages API
 export const messagesAPI = {
-  list: () => api.get('/messages'),
+  getConversations: () => api.get('/messages/conversations'),
+  getMessages: (conversationId) => api.get(`/messages/conversation/${conversationId}`),
   send: (data) => api.post('/messages', data),
   markRead: (id) => api.post(`/messages/${id}/read`),
+};
+
+// Departments API (Transparency Portal)
+export const departmentsAPI = {
+  list: (params) => api.get('/departments', { params }),
+  get: (id) => api.get(`/departments/${id}`),
+  getIncidents: (id, limit) => api.get(`/departments/${id}/incidents`, { params: { limit } }),
 };
 
 // Analytics API
