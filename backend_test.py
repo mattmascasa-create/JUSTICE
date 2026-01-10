@@ -90,7 +90,7 @@ class JusticeAPITester:
 
     def test_user_registration(self):
         """Test user registration"""
-        test_email = f"test_user_{datetime.now().strftime('%H%M%S')}@justice.test"
+        test_email = f"test_user_{datetime.now().strftime('%H%M%S')}@example.com"
         test_data = {
             "email": test_email,
             "password": "TestPass123!",
