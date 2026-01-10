@@ -1,134 +1,162 @@
 {
-  "timestamp": "2026-01-10T02:29:58.025108",
-  "total_tests": 18,
-  "passed_tests": 18,
-  "success_rate": 100.0,
+  "timestamp": "2026-01-10T02:59:08.298301",
+  "total_tests": 22,
+  "passed_tests": 21,
+  "success_rate": 95.45454545454545,
   "detailed_results": [
     {
       "test_name": "Health Check",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:32.788125"
+      "timestamp": "2026-01-10T02:58:35.363906"
     },
     {
       "test_name": "User Registration",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.052827"
+      "timestamp": "2026-01-10T02:58:35.595545"
     },
     {
       "test_name": "User Login",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.285809"
+      "timestamp": "2026-01-10T02:58:35.825188"
     },
     {
       "test_name": "Get User Profile",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.293227"
+      "timestamp": "2026-01-10T02:58:35.833370"
     },
     {
       "test_name": "Create Case",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.359407"
+      "timestamp": "2026-01-10T02:58:35.841500"
     },
     {
       "test_name": "Get Cases",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.367532"
+      "timestamp": "2026-01-10T02:58:35.850357"
     },
     {
       "test_name": "Get Case Detail",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.377225"
+      "timestamp": "2026-01-10T02:58:35.899972"
     },
     {
       "test_name": "Create Evidence",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.401069"
+      "timestamp": "2026-01-10T02:58:35.908479"
     },
     {
       "test_name": "Get All Evidence",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.416348"
+      "timestamp": "2026-01-10T02:58:35.915312"
     },
     {
       "test_name": "Get Attorneys",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.445634"
+      "timestamp": "2026-01-10T02:58:35.922228"
     },
     {
       "test_name": "Create SOS Alert",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.502906"
+      "timestamp": "2026-01-10T02:58:35.970945"
     },
     {
       "test_name": "Get Active SOS",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:33.511658"
+      "timestamp": "2026-01-10T02:58:35.978437"
     },
     {
       "test_name": "AI Chat",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:57.924777"
+      "timestamp": "2026-01-10T02:59:08.084808"
     },
     {
       "test_name": "Get Rights Info",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:57.930649"
+      "timestamp": "2026-01-10T02:59:08.091962"
     },
     {
       "test_name": "Dashboard Analytics",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:57.981162"
+      "timestamp": "2026-01-10T02:59:08.105907"
     },
     {
       "test_name": "Public Analytics",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:57.990416"
+      "timestamp": "2026-01-10T02:59:08.156045"
     },
     {
       "test_name": "Send Message",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:58.013564"
+      "timestamp": "2026-01-10T02:59:08.164727"
     },
     {
       "test_name": "Get Messages",
       "success": true,
       "details": "Status: 200 (expected 200)",
       "response_data": null,
-      "timestamp": "2026-01-10T02:29:58.025062"
+      "timestamp": "2026-01-10T02:59:08.173837"
+    },
+    {
+      "test_name": "Get Departments (Public)",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:59:08.182721"
+    },
+    {
+      "test_name": "Get Departments by State",
+      "success": true,
+      "details": "Status: 200 (expected 200)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:59:08.228813"
+    },
+    {
+      "test_name": "File Upload Endpoint",
+      "success": true,
+      "details": "Status: 422 (expected 422)",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:59:08.237553"
+    },
+    {
+      "test_name": "WebSocket Endpoint Exists",
+      "success": false,
+      "details": "Unexpected WebSocket error: Handshake status 403 Forbidden -+-+- {'content-length': '0', 'content-type': 'text/plain', 'date': 'Sat, 10 Jan 2026 02:59:08 GMT', 'via': '1.1 google', 'sec-websocket-accept': 'ogHyzBljBjeKxh5KuToy/yNwyjo=', 'alt-svc': 'h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000', 'connection': 'close'} -+-+- b''",
+      "response_data": null,
+      "timestamp": "2026-01-10T02:59:08.297906"
     }
   ]
 }
