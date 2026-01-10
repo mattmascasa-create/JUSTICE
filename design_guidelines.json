@@ -1,0 +1,186 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "mission": "Create a police accountability platform that feels like a 'Civil Rights Command Center'. It must balance the gravity of legal defense with the urgency of emergency response. No generic SaaS templates. Fusion of 'Swiss Legal Brutalism' and 'Cyber-Security Dashboard'.",
+    "principles": [
+      "Fusion: Legal Authority (Serif) + Emergency Tech (Neon/Dark Mode)",
+      "Emotion: Trust, Empowerment, Urgency",
+      "Content: Every pixel serves the citizen's right to justice",
+      "Contrast: High contrast for readability in stressful situations"
+    ]
+  },
+  "design_system": {
+    "typography": {
+      "font_family": {
+        "heading": "Libre Baskerville, serif",
+        "body": "Public Sans, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "instructions": "Use 'Libre Baskerville' for all H1-H3 headings to evoke constitutional authority. Use 'Public Sans' for UI, forms, and body text for government-grade clarity. Use 'JetBrains Mono' for evidence timestamps and case IDs.",
+      "installation": "Import from Google Fonts: https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@300;400;500;600;700&display=swap"
+    },
+    "colors": {
+      "palette_name": "The Guardian System",
+      "light_theme": {
+        "background": "210 40% 98%",
+        "foreground": "222 47% 11%",
+        "card": "0 0% 100%",
+        "card_foreground": "222 47% 11%",
+        "popover": "0 0% 100%",
+        "popover_foreground": "222 47% 11%",
+        "primary": "222 47% 30%",
+        "primary_foreground": "210 40% 98%",
+        "secondary": "210 40% 96.1%",
+        "secondary_foreground": "222 47% 11%",
+        "muted": "210 40% 96.1%",
+        "muted_foreground": "215 16% 47%",
+        "accent": "210 40% 96.1%",
+        "accent_foreground": "222 47% 11%",
+        "destructive": "0 84.2% 60.2%",
+        "destructive_foreground": "210 40% 98%",
+        "border": "214.3 31.8% 91.4%",
+        "input": "214.3 31.8% 91.4%",
+        "ring": "222 47% 11%",
+        "chart_1": "222 47% 30%",
+        "chart_2": "217 91% 60%",
+        "chart_3": "0 72% 51%",
+        "chart_4": "43 74% 66%",
+        "chart_5": "27 87% 67%"
+      },
+      "dark_theme": {
+        "background": "222 47% 11%",
+        "foreground": "210 40% 98%",
+        "card": "222 47% 13%",
+        "card_foreground": "210 40% 98%",
+        "popover": "222 47% 11%",
+        "popover_foreground": "210 40% 98%",
+        "primary": "210 40% 98%",
+        "primary_foreground": "222 47% 11%",
+        "secondary": "217 19% 27%",
+        "secondary_foreground": "210 40% 98%",
+        "muted": "217 19% 27%",
+        "muted_foreground": "215 20.2% 65.1%",
+        "accent": "217 19% 27%",
+        "accent_foreground": "210 40% 98%",
+        "destructive": "0 62.8% 30.6%",
+        "destructive_foreground": "210 40% 98%",
+        "border": "217 19% 27%",
+        "input": "217 19% 27%",
+        "ring": "212.7 26.8% 83.9%",
+        "chart_1": "220 70% 50%",
+        "chart_2": "160 60% 45%",
+        "chart_3": "30 80% 55%",
+        "chart_4": "280 65% 60%",
+        "chart_5": "340 75% 55%"
+      },
+      "custom_colors": {
+        "justice-blue": "#0F172A",
+        "signal-blue": "#3B82F6",
+        "emergency-red": "#EF4444",
+        "legal-gold": "#D4AF37"
+      }
+    },
+    "spacing": {
+      "scale": "p-1, p-2, p-4, p-6, p-8, p-12, p-16, p-20, p-24, p-32",
+      "rule": "Use generous spacing. Minimum p-6 for cards. p-24 for section gaps."
+    },
+    "visual_enhancers": {
+      "glassmorphism": "backdrop-blur-xl bg-background/70 border border-white/10 shadow-sm",
+      "tracing_beam": "Use for 'Know Your Rights' cards. A subtle glowing border that traces the card on hover.",
+      "noise_texture": "Add a subtle noise texture to the dark mode background to prevent banding and add 'film' quality."
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_background": {
+        "url": "https://images.unsplash.com/photo-1571909373818-da65ec18d77b?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Abstract Modern Courthouse Architecture",
+        "usage": "Landing page hero background with heavy overlay"
+      },
+      "attorney_avatars": [
+        {
+          "url": "https://images.pexels.com/photos/4427497/pexels-photo-4427497.jpeg",
+          "alt": "Professional Attorney 1"
+        },
+        {
+          "url": "https://images.pexels.com/photos/4427428/pexels-photo-4427428.jpeg",
+          "alt": "Professional Attorney 2"
+        }
+      ],
+      "evidence_abstract": {
+        "url": "https://images.unsplash.com/photo-1759661881353-5b9cc55e1cf4?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Digital Security Abstract",
+        "usage": "Background for Evidence Library or AI Attorney section"
+      },
+      "map_context": {
+        "url": "https://images.unsplash.com/photo-1627394110519-70e1dff0eb6e?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "City Architecture",
+        "usage": "Contextual image for Transparency Portal"
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "instructions": "Use Lucide icons for all UI elements. Use 'Shield', 'Scale', 'Siren', 'FileText', 'MapPin' heavily."
+    }
+  },
+  "layouts": {
+    "landing_page": {
+      "style": "Tetris Grid",
+      "structure": [
+        "Hero: Full width, centered typography, 'Get Protection' CTA.",
+        "Features: Bento Grid (3x4). Mix of large feature cards and small stat blocks.",
+        "Testimonials: Horizontal scroll with 'Legal Paper' texture.",
+        "CTA: High contrast 'Emergency Red' section for SOS app download."
+      ]
+    },
+    "dashboard": {
+      "style": "Control Room Grid",
+      "structure": [
+        "Sidebar: Collapsible, dark mode default.",
+        "Header: Glassmorphism, sticky.",
+        "Main Content: Dense grid. 'Live Map' takes 2x2 span. 'Recent Alerts' takes 1x2 span."
+      ]
+    },
+    "sos_page": {
+      "style": "Red Zone",
+      "structure": [
+        "Background: Dark Red/Black gradient.",
+        "Center: Massive pulsing SOS button (50vw max width).",
+        "Bottom: 'Slide to Cancel' or 'I am Safe' secondary actions."
+      ]
+    }
+  },
+  "components": {
+    "ui_library": "shadcn/ui",
+    "custom_components": [
+      {
+        "name": "IncidentCard",
+        "description": "Card displaying police encounter details. Must include map snippet, timestamp (mono font), and severity badge."
+      },
+      {
+        "name": "RightsWizard",
+        "description": "Step-by-step interactive guide for police encounters. Large typography, simple 'Yes/No' choices."
+      },
+      {
+        "name": "EvidenceUploader",
+        "description": "Drag and drop zone with 'Blockchain Verification' badge animation on success."
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Update index.css with the provided HSL variables immediately.",
+    "2. FONTS: Add the Google Fonts link to public/index.html.",
+    "3. LANDING: Build the Landing Page first using the 'Tetris Grid' layout. Use the 'Courthouse' image as a subtle background.",
+    "4. DASHBOARD: Create the Dashboard shell with Sidebar and Header. Use 'Control Room' density.",
+    "5. SOS: Implement the SOS page with extreme contrast (Red/Black).",
+    "6. AI ATTORNEY: Use the 'Chat' interface from Shadcn but style it like a secure messaging app (Signal/Telegram style).",
+    "7. CRITICAL: Ensure 'data-testid' is added to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Do not use gradients for text.",
+    "Do not use 'Inter' for headings.",
+    "Always use 'sonner' for toasts.",
+    "Use 'lucide-react' for icons.",
+    "Ensure mobile responsiveness is tested (max-h-80vh for images)."
+  ]
+}
