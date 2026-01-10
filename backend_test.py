@@ -246,7 +246,51 @@ class JusticeAPITester:
 
     def test_get_messages(self):
         """Test get messages"""
-        return self.run_test("Get Messages", "GET", "messages", 200)
+        return self.run_test("Get Messages", "GET", "messages/conversations", 200)
+
+    def test_departments_api(self):
+        """Test departments API for transparency portal"""
+        # Test without auth (public endpoint)
+        temp_token = self.token
+        self.token = None
+        success, response = self.run_test("Get Departments (Public)", "GET", "departments", 200)
+        self.token = temp_token
+        return success, response
+
+    def test_departments_filtering(self):
+        """Test departments filtering by state"""
+        temp_token = self.token
+        self.token = None
+        success, response = self.run_test("Get Departments by State", "GET", "departments?state=California", 200)
+        self.token = temp_token
+        return success, response
+
+    def test_file_upload_endpoint(self):
+        """Test file upload endpoint (without actual file)"""
+        # This will test the endpoint exists and returns proper error for missing file
+        success, response = self.run_test("File Upload Endpoint", "POST", "upload", 422)
+        return success
+
+    def test_websocket_endpoint_exists(self):
+        """Test WebSocket endpoint exists (will fail connection but endpoint should exist)"""
+        # Test with invalid token to check if endpoint exists
+        import websocket
+        try:
+            ws_url = self.base_url.replace('https://', 'wss://').replace('http://', 'ws://')
+            ws = websocket.create_connection(f"{ws_url}/ws/invalid_token", timeout=2)
+            ws.close()
+            self.log_test("WebSocket Endpoint Exists", True, "WebSocket endpoint accessible")
+            return True
+        except websocket.WebSocketBadStatusException as e:
+            if e.status_code == 4001:  # Expected error for invalid token
+                self.log_test("WebSocket Endpoint Exists", True, "WebSocket endpoint exists (invalid token error expected)")
+                return True
+            else:
+                self.log_test("WebSocket Endpoint Exists", False, f"Unexpected WebSocket error: {e}")
+                return False
+        except Exception as e:
+            self.log_test("WebSocket Endpoint Exists", False, f"WebSocket connection failed: {e}")
+            return False
 
     def run_comprehensive_test(self):
         """Run all tests in sequence"""
