@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -7,11 +7,12 @@ import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Progress } from '../components/ui/progress';
 import { evidenceAPI, casesAPI } from '../lib/api';
 import { formatDateTime, formatFileSize } from '../lib/utils';
 import { 
   Upload, Search, FileText, Image, Video, Music, 
-  Trash2, Download, Shield, CheckCircle, Filter
+  Trash2, Download, Shield, CheckCircle, Filter, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,14 +23,12 @@ export default function EvidencePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [uploadData, setUploadData] = useState({
-    case_id: '',
-    file_name: '',
-    file_url: '',
-    file_type: 'document',
-    file_size: 0,
-    description: ''
-  });
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedCase, setSelectedCase] = useState('');
+  const [fileDescription, setFileDescription] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchData();
@@ -50,29 +49,52 @@ export default function EvidencePage() {
     }
   };
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size (500MB max)
+      if (file.size > 500 * 1024 * 1024) {
+        toast.error('File too large. Maximum size is 500MB');
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
     
-    if (!uploadData.case_id || !uploadData.file_name || !uploadData.file_url) {
-      toast.error('Please fill in all required fields');
+    if (!selectedFile || !selectedCase) {
+      toast.error('Please select a file and case');
       return;
     }
 
+    setUploading(true);
+    setUploadProgress(0);
+
     try {
-      await evidenceAPI.create(uploadData);
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      const response = await evidenceAPI.upload(selectedFile, selectedCase, fileDescription);
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
       toast.success('Evidence uploaded and verified on blockchain');
       setUploadDialogOpen(false);
-      setUploadData({
-        case_id: '',
-        file_name: '',
-        file_url: '',
-        file_type: 'document',
-        file_size: 0,
-        description: ''
-      });
+      setSelectedFile(null);
+      setSelectedCase('');
+      setFileDescription('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       fetchData();
     } catch (error) {
-      toast.error('Failed to upload evidence');
+      toast.error(error.response?.data?.detail || 'Failed to upload evidence');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -137,8 +159,8 @@ export default function EvidencePage() {
                 <div className="space-y-2">
                   <Label>Case *</Label>
                   <Select 
-                    value={uploadData.case_id} 
-                    onValueChange={(v) => setUploadData({...uploadData, case_id: v})}
+                    value={selectedCase} 
+                    onValueChange={setSelectedCase}
                   >
                     <SelectTrigger data-testid="evidence-case-select">
                       <SelectValue placeholder="Select a case" />
@@ -152,69 +174,52 @@ export default function EvidencePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>File Name *</Label>
+                  <Label>File *</Label>
                   <Input
-                    placeholder="e.g., bodycam_footage.mp4"
-                    value={uploadData.file_name}
-                    onChange={(e) => setUploadData({...uploadData, file_name: e.target.value})}
-                    data-testid="evidence-filename-input"
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileSelect}
+                    accept=".mp4,.mov,.avi,.mp3,.wav,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
+                    data-testid="evidence-file-input"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>File URL *</Label>
-                  <Input
-                    placeholder="https://..."
-                    value={uploadData.file_url}
-                    onChange={(e) => setUploadData({...uploadData, file_url: e.target.value})}
-                    data-testid="evidence-url-input"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>File Type</Label>
-                    <Select 
-                      value={uploadData.file_type} 
-                      onValueChange={(v) => setUploadData({...uploadData, file_type: v})}
-                    >
-                      <SelectTrigger data-testid="evidence-type-select">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="document">Document</SelectItem>
-                        <SelectItem value="image">Image</SelectItem>
-                        <SelectItem value="video">Video</SelectItem>
-                        <SelectItem value="audio">Audio</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>File Size (bytes)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={uploadData.file_size}
-                      onChange={(e) => setUploadData({...uploadData, file_size: parseInt(e.target.value) || 0})}
-                      data-testid="evidence-size-input"
-                    />
-                  </div>
+                  {selectedFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label>Description</Label>
                   <Input
                     placeholder="Brief description of the evidence"
-                    value={uploadData.description}
-                    onChange={(e) => setUploadData({...uploadData, description: e.target.value})}
+                    value={fileDescription}
+                    onChange={(e) => setFileDescription(e.target.value)}
                     data-testid="evidence-description-input"
                   />
                 </div>
 
-                <Button type="submit" className="w-full" data-testid="submit-evidence-btn">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Upload & Verify
+                {uploading && (
+                  <div className="space-y-2">
+                    <Progress value={uploadProgress} />
+                    <p className="text-sm text-center text-muted-foreground">
+                      Uploading and verifying... {uploadProgress}%
+                    </p>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" disabled={uploading || !selectedFile || !selectedCase} data-testid="submit-evidence-btn">
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Upload & Verify
+                    </>
+                  )}
                 </Button>
               </form>
             </DialogContent>
