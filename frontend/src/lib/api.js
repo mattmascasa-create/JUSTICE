@@ -222,7 +222,8 @@ export const blockchainAPI = {
   },
   verifyEvidence: (evidenceId) => api.get(`/evidence/${evidenceId}/verify`),
   getCertificate: (evidenceId) => api.get(`/evidence/${evidenceId}/certificate`),
-  getBlockchainStatus: () => api.get('/blockchain/status')
+  getBlockchainStatus: () => api.get('/blockchain/status'),
+  getIPFSStatus: () => api.get('/ipfs/status')
 };
 
 // Policy Impact Dashboard API
