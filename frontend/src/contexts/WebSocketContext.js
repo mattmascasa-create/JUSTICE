@@ -4,15 +4,32 @@ import { toast } from 'sonner';
 
 const WebSocketContext = createContext();
 
+// Exponential backoff configuration
+const INITIAL_RECONNECT_DELAY = 1000;
+const MAX_RECONNECT_DELAY = 30000;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
 export function WebSocketProvider({ children }) {
   const { token, user } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const reconnectAttemptRef = useRef(0);
+  const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
+
+  const resetReconnectState = useCallback(() => {
+    reconnectAttemptRef.current = 0;
+    reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+  }, []);
 
   const connect = useCallback(() => {
     if (!token || !user) return;
+
+    // Prevent multiple connections
+    if (wsRef.current && wsRef.current.readyState === WebSocket.CONNECTING) {
+      return;
+    }
 
     const wsUrl = process.env.REACT_APP_BACKEND_URL
       .replace('https://', 'wss://')
@@ -23,6 +40,7 @@ export function WebSocketProvider({ children }) {
 
       wsRef.current.onopen = () => {
         setIsConnected(true);
+        resetReconnectState();
         console.log('WebSocket connected');
       };
 
@@ -31,11 +49,28 @@ export function WebSocketProvider({ children }) {
         handleMessage(data);
       };
 
-      wsRef.current.onclose = () => {
+      wsRef.current.onclose = (event) => {
         setIsConnected(false);
-        console.log('WebSocket disconnected');
-        // Reconnect after 3 seconds
-        reconnectTimeoutRef.current = setTimeout(connect, 3000);
+        console.log('WebSocket disconnected', event.code, event.reason);
+        
+        // Don't reconnect if explicitly closed or max attempts reached
+        if (event.code === 1000 || reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
+          if (reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
+            console.warn('Max WebSocket reconnect attempts reached');
+            toast.error('Connection lost. Please refresh the page.');
+          }
+          return;
+        }
+
+        // Exponential backoff reconnection
+        reconnectAttemptRef.current += 1;
+        const delay = Math.min(
+          reconnectDelayRef.current * Math.pow(2, reconnectAttemptRef.current - 1),
+          MAX_RECONNECT_DELAY
+        );
+        
+        console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+        reconnectTimeoutRef.current = setTimeout(connect, delay);
       };
 
       wsRef.current.onerror = (error) => {
@@ -44,7 +79,7 @@ export function WebSocketProvider({ children }) {
     } catch (error) {
       console.error('WebSocket connection error:', error);
     }
-  }, [token, user]);
+  }, [token, user, resetReconnectState]);
 
   const handleMessage = (data) => {
     switch (data.type) {

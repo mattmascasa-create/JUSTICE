@@ -39,12 +39,96 @@ const navItems = [
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileSheet = false }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  // If rendered inside a Sheet (mobile), show simplified content
+  if (isMobileSheet) {
+    return (
+      <div className="flex flex-col h-full pt-8">
+        {/* Logo */}
+        <div className="flex items-center gap-3 p-6 border-b border-border">
+          <Shield className="h-8 w-8 text-signal-blue flex-shrink-0" style={{ color: '#3B82F6' }} />
+          <span className="font-serif text-xl font-bold tracking-tight">JUSTICE</span>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path || 
+              (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                data-testid={`sheet-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                  "hover:bg-accent hover:text-accent-foreground",
+                  isActive && "bg-primary text-primary-foreground",
+                  item.emergency && !isActive && "hover:bg-red-500/10 hover:text-red-500"
+                )}
+              >
+                <item.icon className={cn(
+                  "h-5 w-5 flex-shrink-0",
+                  item.emergency && !isActive && "text-red-500"
+                )} />
+                <span className={cn(
+                  "font-medium",
+                  item.emergency && !isActive && "text-red-500"
+                )}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User Section */}
+        <div className="p-4 border-t border-border space-y-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            data-testid="sheet-theme-toggle"
+            className="w-full justify-start gap-3"
+          >
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          </Button>
+
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={user?.picture} alt={user?.name} />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            </div>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={logout}
+            data-testid="sheet-logout-btn"
+            className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Sign Out</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     await logout();
