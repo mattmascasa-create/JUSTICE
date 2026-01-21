@@ -89,6 +89,7 @@ function AppRouter() {
       <Route path="/ai-attorney" element={<ProtectedRoute><AIAttorneyPage /></ProtectedRoute>} />
       <Route path="/analyze" element={<ProtectedRoute><DocumentAnalysisPage /></ProtectedRoute>} />
       <Route path="/community" element={<ProtectedRoute><CommunityVaultPage /></ProtectedRoute>} />
+      <Route path="/policy" element={<ProtectedRoute><PolicyDashboardPage /></ProtectedRoute>} />
       <Route path="/sos" element={<ProtectedRoute><SOSPage /></ProtectedRoute>} />
       <Route path="/attorneys" element={<ProtectedRoute><AttorneysPage /></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
