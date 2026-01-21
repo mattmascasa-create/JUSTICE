@@ -3990,6 +3990,12 @@ async def verify_evidence_integrity(
         "previous_custody_hash": custody_entries[-1]["signature"] if custody_entries else None
     })
     
+    # Verify IPFS content if available
+    ipfs_verification = None
+    ipfs_cid = evidence.get("ipfs_cid")
+    if ipfs_cid:
+        ipfs_verification = await verify_ipfs_content(ipfs_cid, hash_record["file_hash"])
+    
     verification_result = {
         "verification_id": verification_id,
         "evidence_id": evidence_id,
@@ -4004,7 +4010,13 @@ async def verify_evidence_integrity(
         "court_admissible": is_valid and chain_intact,
         "hash_algorithm": "SHA-256",
         "created_at": evidence.get("created_at"),
-        "chain_of_custody": custody_entries
+        "chain_of_custody": custody_entries,
+        "ipfs": {
+            "enabled": bool(ipfs_cid),
+            "cid": ipfs_cid,
+            "gateway_url": evidence.get("ipfs_gateway_url"),
+            "verification": ipfs_verification
+        } if ipfs_cid else None
     }
     
     # Store verification record (copy to avoid _id mutation)
