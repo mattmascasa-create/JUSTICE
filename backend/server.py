@@ -22,7 +22,7 @@ import random
 import base64
 import io
 import tempfile
-from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAILLM
+from emergentintegrations.llm.openai import OpenAISpeechToText, LlmChat
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
