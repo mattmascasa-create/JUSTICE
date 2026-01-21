@@ -3852,6 +3852,29 @@ async def secure_evidence_upload(
     
     await db.evidence.insert_one(evidence_doc)
     
+    # Upload to IPFS for decentralized storage
+    ipfs_result = await upload_to_ipfs(
+        file_content, 
+        filename,
+        {"evidence_id": evidence_id, "file_hash": file_hash}
+    )
+    
+    # Update evidence with IPFS info if successful
+    if ipfs_result.get("success"):
+        await db.evidence.update_one(
+            {"evidence_id": evidence_id},
+            {"$set": {
+                "ipfs_cid": ipfs_result["ipfs_cid"],
+                "ipfs_url": ipfs_result["ipfs_url"],
+                "ipfs_gateway_url": ipfs_result["gateway_url"],
+                "ipfs_pinned": True
+            }}
+        )
+        await db.evidence_hashes.update_one(
+            {"evidence_id": evidence_id},
+            {"$set": {"ipfs_cid": ipfs_result["ipfs_cid"]}}
+        )
+    
     # Add to pending blockchain batch
     blockchain_state["pending_hashes"].append(combined_hash)
     
@@ -3868,7 +3891,7 @@ async def secure_evidence_upload(
         
         blockchain_state["pending_hashes"] = []
     
-    logger.info(f"Secure evidence uploaded: {evidence_id} with hash {combined_hash[:16]}...")
+    logger.info(f"Secure evidence uploaded: {evidence_id} with hash {combined_hash[:16]}... IPFS: {ipfs_result.get('ipfs_cid', 'N/A')}")
     
     return {
         "evidence_id": evidence_id,
@@ -3878,7 +3901,14 @@ async def secure_evidence_upload(
         "hash_id": hash_id,
         "blockchain_verified": True,
         "chain_of_custody_started": True,
-        "message": "Evidence securely uploaded with cryptographic verification"
+        "ipfs": {
+            "enabled": ipfs_result.get("success", False),
+            "cid": ipfs_result.get("ipfs_cid"),
+            "url": ipfs_result.get("ipfs_url"),
+            "gateway_url": ipfs_result.get("gateway_url"),
+            "error": ipfs_result.get("error") if not ipfs_result.get("success") else None
+        },
+        "message": "Evidence securely uploaded with cryptographic verification" + (" and IPFS storage" if ipfs_result.get("success") else "")
     }
 
 @api_router.get("/evidence/{evidence_id}/verify")
