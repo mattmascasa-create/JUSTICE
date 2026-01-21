@@ -3121,6 +3121,351 @@ async def get_emergency_contacts(
     )
     return user.get("emergency_contacts", [])
 
+# ============== COMMUNITY EVIDENCE VAULT ==============
+
+@api_router.post("/community/submit")
+async def submit_to_community_vault(
+    submission: CommunitySubmitRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Submit an encounter to the community evidence vault (anonymized)"""
+    submission_id = f"sub_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    # If linking to existing encounter, verify ownership
+    if submission.encounter_id:
+        encounter = await db.encounters.find_one(
+            {"encounter_id": submission.encounter_id, "user_id": current_user["user_id"]},
+            {"_id": 0}
+        )
+        if not encounter:
+            raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Create anonymized submission - NO user_id stored for privacy
+    submission_doc = {
+        "submission_id": submission_id,
+        "encounter_id": submission.encounter_id,  # Optional link
+        "encounter_type": submission.encounter_type,
+        "location_city": submission.location_city,
+        "location_state": submission.location_state,
+        "incident_date": submission.incident_date.isoformat(),
+        "violations": submission.violations,
+        "department": submission.department,
+        "officer_badge": submission.officer_badge,
+        "severity": submission.severity,
+        "outcome": submission.outcome,
+        "summary": submission.summary,
+        "verified": False,
+        "upvotes": 0,
+        "flags": 0,
+        "created_at": now.isoformat()
+    }
+    
+    await db.community_vault.insert_one(submission_doc)
+    
+    # Update officer and department stats asynchronously
+    if submission.department:
+        asyncio.create_task(update_department_stats(submission.department, submission.location_state, submission.violations, submission.severity))
+    if submission.officer_badge and submission.department:
+        asyncio.create_task(update_officer_stats(submission.officer_badge, submission.department, submission.violations, submission.severity))
+    
+    logger.info(f"Community submission created: {submission_id}")
+    
+    return {
+        "submission_id": submission_id,
+        "message": "Thank you for contributing to the community vault. Your submission helps protect others.",
+        "created_at": now.isoformat()
+    }
+
+async def update_department_stats(department: str, state: str, violations: List[str], severity: str):
+    """Update department statistics"""
+    existing = await db.department_stats.find_one(
+        {"department": department, "state": state},
+        {"_id": 0}
+    )
+    
+    if existing:
+        # Update existing stats
+        violations_by_type = existing.get("violations_by_type", {})
+        severity_dist = existing.get("severity_distribution", {})
+        
+        for v in violations:
+            violations_by_type[v] = violations_by_type.get(v, 0) + 1
+        severity_dist[severity] = severity_dist.get(severity, 0) + 1
+        
+        await db.department_stats.update_one(
+            {"department": department, "state": state},
+            {
+                "$inc": {"total_incidents": 1},
+                "$set": {
+                    "violations_by_type": violations_by_type,
+                    "severity_distribution": severity_dist,
+                    "last_updated": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+    else:
+        # Create new stats
+        violations_by_type = {}
+        for v in violations:
+            violations_by_type[v] = violations_by_type.get(v, 0) + 1
+        
+        await db.department_stats.insert_one({
+            "department": department,
+            "state": state,
+            "total_incidents": 1,
+            "officers_with_incidents": 1,
+            "violations_by_type": violations_by_type,
+            "severity_distribution": {severity: 1},
+            "trend": "stable",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        })
+
+async def update_officer_stats(badge: str, department: str, violations: List[str], severity: str):
+    """Update officer statistics"""
+    existing = await db.officer_stats.find_one(
+        {"badge_number": badge, "department": department},
+        {"_id": 0}
+    )
+    
+    now = datetime.now(timezone.utc)
+    
+    if existing:
+        violations_by_type = existing.get("violations_by_type", {})
+        severity_dist = existing.get("severity_distribution", {})
+        
+        for v in violations:
+            violations_by_type[v] = violations_by_type.get(v, 0) + 1
+        severity_dist[severity] = severity_dist.get(severity, 0) + 1
+        
+        await db.officer_stats.update_one(
+            {"badge_number": badge, "department": department},
+            {
+                "$inc": {"total_incidents": 1},
+                "$set": {
+                    "violations_by_type": violations_by_type,
+                    "severity_distribution": severity_dist,
+                    "last_incident": now.isoformat()
+                }
+            }
+        )
+    else:
+        violations_by_type = {}
+        for v in violations:
+            violations_by_type[v] = violations_by_type.get(v, 0) + 1
+        
+        await db.officer_stats.insert_one({
+            "badge_number": badge,
+            "department": department,
+            "total_incidents": 1,
+            "violations_by_type": violations_by_type,
+            "severity_distribution": {severity: 1},
+            "first_incident": now.isoformat(),
+            "last_incident": now.isoformat()
+        })
+
+@api_router.get("/community/submissions")
+async def get_community_submissions(
+    state: Optional[str] = None,
+    department: Optional[str] = None,
+    violation_type: Optional[str] = None,
+    severity: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20
+):
+    """Browse community submissions (public endpoint - no auth required)"""
+    query = {}
+    if state:
+        query["location_state"] = state
+    if department:
+        query["department"] = {"$regex": department, "$options": "i"}
+    if violation_type:
+        query["violations"] = violation_type
+    if severity:
+        query["severity"] = severity
+    
+    skip = (page - 1) * limit
+    
+    submissions = await db.community_vault.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=limit)
+    total = await db.community_vault.count_documents(query)
+    
+    return {
+        "submissions": submissions,
+        "total": total,
+        "page": page,
+        "pages": (total + limit - 1) // limit
+    }
+
+@api_router.get("/community/departments")
+async def get_department_rankings(
+    state: Optional[str] = None,
+    sort_by: str = "total_incidents",
+    limit: int = 20
+):
+    """Get department rankings by incidents (public endpoint)"""
+    query = {}
+    if state:
+        query["state"] = state
+    
+    # Sort direction: more incidents = worse ranking
+    departments = await db.department_stats.find(query, {"_id": 0}).sort(sort_by, -1).limit(limit).to_list(length=limit)
+    
+    return {
+        "departments": departments,
+        "sort_by": sort_by
+    }
+
+@api_router.get("/community/officers")
+async def get_officer_rankings(
+    department: Optional[str] = None,
+    min_incidents: int = 1,
+    limit: int = 20
+):
+    """Get officer rankings by incidents (public endpoint)"""
+    query = {"total_incidents": {"$gte": min_incidents}}
+    if department:
+        query["department"] = {"$regex": department, "$options": "i"}
+    
+    officers = await db.officer_stats.find(query, {"_id": 0}).sort("total_incidents", -1).limit(limit).to_list(length=limit)
+    
+    return {
+        "officers": officers,
+        "min_incidents": min_incidents
+    }
+
+@api_router.get("/community/stats")
+async def get_community_stats():
+    """Get overall community vault statistics (public endpoint)"""
+    total_submissions = await db.community_vault.count_documents({})
+    total_departments = await db.department_stats.count_documents({})
+    total_officers = await db.officer_stats.count_documents({})
+    
+    # Aggregate violation types
+    pipeline = [
+        {"$unwind": "$violations"},
+        {"$group": {"_id": "$violations", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_violations = await db.community_vault.aggregate(pipeline).to_list(length=10)
+    
+    # Get state distribution
+    state_pipeline = [
+        {"$group": {"_id": "$location_state", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    states = await db.community_vault.aggregate(state_pipeline).to_list(length=10)
+    
+    # Get severity distribution
+    severity_pipeline = [
+        {"$group": {"_id": "$severity", "count": {"$sum": 1}}}
+    ]
+    severities = await db.community_vault.aggregate(severity_pipeline).to_list(length=10)
+    
+    return {
+        "total_submissions": total_submissions,
+        "total_departments_tracked": total_departments,
+        "total_officers_tracked": total_officers,
+        "top_violations": [{"type": v["_id"], "count": v["count"]} for v in top_violations],
+        "by_state": [{"state": s["_id"], "count": s["count"]} for s in states],
+        "by_severity": [{"severity": s["_id"], "count": s["count"]} for s in severities]
+    }
+
+@api_router.post("/community/upvote/{submission_id}")
+async def upvote_submission(
+    submission_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upvote a community submission"""
+    # Check if user already upvoted
+    existing = await db.community_upvotes.find_one({
+        "submission_id": submission_id,
+        "user_id": current_user["user_id"]
+    })
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="Already upvoted this submission")
+    
+    # Record upvote
+    await db.community_upvotes.insert_one({
+        "submission_id": submission_id,
+        "user_id": current_user["user_id"],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Increment upvote count
+    result = await db.community_vault.update_one(
+        {"submission_id": submission_id},
+        {"$inc": {"upvotes": 1}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    return {"success": True, "message": "Upvoted successfully"}
+
+@api_router.get("/community/officer/{badge}/{department}")
+async def get_officer_profile(badge: str, department: str):
+    """Get detailed officer profile with all incidents (public endpoint)"""
+    stats = await db.officer_stats.find_one(
+        {"badge_number": badge, "department": department},
+        {"_id": 0}
+    )
+    
+    if not stats:
+        raise HTTPException(status_code=404, detail="Officer not found in database")
+    
+    # Get all submissions involving this officer
+    submissions = await db.community_vault.find(
+        {"officer_badge": badge, "department": department},
+        {"_id": 0}
+    ).sort("incident_date", -1).to_list(length=100)
+    
+    return {
+        "stats": stats,
+        "submissions": submissions,
+        "incident_count": len(submissions)
+    }
+
+@api_router.get("/community/department/{department}")
+async def get_department_profile(department: str, state: Optional[str] = None):
+    """Get detailed department profile with stats (public endpoint)"""
+    query = {"department": {"$regex": f"^{department}$", "$options": "i"}}
+    if state:
+        query["state"] = state
+    
+    stats = await db.department_stats.find_one(query, {"_id": 0})
+    
+    if not stats:
+        # Return empty profile if no stats yet
+        return {
+            "stats": None,
+            "submissions": [],
+            "officers_involved": [],
+            "message": "No incidents reported for this department yet"
+        }
+    
+    # Get recent submissions
+    dept_query = {"department": {"$regex": department, "$options": "i"}}
+    if state:
+        dept_query["location_state"] = state
+    
+    submissions = await db.community_vault.find(dept_query, {"_id": 0}).sort("created_at", -1).limit(50).to_list(length=50)
+    
+    # Get officers involved
+    officers = await db.officer_stats.find(
+        {"department": {"$regex": department, "$options": "i"}},
+        {"_id": 0}
+    ).sort("total_incidents", -1).limit(20).to_list(length=20)
+    
+    return {
+        "stats": stats,
+        "submissions": submissions,
+        "officers_involved": officers
+    }
+
 # ============== HEALTH CHECK ==============
 
 @api_router.get("/health")
