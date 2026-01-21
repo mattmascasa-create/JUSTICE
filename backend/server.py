@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 # AI Services Initialization
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 stt_service = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY) if EMERGENT_LLM_KEY else None
-llm_service = OpenAILLM(api_key=EMERGENT_LLM_KEY, model="gpt-5.2") if EMERGENT_LLM_KEY else None
+llm_service = LlmChat(api_key=EMERGENT_LLM_KEY, model="gpt-5.2") if EMERGENT_LLM_KEY else None
 
 # Encounter recordings directory
 ENCOUNTERS_DIR = ROOT_DIR / "encounters"
