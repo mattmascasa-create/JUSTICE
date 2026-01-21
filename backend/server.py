@@ -2759,7 +2759,7 @@ async def analyze_document(
     current_user: dict = Depends(get_current_user)
 ):
     """Upload and analyze legal documents for violations and bias"""
-    if not llm_service:
+    if not EMERGENT_LLM_KEY:
         raise HTTPException(status_code=503, detail="AI service not available")
     
     # Save document
@@ -2799,6 +2799,7 @@ async def analyze_document(
             text_content = f"[Document content from {file.filename}]"
     
     # AI Analysis
+    llm = create_llm_chat(f"doc_analysis_{document_id}", "You are an expert civil rights attorney and legal analyst.")
     analysis_prompt = f"""You are an expert civil rights attorney and legal analyst.
 
 DOCUMENT TYPE: {document_type}
@@ -2825,7 +2826,7 @@ Provide analysis as JSON with these keys:
 - case_precedents: Array of {{case_name, relevance, outcome}}"""
 
     try:
-        response = await llm_service.chat(analysis_prompt)
+        response = await llm.chat(analysis_prompt)
         analysis = json.loads(response) if response else {}
     except Exception as e:
         logger.error(f"Document analysis error: {e}")
