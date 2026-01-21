@@ -207,4 +207,40 @@ export const communityAPI = {
   getDepartmentProfile: (department, state) => api.get(`/community/department/${encodeURIComponent(department)}`, { params: { state } })
 };
 
+// Blockchain Evidence API
+export const blockchainAPI = {
+  secureUpload: (file, caseId, encounterId, description, evidenceType) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (caseId) formData.append('case_id', caseId);
+    if (encounterId) formData.append('encounter_id', encounterId);
+    formData.append('description', description || '');
+    formData.append('evidence_type', evidenceType || 'document');
+    return api.post('/evidence/secure-upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  verifyEvidence: (evidenceId) => api.get(`/evidence/${evidenceId}/verify`),
+  getCertificate: (evidenceId) => api.get(`/evidence/${evidenceId}/certificate`),
+  getBlockchainStatus: () => api.get('/blockchain/status')
+};
+
+// Policy Impact Dashboard API
+export const policyAPI = {
+  getDashboardData: () => api.get('/policy/dashboard-data'),
+  generateReport: (reportType, targetAudience, department, state, violationType) => {
+    const formData = new FormData();
+    formData.append('report_type', reportType);
+    formData.append('target_audience', targetAudience);
+    if (department) formData.append('department', department);
+    if (state) formData.append('state', state);
+    if (violationType) formData.append('violation_type', violationType);
+    return api.post('/policy/generate-report', formData);
+  },
+  getReports: (reportType, targetAudience) => api.get('/policy/reports', { 
+    params: { report_type: reportType, target_audience: targetAudience } 
+  }),
+  getReport: (reportId) => api.get(`/policy/report/${reportId}`)
+};
+
 export default api;
