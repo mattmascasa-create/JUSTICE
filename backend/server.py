@@ -1761,11 +1761,347 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         logger.error(f"WebSocket error: {str(e)}")
         manager.disconnect(websocket, user_id)
 
+# ============== PUSH NOTIFICATIONS ==============
+
+@api_router.post("/push/subscribe")
+async def subscribe_push(subscription: PushSubscription, current_user: dict = Depends(get_current_user)):
+    """Subscribe to push notifications"""
+    await db.push_subscriptions.update_one(
+        {"user_id": current_user["user_id"]},
+        {"$set": {
+            "user_id": current_user["user_id"],
+            "endpoint": subscription.endpoint,
+            "keys": subscription.keys,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    return {"message": "Subscribed to push notifications"}
+
+@api_router.delete("/push/unsubscribe")
+async def unsubscribe_push(current_user: dict = Depends(get_current_user)):
+    """Unsubscribe from push notifications"""
+    await db.push_subscriptions.delete_one({"user_id": current_user["user_id"]})
+    return {"message": "Unsubscribed from push notifications"}
+
+# ============== INCIDENTS MAP ==============
+
+@api_router.get("/incidents/map", response_model=List[IncidentLocation])
+async def get_incidents_for_map(
+    violation_type: Optional[str] = None,
+    severity: Optional[str] = None,
+    status: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    limit: int = 500
+):
+    """Get incidents with location data for map visualization"""
+    query = {}
+    
+    if violation_type:
+        query["violation_type"] = violation_type
+    if severity:
+        query["severity"] = severity
+    if status:
+        query["status"] = status
+    if start_date:
+        query["incident_date"] = {"$gte": start_date}
+    if end_date:
+        if "incident_date" in query:
+            query["incident_date"]["$lte"] = end_date
+        else:
+            query["incident_date"] = {"$lte": end_date}
+    
+    # Get cases with location data
+    cases = await db.cases.find(
+        query,
+        {"_id": 0}
+    ).sort("incident_date", -1).to_list(limit)
+    
+    # Generate random coordinates around major US cities for demo
+    # In production, these would come from actual case data
+    import random
+    city_coords = [
+        (34.0522, -118.2437),  # Los Angeles
+        (40.7128, -74.0060),   # New York
+        (41.8781, -87.6298),   # Chicago
+        (29.7604, -95.3698),   # Houston
+        (33.4484, -112.0740),  # Phoenix
+        (44.9778, -93.2650),   # Minneapolis
+        (33.7490, -84.3880),   # Atlanta
+        (47.6062, -122.3321),  # Seattle
+        (39.7392, -104.9903),  # Denver
+        (25.7617, -80.1918),   # Miami
+    ]
+    
+    incidents = []
+    for case in cases:
+        # Generate location near a random city
+        city = random.choice(city_coords)
+        lat = city[0] + random.uniform(-0.5, 0.5)
+        lng = city[1] + random.uniform(-0.5, 0.5)
+        
+        incident_date = case.get("incident_date")
+        if isinstance(incident_date, str):
+            incident_date = datetime.fromisoformat(incident_date)
+        
+        incidents.append(IncidentLocation(
+            case_id=case["case_id"],
+            latitude=lat,
+            longitude=lng,
+            title=case["title"],
+            violation_type=case["violation_type"],
+            severity=case["severity"],
+            status=case["status"],
+            incident_date=incident_date,
+            department=case.get("department")
+        ))
+    
+    # If no cases, generate sample data
+    if not incidents:
+        sample_incidents = [
+            {"title": "Traffic Stop Violation", "violation_type": "4th Amendment - Unlawful Search/Seizure", "severity": "high"},
+            {"title": "Excessive Force During Arrest", "violation_type": "8th Amendment - Excessive Force", "severity": "critical"},
+            {"title": "Unlawful Detention", "violation_type": "False Arrest", "severity": "medium"},
+            {"title": "Racial Profiling Incident", "violation_type": "14th Amendment - Equal Protection", "severity": "high"},
+            {"title": "First Amendment Violation", "violation_type": "1st Amendment - Free Speech", "severity": "medium"},
+        ]
+        
+        for i, sample in enumerate(sample_incidents):
+            city = city_coords[i % len(city_coords)]
+            incidents.append(IncidentLocation(
+                case_id=f"sample_{i}",
+                latitude=city[0] + random.uniform(-0.3, 0.3),
+                longitude=city[1] + random.uniform(-0.3, 0.3),
+                title=sample["title"],
+                violation_type=sample["violation_type"],
+                severity=sample["severity"],
+                status="open",
+                incident_date=datetime.now(timezone.utc) - timedelta(days=random.randint(1, 90)),
+                department=None
+            ))
+    
+    return incidents
+
+@api_router.get("/incidents/stats")
+async def get_incident_stats():
+    """Get statistics for incident map"""
+    total = await db.cases.count_documents({})
+    
+    # Violation type distribution
+    violation_pipeline = [
+        {"$group": {"_id": "$violation_type", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    violations = await db.cases.aggregate(violation_pipeline).to_list(20)
+    
+    # Severity distribution
+    severity_pipeline = [
+        {"$group": {"_id": "$severity", "count": {"$sum": 1}}}
+    ]
+    severities = await db.cases.aggregate(severity_pipeline).to_list(10)
+    
+    # Monthly trend
+    monthly_pipeline = [
+        {"$group": {
+            "_id": {"$substr": ["$incident_date", 0, 7]},
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id": -1}},
+        {"$limit": 12}
+    ]
+    monthly = await db.cases.aggregate(monthly_pipeline).to_list(12)
+    
+    return {
+        "total_incidents": total,
+        "by_violation_type": [{"type": v["_id"], "count": v["count"]} for v in violations],
+        "by_severity": [{"severity": s["_id"], "count": s["count"]} for s in severities],
+        "monthly_trend": [{"month": m["_id"], "count": m["count"]} for m in monthly]
+    }
+
+# ============== CASE TIMELINE ==============
+
+@api_router.get("/cases/{case_id}/timeline", response_model=List[CaseEvent])
+async def get_case_timeline(case_id: str, current_user: dict = Depends(get_current_user)):
+    """Get timeline of all events for a case"""
+    # Verify case belongs to user
+    case = await db.cases.find_one(
+        {"case_id": case_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    events = []
+    
+    # Case creation event
+    created_at = case.get("created_at")
+    if isinstance(created_at, str):
+        created_at = datetime.fromisoformat(created_at)
+    
+    events.append(CaseEvent(
+        event_id=f"ev_{case_id}_created",
+        case_id=case_id,
+        event_type="created",
+        description=f"Case created: {case['title']}",
+        metadata={"status": "open", "severity": case["severity"]},
+        created_at=created_at,
+        created_by=current_user["user_id"]
+    ))
+    
+    # Get evidence uploads
+    evidence_list = await db.evidence.find(
+        {"case_id": case_id},
+        {"_id": 0}
+    ).sort("uploaded_at", 1).to_list(100)
+    
+    for ev in evidence_list:
+        uploaded_at = ev.get("uploaded_at")
+        if isinstance(uploaded_at, str):
+            uploaded_at = datetime.fromisoformat(uploaded_at)
+        
+        events.append(CaseEvent(
+            event_id=f"ev_{ev['evidence_id']}",
+            case_id=case_id,
+            event_type="evidence_added",
+            description=f"Evidence uploaded: {ev['file_name']}",
+            metadata={"file_type": ev["file_type"], "file_size": ev["file_size"], "blockchain_hash": ev.get("blockchain_hash")},
+            created_at=uploaded_at,
+            created_by=ev["user_id"]
+        ))
+    
+    # Get case events from dedicated collection
+    case_events = await db.case_events.find(
+        {"case_id": case_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
+    
+    for ce in case_events:
+        ce_created = ce.get("created_at")
+        if isinstance(ce_created, str):
+            ce_created = datetime.fromisoformat(ce_created)
+        
+        events.append(CaseEvent(
+            event_id=ce["event_id"],
+            case_id=case_id,
+            event_type=ce["event_type"],
+            description=ce["description"],
+            metadata=ce.get("metadata"),
+            created_at=ce_created,
+            created_by=ce["created_by"]
+        ))
+    
+    # Sort all events by date
+    events.sort(key=lambda x: x.created_at)
+    
+    return events
+
+@api_router.post("/cases/{case_id}/events")
+async def add_case_event(
+    case_id: str,
+    event_type: str,
+    description: str,
+    metadata: Optional[Dict[str, Any]] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add an event to case timeline"""
+    # Verify case belongs to user
+    case = await db.cases.find_one(
+        {"case_id": case_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    event_id = f"ev_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    event_doc = {
+        "event_id": event_id,
+        "case_id": case_id,
+        "event_type": event_type,
+        "description": description,
+        "metadata": metadata,
+        "created_at": now.isoformat(),
+        "created_by": current_user["user_id"]
+    }
+    
+    await db.case_events.insert_one(event_doc)
+    
+    # Send WebSocket notification
+    await manager.send_to_user(current_user["user_id"], {
+        "type": "case_event_added",
+        "case_id": case_id,
+        "event_type": event_type,
+        "description": description
+    })
+    
+    return {"event_id": event_id, "message": "Event added to timeline"}
+
+# ============== REPORT GENERATION ==============
+
+@api_router.get("/cases/{case_id}/report")
+async def get_case_report_data(case_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all data needed for PDF report generation"""
+    # Get case
+    case = await db.cases.find_one(
+        {"case_id": case_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    # Get evidence
+    evidence = await db.evidence.find(
+        {"case_id": case_id},
+        {"_id": 0}
+    ).sort("uploaded_at", 1).to_list(100)
+    
+    # Get timeline events
+    events = await db.case_events.find(
+        {"case_id": case_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
+    
+    # Get user info
+    user = await db.users.find_one(
+        {"user_id": current_user["user_id"]},
+        {"_id": 0, "password_hash": 0}
+    )
+    
+    # Convert dates
+    for field in ["incident_date", "created_at", "updated_at"]:
+        if isinstance(case.get(field), str):
+            case[field] = case[field]
+    
+    for ev in evidence:
+        if isinstance(ev.get("uploaded_at"), str):
+            ev["uploaded_at"] = ev["uploaded_at"]
+    
+    for event in events:
+        if isinstance(event.get("created_at"), str):
+            event["created_at"] = event["created_at"]
+    
+    return {
+        "case": case,
+        "evidence": evidence,
+        "timeline": events,
+        "user": {
+            "name": user.get("name"),
+            "email": user.get("email")
+        },
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "report_id": f"RPT-{case_id.upper()}"
+    }
+
 # ============== HEALTH CHECK ==============
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "2.0.0"}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "3.0.0"}
 
 # Include the router
 app.include_router(api_router)
