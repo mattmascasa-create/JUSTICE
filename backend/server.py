@@ -23,6 +23,7 @@ import base64
 import io
 import tempfile
 import hmac
+import aiohttp
 from emergentintegrations.llm.openai import OpenAISpeechToText, LlmChat
 
 ROOT_DIR = Path(__file__).parent
@@ -32,6 +33,11 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# IPFS Configuration (Pinata)
+PINATA_JWT = os.environ.get('PINATA_JWT', '')
+PINATA_API_URL = "https://api.pinata.cloud"
+IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs"
 
 # JWT Settings
 JWT_SECRET = os.environ.get('JWT_SECRET', 'justice-platform-secret-key-change-in-production')
