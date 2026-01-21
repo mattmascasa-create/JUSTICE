@@ -252,44 +252,6 @@ export default function CaseDetailPage() {
               </TabsContent>
             </Tabs>
           </div>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {evidence.map((ev) => {
-                      const FileIcon = getFileIcon(ev.file_type);
-                      return (
-                        <div 
-                          key={ev.evidence_id}
-                          className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded bg-background">
-                              <FileIcon className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="font-medium">{ev.file_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatFileSize(ev.file_size)} • {formatDateTime(ev.uploaded_at)}
-                              </p>
-                              {ev.blockchain_hash && (
-                                <p className="text-xs text-green-500 font-mono truncate max-w-[200px]">
-                                  ✓ Verified: {ev.blockchain_hash.slice(0, 16)}...
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
