@@ -222,6 +222,32 @@ class SOSAlertResponse(BaseModel):
     created_at: datetime
     resolved_at: Optional[datetime] = None
 
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: Dict[str, str]
+
+class IncidentLocation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    case_id: str
+    latitude: float
+    longitude: float
+    title: str
+    violation_type: str
+    severity: str
+    status: str
+    incident_date: datetime
+    department: Optional[str] = None
+
+class CaseEvent(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    event_id: str
+    case_id: str
+    event_type: str  # created, status_change, evidence_added, attorney_assigned, message, note
+    description: str
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    created_by: str
+
 class ChatMessage(BaseModel):
     message: str
     session_id: Optional[str] = None
