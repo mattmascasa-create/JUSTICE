@@ -169,35 +169,89 @@ export default function CaseDetailPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-serif">Incident Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground whitespace-pre-wrap">{caseData.description}</p>
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="evidence">Evidence ({evidence.length})</TabsTrigger>
+                <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="details" className="space-y-6">
+                {/* Description */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="font-serif">Incident Description</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{caseData.description}</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Evidence */}
-            <Card data-testid="evidence-section">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-serif">Evidence ({evidence.length})</CardTitle>
-                <Link to="/evidence">
-                  <Button variant="outline" size="sm">
-                    Manage Evidence
-                  </Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                {evidence.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No evidence uploaded yet</p>
+              <TabsContent value="evidence">
+                {/* Evidence */}
+                <Card data-testid="evidence-section">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="font-serif">Evidence ({evidence.length})</CardTitle>
                     <Link to="/evidence">
-                      <Button variant="outline" size="sm" className="mt-4">
-                        Upload Evidence
+                      <Button variant="outline" size="sm">
+                        Manage Evidence
                       </Button>
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    {evidence.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                        <p className="text-muted-foreground">No evidence uploaded yet</p>
+                        <Link to="/evidence">
+                          <Button variant="outline" size="sm" className="mt-4">
+                            Upload Evidence
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {evidence.map((ev) => {
+                          const FileIcon = getFileIcon(ev.file_type);
+                          return (
+                            <div 
+                              key={ev.evidence_id}
+                              className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded bg-background">
+                                  <FileIcon className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <div>
+                                  <p className="font-medium">{ev.file_name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {formatFileSize(ev.file_size)} • {formatDateTime(ev.uploaded_at)}
+                                  </p>
+                                  {ev.blockchain_hash && (
+                                    <p className="text-xs text-green-500 font-mono truncate max-w-[200px]">
+                                      ✓ Verified: {ev.blockchain_hash.slice(0, 16)}...
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <Button variant="ghost" size="icon">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="timeline">
+                <CaseTimeline caseId={caseId} />
+              </TabsContent>
+            </Tabs>
+          </div>
                     </Link>
                   </div>
                 ) : (
