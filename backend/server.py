@@ -3853,8 +3853,8 @@ async def verify_evidence_integrity(
         "chain_of_custody": custody_entries
     }
     
-    # Store verification record
-    await db.evidence_verifications.insert_one(verification_result)
+    # Store verification record (copy to avoid _id mutation)
+    await db.evidence_verifications.insert_one(dict(verification_result))
     
     return verification_result
 
