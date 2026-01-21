@@ -6,12 +6,15 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { casesAPI, evidenceAPI } from '../lib/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import CaseTimeline from '../components/CaseTimeline';
+import { casesAPI, evidenceAPI, reportAPI } from '../lib/api';
+import { generateCaseReport, downloadCaseReport } from '../lib/reportGenerator';
 import { formatDate, formatDateTime, getStatusColor, getSeverityColor, formatFileSize } from '../lib/utils';
 import { 
   ArrowLeft, Calendar, MapPin, User, BadgeIcon, Building, 
   FileText, Image, Video, Music, Trash2, Download, Shield,
-  Edit, AlertTriangle
+  Edit, AlertTriangle, Clock, FileDown, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,6 +24,7 @@ export default function CaseDetailPage() {
   const [caseData, setCaseData] = useState(null);
   const [evidence, setEvidence] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => {
     fetchCaseData();
@@ -66,6 +70,20 @@ export default function CaseDetailPage() {
     }
   };
 
+  const handleGenerateReport = async () => {
+    setGeneratingReport(true);
+    try {
+      const response = await reportAPI.getData(caseId);
+      const doc = await generateCaseReport(response.data);
+      downloadCaseReport(doc, caseId);
+      toast.success('Report downloaded');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   const getFileIcon = (type) => {
     switch (type) {
       case 'video': return Video;
@@ -100,6 +118,20 @@ export default function CaseDetailPage() {
             <p className="text-sm text-muted-foreground font-mono">ID: {caseData.case_id}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleGenerateReport}
+              disabled={generatingReport}
+              data-testid="generate-report-btn"
+            >
+              {generatingReport ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4 mr-2" />
+              )}
+              PDF Report
+            </Button>
             <Button variant="outline" size="sm" data-testid="edit-case-btn">
               <Edit className="h-4 w-4 mr-2" />
               Edit
