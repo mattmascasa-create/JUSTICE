@@ -3570,6 +3570,124 @@ def sign_action(action_data: dict, secret: str = "JUSTICE_EVIDENCE_SECRET") -> s
     signature = hmac.new(secret.encode(), data_str.encode(), hashlib.sha256).hexdigest()
     return signature
 
+# ============== IPFS INTEGRATION (PINATA) ==============
+
+async def upload_to_ipfs(file_content: bytes, filename: str, metadata: dict = None) -> dict:
+    """Upload file to IPFS via Pinata and return CID"""
+    if not PINATA_JWT:
+        logger.warning("IPFS: No Pinata JWT configured, skipping IPFS upload")
+        return {"success": False, "error": "IPFS not configured", "ipfs_cid": None}
+    
+    try:
+        # Prepare multipart form data
+        form_data = aiohttp.FormData()
+        form_data.add_field('file', file_content, filename=filename)
+        
+        # Add pinata metadata
+        pinata_metadata = {
+            "name": filename,
+            "keyvalues": {
+                "platform": "JUSTICE",
+                "type": "evidence",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                **(metadata or {})
+            }
+        }
+        form_data.add_field('pinataMetadata', json.dumps(pinata_metadata))
+        
+        # Add pinata options for CIDv1
+        pinata_options = {"cidVersion": 1}
+        form_data.add_field('pinataOptions', json.dumps(pinata_options))
+        
+        headers = {
+            "Authorization": f"Bearer {PINATA_JWT}"
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{PINATA_API_URL}/pinning/pinFileToIPFS",
+                data=form_data,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=60)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    ipfs_cid = result.get("IpfsHash")
+                    logger.info(f"IPFS: Successfully uploaded {filename}, CID: {ipfs_cid}")
+                    return {
+                        "success": True,
+                        "ipfs_cid": ipfs_cid,
+                        "ipfs_url": f"ipfs://{ipfs_cid}",
+                        "gateway_url": f"{IPFS_GATEWAY}/{ipfs_cid}",
+                        "pin_size": result.get("PinSize"),
+                        "timestamp": result.get("Timestamp")
+                    }
+                else:
+                    error_text = await response.text()
+                    logger.error(f"IPFS upload failed: {response.status} - {error_text}")
+                    return {"success": False, "error": error_text, "ipfs_cid": None}
+                    
+    except Exception as e:
+        logger.error(f"IPFS upload error: {str(e)}")
+        return {"success": False, "error": str(e), "ipfs_cid": None}
+
+async def verify_ipfs_content(ipfs_cid: str, expected_hash: str) -> dict:
+    """Verify IPFS content matches expected hash"""
+    if not ipfs_cid:
+        return {"verified": False, "error": "No IPFS CID provided"}
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{IPFS_GATEWAY}/{ipfs_cid}",
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    content = await response.read()
+                    current_hash = compute_file_hash(content)
+                    is_valid = current_hash == expected_hash
+                    return {
+                        "verified": True,
+                        "ipfs_accessible": True,
+                        "hash_matches": is_valid,
+                        "ipfs_hash": current_hash,
+                        "expected_hash": expected_hash
+                    }
+                else:
+                    return {"verified": False, "error": f"IPFS fetch failed: {response.status}"}
+    except Exception as e:
+        logger.error(f"IPFS verification error: {str(e)}")
+        return {"verified": False, "error": str(e)}
+
+async def get_ipfs_pin_status(ipfs_cid: str) -> dict:
+    """Check if content is still pinned on Pinata"""
+    if not PINATA_JWT or not ipfs_cid:
+        return {"pinned": False, "error": "Not configured or no CID"}
+    
+    try:
+        headers = {"Authorization": f"Bearer {PINATA_JWT}"}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{PINATA_API_URL}/data/pinList?hashContains={ipfs_cid}",
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=15)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    rows = result.get("rows", [])
+                    if rows:
+                        pin = rows[0]
+                        return {
+                            "pinned": True,
+                            "pin_date": pin.get("date_pinned"),
+                            "size": pin.get("size"),
+                            "metadata": pin.get("metadata")
+                        }
+                    return {"pinned": False, "error": "CID not found in pins"}
+                return {"pinned": False, "error": f"API error: {response.status}"}
+    except Exception as e:
+        return {"pinned": False, "error": str(e)}
+
 async def create_blockchain_record(evidence_hashes: List[str]) -> dict:
     """Create a new block in the simulated blockchain"""
     global blockchain_state
