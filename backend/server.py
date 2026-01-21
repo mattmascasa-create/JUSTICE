@@ -44,7 +44,7 @@ MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
 ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mp3', '.wav', '.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx'}
 
 # Create the main app
-app = FastAPI(title="JUSTICE Platform API", version="2.0.0")
+app = FastAPI(title="JUSTICE Platform API", version="4.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -53,6 +53,14 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# AI Services Initialization
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+stt_service = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY) if EMERGENT_LLM_KEY else None
+llm_service = OpenAILLM(api_key=EMERGENT_LLM_KEY, model="gpt-5.2") if EMERGENT_LLM_KEY else None
+
+# Encounter recordings directory
+ENCOUNTERS_DIR = ROOT_DIR / "encounters"
+ENCOUNTERS_DIR.mkdir(exist_ok=True)
 # ============== WEBSOCKET CONNECTION MANAGER ==============
 
 class ConnectionManager:
