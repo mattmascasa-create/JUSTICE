@@ -132,4 +132,65 @@ export const rightsAPI = {
   getAll: () => api.get('/rights'),
 };
 
+// Encounter Mode API
+export const encounterAPI = {
+  start: (data) => api.post('/encounters/start', data),
+  end: (encounterId) => api.post(`/encounters/${encounterId}/end`),
+  get: (encounterId) => api.get(`/encounters/${encounterId}`),
+  list: (status) => api.get('/encounters', { params: { status } }),
+  uploadAudio: (encounterId, audioBlob, chunkIndex) => {
+    const formData = new FormData();
+    formData.append('audio_file', audioBlob, `chunk_${chunkIndex}.webm`);
+    formData.append('chunk_index', chunkIndex);
+    return api.post(`/encounters/${encounterId}/audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  addOfficer: (encounterId, officerInfo) => {
+    const formData = new FormData();
+    if (officerInfo.name) formData.append('name', officerInfo.name);
+    if (officerInfo.badge) formData.append('badge_number', officerInfo.badge);
+    if (officerInfo.department) formData.append('department', officerInfo.department);
+    return api.post(`/encounters/${encounterId}/officer`, formData);
+  }
+};
+
+// Document Analysis API
+export const analysisAPI = {
+  analyzeDocument: (file, documentType, analysisFocus) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('document_type', documentType);
+    formData.append('analysis_focus', analysisFocus);
+    return api.post('/analyze/document', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  list: () => api.get('/analyze/documents'),
+  get: (analysisId) => api.get(`/analyze/document/${analysisId}`)
+};
+
+// Rights Coach API
+export const rightsCoachAPI = {
+  getGuidance: (situation, encounterId) => {
+    const formData = new FormData();
+    formData.append('situation', situation);
+    if (encounterId) formData.append('encounter_id', encounterId);
+    return api.post('/rights-coach', formData);
+  }
+};
+
+// Similar Cases API
+export const similarCasesAPI = {
+  search: (violationType, department, state) => api.get('/cases/similar', {
+    params: { violation_type: violationType, department, state }
+  })
+};
+
+// Emergency Contacts API
+export const emergencyContactsAPI = {
+  get: () => api.get('/settings/emergency-contacts'),
+  update: (contacts) => api.post('/settings/emergency-contacts', contacts)
+};
+
 export default api;
