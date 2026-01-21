@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { LayoutDashboard, FolderOpen, Bot, Siren, Menu } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '../ui/sheet';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import Sidebar from './Sidebar';
 
 const mobileNavItems = [
