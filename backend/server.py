@@ -2790,6 +2790,8 @@ async def add_officer_info(
         {"$push": {"officers": officer_id}}
     )
     
+    # Remove MongoDB _id before returning
+    officer_doc.pop("_id", None)
     return officer_doc
 
 # ============== DOCUMENT ANALYSIS ENDPOINTS ==============
