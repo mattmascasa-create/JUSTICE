@@ -1,15 +1,16 @@
 # JUSTICE Platform - Product Requirements Document
 
 ## Overview
-JUSTICE is a comprehensive police accountability and constitutional rights protection platform empowering citizens to protect their constitutional rights during police encounters.
+JUSTICE is a revolutionary **Civil Rights Defense System** - a comprehensive police accountability and constitutional rights protection platform empowering citizens to protect their constitutional rights during police encounters.
 
 ## Core Mission
-Provide AI-powered real-time assistance, evidence management, legal support connectivity, and accountability tracking for citizens facing police encounters.
+Provide AI-powered real-time assistance, evidence management, legal support connectivity, accountability tracking, and now **real-time encounter protection** for citizens facing police encounters.
 
 ## Architecture
 - **Frontend**: React 18 + Tailwind CSS + shadcn/ui components + PWA
 - **Backend**: FastAPI (Python) + MongoDB
-- **AI**: GPT-5.2 via Emergent LLM key
+- **AI**: GPT-5.2 via Emergent LLM key (text analysis, violation detection)
+- **Speech-to-Text**: OpenAI Whisper via emergentintegrations
 - **Auth**: JWT + Emergent Google OAuth
 - **Real-time**: WebSocket (native implementation with exponential backoff)
 - **Storage**: Local file storage (S3-ready)
@@ -17,11 +18,11 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - **PDF Generation**: jspdf + jspdf-autotable
 
 ## User Personas
-1. **Citizens** - Primary users seeking rights protection
+1. **Citizens** - Primary users seeking rights protection during encounters
 2. **Attorneys** - Civil rights legal professionals
 3. **Researchers/Public** - Transparency portal access
 
-## Implemented Features (v3.0)
+## Implemented Features (v4.0) - Updated Jan 21, 2026
 
 ### Phase 1 (Core MVP) ✅
 - [x] User authentication (Email/Password + Google OAuth)
@@ -42,7 +43,7 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - [x] PWA support (manifest, service worker, offline page)
 - [x] Department Transparency Portal with risk scores
 
-### Phase 3 (Advanced Features) ✅ - Completed Jan 21, 2026
+### Phase 3 (Advanced Features) ✅
 - [x] Incident Heat Map (Leaflet + OpenStreetMap)
 - [x] Mobile Navigation (bottom nav bar for mobile)
 - [x] Case Timeline with event tracking and notes
@@ -50,7 +51,27 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - [x] Push Notification subscription/unsubscription
 - [x] WebSocket exponential backoff reconnection
 
-## Backend APIs (v3.0)
+### Phase 4 (Encounter Mode) ✅ - NEW
+- [x] **"I'm Being Pulled Over" emergency button** - One-tap to start recording
+- [x] **GPS location pinning** - Automatic location capture at encounter start
+- [x] **Audio recording** - Continuous audio capture during encounters
+- [x] **Real-time transcription** - Whisper-powered speech-to-text
+- [x] **AI violation detection** - Real-time analysis for civil rights violations
+- [x] **Rights reminders** - Rotating prompts about your rights
+- [x] **Officer information capture** - Record badge, name, department
+- [x] **Broadcast modes** - Save only, share with contacts, attorney, or livestream
+- [x] **Encounter reports** - AI-generated comprehensive reports after encounter ends
+
+### Phase 5 (AI Legal Analyst) ✅ - NEW
+- [x] **Document Analysis** - Upload police reports, body cam transcripts, discovery docs
+- [x] **Violation detection** - AI identifies constitutional violations in documents
+- [x] **Bias detection** - Identifies racial profiling and discrimination indicators
+- [x] **Inconsistency analysis** - Finds contradictions and timeline issues
+- [x] **Rights Coach** - Real-time guidance on what to say/do during encounters
+- [x] **Similar Cases Search** - Find landmark cases and precedents
+- [x] **Emergency Contacts** - Configure contacts for automatic notification
+
+## Backend APIs (v4.0)
 
 ### Authentication
 - `POST /api/auth/register` - User registration
@@ -59,8 +80,30 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - `GET /api/auth/me` - Get current user
 - `POST /api/auth/logout` - Logout
 
+### Encounter Mode (NEW)
+- `POST /api/encounters/start` - Start new encounter with location
+- `POST /api/encounters/{id}/audio` - Upload audio chunk for transcription
+- `POST /api/encounters/{id}/officer` - Add officer information
+- `POST /api/encounters/{id}/end` - End encounter and generate report
+- `GET /api/encounters` - List user encounters
+- `GET /api/encounters/{id}` - Get encounter with transcriptions and report
+
+### Document Analysis (NEW)
+- `POST /api/analyze/document` - Upload and analyze document
+- `GET /api/analyze/documents` - List user's analyses
+- `GET /api/analyze/document/{id}` - Get specific analysis
+
+### Rights & Legal (NEW)
+- `POST /api/rights-coach` - Get real-time rights guidance
+- `GET /api/cases/similar` - Search similar cases and precedents
+
+### Settings (NEW)
+- `POST /api/settings/emergency-contacts` - Update emergency contacts
+- `GET /api/settings/emergency-contacts` - Get emergency contacts
+
 ### Cases
 - `GET/POST /api/cases` - List/Create cases
+- `GET /api/cases/similar` - Search similar cases
 - `GET/PATCH/DELETE /api/cases/{id}` - Case operations
 - `GET /api/cases/{id}/timeline` - Get case timeline events
 - `POST /api/cases/{id}/events` - Add event to timeline
@@ -68,99 +111,70 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 
 ### Evidence
 - `GET/POST /api/evidence` - List/Create evidence
-- `GET /api/evidence/case/{id}` - Case evidence
-- `DELETE /api/evidence/{id}` - Delete evidence
 - `POST /api/upload` - File upload (local storage)
 - `GET /api/files/{filename}` - Serve files
 
-### Messaging
-- `GET /api/messages/conversations` - List conversations
-- `GET /api/messages/conversation/{id}` - Get messages
-- `POST /api/messages` - Send message
-
-### Transparency Portal
-- `GET /api/departments` - List departments with risk scores
-- `GET /api/departments/{id}` - Department details
-- `GET /api/departments/{id}/incidents` - Department incidents
-
-### Incident Map
-- `GET /api/incidents/map` - Get incidents for map visualization
-- `GET /api/incidents/stats` - Get incident statistics
-
-### Push Notifications
-- `POST /api/push/subscribe` - Subscribe to push notifications
-- `DELETE /api/push/unsubscribe` - Unsubscribe from push
-
-### Others
+### Other
+- `GET /api/departments` - Transparency portal departments
+- `GET /api/incidents/map` - Incident map data
 - `GET /api/attorneys` - Attorney directory
-- `POST /api/sos` - Create SOS alert
+- `POST /api/sos` - Emergency SOS
 - `POST /api/ai/chat` - AI Attorney chat
-- `GET /api/analytics/public` - Public stats
 - `WS /api/ws/{token}` - WebSocket real-time
 
 ## Frontend Pages
 - `/` - Landing page (public)
-- `/login` - Login
-- `/register` - Registration
+- `/login`, `/register` - Authentication
 - `/dashboard` - User dashboard
-- `/cases` - Case management
-- `/cases/new` - Create case
-- `/cases/:id` - Case detail (with Timeline tab)
-- `/evidence` - Evidence library (with file upload)
+- `/encounter` - **Encounter Mode (NEW)**
+- `/analyze` - **Document Analysis (NEW)**
+- `/cases`, `/cases/new`, `/cases/:id` - Case management
+- `/evidence` - Evidence library
 - `/ai-attorney` - AI chat
 - `/sos` - Emergency SOS
 - `/attorneys` - Attorney directory
 - `/messages` - Secure messaging
 - `/incident-map` - Incident heat map
 - `/rights` - Know Your Rights
-- `/transparency` - Department transparency (public)
+- `/transparency` - Department transparency
 - `/settings` - User settings
 
 ## Technical Notes
 - SMS notifications: **MOCKED** (Twilio not integrated)
+- Emergency contact notifications: **MOCKED** (logged but not sent)
 - File storage: Local `/app/backend/uploads/` (S3-ready)
-- PWA: Service worker for offline support + push notifications
-- WebSocket: Native implementation with exponential backoff (max 10 attempts)
-- Maps: Leaflet with OpenStreetMap tiles (no API key required)
-- PDF: jspdf + jspdf-autotable for case report generation
+- Audio transcription: OpenAI Whisper via emergentintegrations
+- AI Analysis: GPT-5.2 via Emergent LLM key
+- Rights Coach has fallback responses when AI unavailable
 
 ## Prioritized Backlog
 
 ### P0 (Ready for Implementation)
+- [ ] Add Emergency Contacts UI to Settings page (API exists)
 - [ ] Integrate Twilio for real SMS alerts
-- [ ] Integrate AWS S3 for scalable file storage (user needs credentials)
+- [ ] Integrate AWS S3 for scalable file storage
 
 ### P1 (Next Phase)
+- [ ] Video recording in Encounter Mode
+- [ ] OCR for officer badge/name capture from video
+- [ ] Live streaming to YouTube/Twitch
+- [ ] Attorney hotline integration
 - [ ] Admin/Legal Professional Dashboard
-- [ ] Community Forum
-- [ ] Multi-camera video analysis
 
 ### P2 (Future)
-- [ ] 3D scene reconstruction
+- [ ] Smart glasses SDK for AR overlay
+- [ ] Dash cam API integration
+- [ ] 3D scene reconstruction for trials
 - [ ] Settlement tracking
-- [ ] Insurance integration
-- [ ] Government dashboard
-- [ ] Automated Legal Document Generation
-- [ ] Gamification elements
+- [ ] Community Forum
 - [ ] Two-factor authentication (2FA)
-
-## S3 Migration Guide
-When ready to switch from local to S3:
-1. Get AWS credentials (see setup guide in conversation)
-2. Add to backend/.env:
-   - AWS_ACCESS_KEY_ID
-   - AWS_SECRET_ACCESS_KEY
-   - S3_BUCKET_NAME
-   - AWS_REGION
-3. Install boto3: `pip install boto3`
-4. Update upload endpoint to use S3
-5. Update file URLs to S3 presigned URLs
 
 ## Test Reports
 - /app/test_reports/iteration_1.json - Phase 1 tests
 - /app/test_reports/iteration_2.json - Phase 2 tests
-- /app/test_reports/iteration_3.json - Phase 3 tests (100% backend, 95% frontend)
+- /app/test_reports/iteration_3.json - Phase 3 tests
+- /app/test_reports/iteration_4.json - Phase 4 & 5 tests (100% backend, 95% frontend)
 
 ## Test Credentials
-- Email: test_ui_9410619d@example.com
+- Email: encounter_test@example.com
 - Password: password123
