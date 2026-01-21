@@ -193,4 +193,18 @@ export const emergencyContactsAPI = {
   update: (contacts) => api.post('/settings/emergency-contacts', contacts)
 };
 
+// Community Evidence Vault API
+export const communityAPI = {
+  submit: (data) => api.post('/community/submit', data),
+  getSubmissions: (params) => api.get('/community/submissions', { params }),
+  getDepartments: (state) => api.get('/community/departments', { params: { state } }),
+  getOfficers: (department, minIncidents) => api.get('/community/officers', { 
+    params: { department, min_incidents: minIncidents } 
+  }),
+  getStats: () => api.get('/community/stats'),
+  upvote: (submissionId) => api.post(`/community/upvote/${submissionId}`),
+  getOfficerProfile: (badge, department) => api.get(`/community/officer/${badge}/${encodeURIComponent(department)}`),
+  getDepartmentProfile: (department, state) => api.get(`/community/department/${encodeURIComponent(department)}`, { params: { state } })
+};
+
 export default api;
