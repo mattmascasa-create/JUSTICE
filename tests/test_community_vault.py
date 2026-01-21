@@ -526,8 +526,9 @@ class TestCommunityVaultRegressionPhase1to5:
         response = requests.get(f"{BASE_URL}/api/incidents/map")
         assert response.status_code == 200
         data = response.json()
-        assert "incidents" in data
-        print(f"✓ Incidents map endpoint working - {len(data['incidents'])} incidents")
+        # API returns list directly
+        assert isinstance(data, list)
+        print(f"✓ Incidents map endpoint working - {len(data)} incidents")
     
     def test_encounters_list(self):
         """GET /api/encounters - Encounters endpoint still works"""
