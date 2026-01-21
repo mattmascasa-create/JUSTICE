@@ -2464,8 +2464,9 @@ async def analyze_transcription_for_violations(text: str, encounter_id: str) -> 
                 break
     
     # AI-powered deep analysis if LLM service available
-    if llm_service and len(text) > 50:
+    if EMERGENT_LLM_KEY and len(text) > 50:
         try:
+            llm = create_llm_chat(f"violation_analysis_{encounter_id}", "You are a civil rights legal expert analyzing police encounters for violations.")
             analysis_prompt = f"""Analyze this police encounter transcript for potential civil rights violations.
             
 Transcript: "{text}"
@@ -2483,7 +2484,7 @@ Identify any of these violations if present:
 Return ONLY a JSON array of violation types found, or empty array if none.
 Example: ["4th_amendment_violation", "intimidation"]"""
 
-            response = await llm_service.chat(analysis_prompt)
+            response = await llm.chat(analysis_prompt)
             if response:
                 try:
                     ai_violations = json.loads(response)
