@@ -25,7 +25,8 @@ import {
   Map,
   Brain,
   Radio,
-  Database
+  Database,
+  Megaphone
 } from 'lucide-react';
 
 const navItems = [
@@ -35,6 +36,7 @@ const navItems = [
   { icon: FileBox, label: 'Evidence', path: '/evidence' },
   { icon: Brain, label: 'Document Analysis', path: '/analyze' },
   { icon: Database, label: 'Community Vault', path: '/community', highlight: true },
+  { icon: Megaphone, label: 'Policy Impact', path: '/policy', highlight: true },
   { icon: Bot, label: 'AI Attorney', path: '/ai-attorney' },
   { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
   { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
