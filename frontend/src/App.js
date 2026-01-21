@@ -23,6 +23,8 @@ import MessagesPage from "./pages/MessagesPage";
 import TransparencyPage from "./pages/TransparencyPage";
 import IncidentMapPage from "./pages/IncidentMapPage";
 import SettingsPage from "./pages/SettingsPage";
+import EncounterPage from "./pages/EncounterPage";
+import DocumentAnalysisPage from "./pages/DocumentAnalysisPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
