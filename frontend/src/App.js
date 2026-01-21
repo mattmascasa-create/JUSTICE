@@ -25,6 +25,7 @@ import IncidentMapPage from "./pages/IncidentMapPage";
 import SettingsPage from "./pages/SettingsPage";
 import EncounterPage from "./pages/EncounterPage";
 import DocumentAnalysisPage from "./pages/DocumentAnalysisPage";
+import CommunityVaultPage from "./pages/CommunityVaultPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
