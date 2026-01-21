@@ -79,11 +79,13 @@ function AppRouter() {
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/encounter" element={<ProtectedRoute><EncounterPage /></ProtectedRoute>} />
       <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
       <Route path="/cases/new" element={<ProtectedRoute><NewCasePage /></ProtectedRoute>} />
       <Route path="/cases/:caseId" element={<ProtectedRoute><CaseDetailPage /></ProtectedRoute>} />
       <Route path="/evidence" element={<ProtectedRoute><EvidencePage /></ProtectedRoute>} />
       <Route path="/ai-attorney" element={<ProtectedRoute><AIAttorneyPage /></ProtectedRoute>} />
+      <Route path="/analyze" element={<ProtectedRoute><DocumentAnalysisPage /></ProtectedRoute>} />
       <Route path="/sos" element={<ProtectedRoute><SOSPage /></ProtectedRoute>} />
       <Route path="/attorneys" element={<ProtectedRoute><AttorneysPage /></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
