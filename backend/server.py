@@ -4115,6 +4115,49 @@ async def get_blockchain_status():
         "chain_valid": True  # Would verify full chain in production
     }
 
+@api_router.get("/ipfs/status")
+async def get_ipfs_status():
+    """Get IPFS integration status"""
+    ipfs_enabled = bool(PINATA_JWT)
+    
+    # Get stats from our evidence
+    total_ipfs_evidence = await db.evidence.count_documents({"ipfs_cid": {"$exists": True, "$ne": None}})
+    
+    # Test Pinata connection if configured
+    pinata_connected = False
+    pinata_usage = None
+    
+    if ipfs_enabled:
+        try:
+            headers = {"Authorization": f"Bearer {PINATA_JWT}"}
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{PINATA_API_URL}/data/testAuthentication",
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        pinata_connected = True
+                        
+                # Get usage stats
+                async with session.get(
+                    f"{PINATA_API_URL}/data/userPinnedDataTotal",
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        pinata_usage = await response.json()
+        except Exception as e:
+            logger.error(f"IPFS status check error: {e}")
+    
+    return {
+        "ipfs_enabled": ipfs_enabled,
+        "pinata_connected": pinata_connected,
+        "gateway_url": IPFS_GATEWAY,
+        "total_evidence_on_ipfs": total_ipfs_evidence,
+        "pinata_usage": pinata_usage
+    }
+
 # ============== POLICY IMPACT DASHBOARD ==============
 
 @api_router.get("/policy/reports")
