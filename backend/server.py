@@ -2212,6 +2212,850 @@ async def get_case_report_data(case_id: str, current_user: dict = Depends(get_cu
         "report_id": f"RPT-{case_id.upper()}"
     }
 
+# ============== ENCOUNTER MODE ENDPOINTS ==============
+
+# Active encounters for WebSocket streaming
+active_encounters: Dict[str, Dict] = {}
+
+@api_router.post("/encounters/start", response_model=EncounterResponse)
+async def start_encounter(
+    encounter_data: EncounterStart,
+    current_user: dict = Depends(get_current_user)
+):
+    """Start a new police encounter recording session"""
+    encounter_id = f"enc_{uuid.uuid4().hex[:12]}"
+    stream_key = f"stream_{uuid.uuid4().hex[:16]}"
+    now = datetime.now(timezone.utc)
+    
+    # Create encounter directory for media files
+    encounter_dir = ENCOUNTERS_DIR / encounter_id
+    encounter_dir.mkdir(exist_ok=True)
+    
+    encounter_doc = {
+        "encounter_id": encounter_id,
+        "user_id": current_user["user_id"],
+        "latitude": encounter_data.latitude,
+        "longitude": encounter_data.longitude,
+        "address": encounter_data.address,
+        "encounter_type": encounter_data.encounter_type,
+        "status": "active",
+        "broadcast_mode": encounter_data.broadcast_mode,
+        "stream_key": stream_key,
+        "started_at": now.isoformat(),
+        "ended_at": None,
+        "duration_seconds": 0,
+        "transcriptions": [],
+        "violations": [],
+        "officers": [],
+        "media_files": []
+    }
+    
+    await db.encounters.insert_one(encounter_doc)
+    
+    # Store in active encounters for real-time processing
+    active_encounters[encounter_id] = {
+        "user_id": current_user["user_id"],
+        "started_at": now,
+        "transcription_buffer": [],
+        "analysis_queue": []
+    }
+    
+    # Notify emergency contacts if configured
+    if encounter_data.broadcast_mode in ["share_contacts", "all"]:
+        asyncio.create_task(notify_emergency_contacts(current_user["user_id"], encounter_id, encounter_data))
+    
+    # Notify assigned attorneys if premium user
+    if encounter_data.broadcast_mode in ["share_attorney", "all"]:
+        asyncio.create_task(notify_attorneys(current_user["user_id"], encounter_id))
+    
+    # Broadcast via WebSocket
+    await manager.send_to_user(current_user["user_id"], {
+        "type": "encounter_started",
+        "encounter_id": encounter_id,
+        "stream_key": stream_key,
+        "message": "🚨 Encounter recording started. Stay calm and know your rights."
+    })
+    
+    logger.info(f"Encounter started: {encounter_id} by user {current_user['user_id']}")
+    
+    return EncounterResponse(
+        encounter_id=encounter_id,
+        user_id=current_user["user_id"],
+        latitude=encounter_data.latitude,
+        longitude=encounter_data.longitude,
+        address=encounter_data.address,
+        encounter_type=encounter_data.encounter_type,
+        status="active",
+        broadcast_mode=encounter_data.broadcast_mode,
+        stream_key=stream_key,
+        started_at=now,
+        ended_at=None,
+        duration_seconds=0
+    )
+
+async def notify_emergency_contacts(user_id: str, encounter_id: str, encounter_data: EncounterStart):
+    """Notify user's emergency contacts about the encounter"""
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        return
+    
+    contacts = user.get("emergency_contacts", [])
+    for contact in contacts:
+        # In production, send SMS/email via Twilio/SendGrid
+        logger.info(f"MOCKED: Notifying contact {contact.get('phone')} about encounter {encounter_id}")
+        # Store notification record
+        await db.notifications.insert_one({
+            "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+            "type": "encounter_alert",
+            "user_id": user_id,
+            "encounter_id": encounter_id,
+            "recipient": contact,
+            "location": {"lat": encounter_data.latitude, "lng": encounter_data.longitude},
+            "status": "sent",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+
+async def notify_attorneys(user_id: str, encounter_id: str):
+    """Notify assigned attorneys about the encounter"""
+    # Find user's assigned attorneys
+    assignments = await db.attorney_assignments.find(
+        {"user_id": user_id, "status": "active"},
+        {"_id": 0}
+    ).to_list(length=10)
+    
+    for assignment in assignments:
+        attorney_id = assignment.get("attorney_id")
+        await manager.send_to_user(attorney_id, {
+            "type": "client_encounter",
+            "encounter_id": encounter_id,
+            "user_id": user_id,
+            "message": "⚠️ Your client has started an encounter recording"
+        })
+        logger.info(f"Notified attorney {attorney_id} about encounter {encounter_id}")
+
+@api_router.post("/encounters/{encounter_id}/audio")
+async def upload_audio_chunk(
+    encounter_id: str,
+    audio_file: UploadFile = File(...),
+    chunk_index: int = Form(0),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload and transcribe audio chunk from encounter"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    if encounter["status"] != "active":
+        raise HTTPException(status_code=400, detail="Encounter is not active")
+    
+    # Save audio chunk
+    chunk_filename = f"audio_{chunk_index}_{uuid.uuid4().hex[:8]}.webm"
+    chunk_path = ENCOUNTERS_DIR / encounter_id / chunk_filename
+    
+    content = await audio_file.read()
+    with open(chunk_path, "wb") as f:
+        f.write(content)
+    
+    # Transcribe using Whisper
+    transcription_result = None
+    if stt_service and len(content) > 1000:  # Only transcribe chunks > 1KB
+        try:
+            with open(chunk_path, "rb") as audio:
+                response = await stt_service.transcribe(
+                    file=audio,
+                    model="whisper-1",
+                    response_format="verbose_json",
+                    language="en",
+                    prompt="Police encounter recording. Speakers: civilian, police officer.",
+                    timestamp_granularities=["segment"]
+                )
+                
+                if response and response.text:
+                    segment_id = f"seg_{uuid.uuid4().hex[:12]}"
+                    now = datetime.now(timezone.utc)
+                    
+                    # Analyze transcription for violations in background
+                    violations = await analyze_transcription_for_violations(response.text, encounter_id)
+                    
+                    transcription_doc = {
+                        "segment_id": segment_id,
+                        "encounter_id": encounter_id,
+                        "text": response.text,
+                        "speaker": "unknown",
+                        "start_time": chunk_index * 10.0,  # Approximate timing
+                        "end_time": (chunk_index + 1) * 10.0,
+                        "confidence": 0.9,
+                        "violations_detected": violations,
+                        "audio_file": chunk_filename,
+                        "created_at": now.isoformat()
+                    }
+                    
+                    await db.transcriptions.insert_one(transcription_doc)
+                    
+                    # Update encounter with transcription reference
+                    await db.encounters.update_one(
+                        {"encounter_id": encounter_id},
+                        {"$push": {"transcriptions": segment_id}}
+                    )
+                    
+                    transcription_result = {
+                        "segment_id": segment_id,
+                        "text": response.text,
+                        "violations_detected": violations
+                    }
+                    
+                    # Real-time notification if violations detected
+                    if violations:
+                        await manager.send_to_user(current_user["user_id"], {
+                            "type": "violation_detected",
+                            "encounter_id": encounter_id,
+                            "violations": violations,
+                            "text": response.text
+                        })
+                    
+        except Exception as e:
+            logger.error(f"Transcription error: {e}")
+    
+    # Update media files list
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$push": {"media_files": chunk_filename}}
+    )
+    
+    return {
+        "success": True,
+        "chunk_index": chunk_index,
+        "filename": chunk_filename,
+        "transcription": transcription_result
+    }
+
+async def analyze_transcription_for_violations(text: str, encounter_id: str) -> List[str]:
+    """Analyze transcription text for potential civil rights violations"""
+    violations = []
+    text_lower = text.lower()
+    
+    # Pattern matching for common violations
+    violation_patterns = {
+        "unlawful_search": ["search your car", "open your trunk", "what's in your bag", "empty your pockets", "let me search"],
+        "miranda_violation": ["anything you say", "right to remain", "lawyer present"],
+        "excessive_force": ["get on the ground", "stop resisting", "taser", "put your hands"],
+        "intimidation": ["you're going to jail", "make this hard", "don't make me", "you'll regret"],
+        "profiling": ["you people", "your kind", "look suspicious", "fit the description"],
+        "unlawful_detention": ["you can't leave", "stay right there", "don't move"],
+        "coercion": ["just admit", "confess", "make it easier", "tell the truth"]
+    }
+    
+    for violation_type, patterns in violation_patterns.items():
+        for pattern in patterns:
+            if pattern in text_lower:
+                violations.append(violation_type)
+                break
+    
+    # AI-powered deep analysis if LLM service available
+    if llm_service and len(text) > 50:
+        try:
+            analysis_prompt = f"""Analyze this police encounter transcript for potential civil rights violations.
+            
+Transcript: "{text}"
+
+Identify any of these violations if present:
+- 4th Amendment (unlawful search/seizure)
+- 5th Amendment (self-incrimination, Miranda)
+- 6th Amendment (right to counsel)
+- 8th Amendment (excessive force)
+- 14th Amendment (equal protection)
+- Racial profiling
+- Intimidation/coercion
+- Unlawful detention
+
+Return ONLY a JSON array of violation types found, or empty array if none.
+Example: ["4th_amendment_violation", "intimidation"]"""
+
+            response = await llm_service.chat(analysis_prompt)
+            if response:
+                try:
+                    ai_violations = json.loads(response)
+                    if isinstance(ai_violations, list):
+                        violations.extend(ai_violations)
+                except:
+                    pass
+        except Exception as e:
+            logger.error(f"AI violation analysis error: {e}")
+    
+    return list(set(violations))  # Remove duplicates
+
+@api_router.post("/encounters/{encounter_id}/end")
+async def end_encounter(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """End an active encounter and generate report"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    now = datetime.now(timezone.utc)
+    started_at = datetime.fromisoformat(encounter["started_at"])
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    
+    duration = int((now - started_at).total_seconds())
+    
+    # Update encounter status
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {
+            "$set": {
+                "status": "ended",
+                "ended_at": now.isoformat(),
+                "duration_seconds": duration
+            }
+        }
+    )
+    
+    # Remove from active encounters
+    if encounter_id in active_encounters:
+        del active_encounters[encounter_id]
+    
+    # Generate comprehensive report asynchronously
+    asyncio.create_task(generate_encounter_report(encounter_id, current_user["user_id"]))
+    
+    return {
+        "encounter_id": encounter_id,
+        "status": "ended",
+        "duration_seconds": duration,
+        "message": "Encounter ended. Report is being generated."
+    }
+
+async def generate_encounter_report(encounter_id: str, user_id: str):
+    """Generate comprehensive encounter report with AI analysis"""
+    encounter = await db.encounters.find_one({"encounter_id": encounter_id}, {"_id": 0})
+    if not encounter:
+        return
+    
+    # Gather all transcriptions
+    transcriptions = await db.transcriptions.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("start_time", 1).to_list(length=1000)
+    
+    full_transcript = "\n".join([t["text"] for t in transcriptions if t.get("text")])
+    
+    # Gather all violations
+    all_violations = []
+    for t in transcriptions:
+        all_violations.extend(t.get("violations_detected", []))
+    
+    # Get officers identified
+    officers = await db.officer_profiles.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).to_list(length=10)
+    
+    # AI-powered comprehensive analysis
+    summary = ""
+    recommendations = []
+    similar_cases = []
+    
+    if llm_service and full_transcript:
+        try:
+            analysis_prompt = f"""You are an expert civil rights attorney analyzing a police encounter.
+
+ENCOUNTER DETAILS:
+- Type: {encounter.get('encounter_type')}
+- Location: {encounter.get('address', 'Unknown')}
+- Duration: {encounter.get('duration_seconds', 0)} seconds
+- Violations detected: {list(set(all_violations))}
+
+FULL TRANSCRIPT:
+{full_transcript[:4000]}
+
+Provide a comprehensive analysis including:
+1. SUMMARY: Brief overview of what happened
+2. VIOLATIONS: Detailed explanation of each civil rights violation
+3. LEGAL CITATIONS: Relevant case law and constitutional amendments
+4. RECOMMENDATIONS: What the citizen should do next
+5. SIMILAR CASES: Reference similar cases and their outcomes
+
+Format as JSON with keys: summary, violations_analysis, legal_citations, recommendations, similar_case_references"""
+
+            response = await llm_service.chat(analysis_prompt)
+            if response:
+                try:
+                    analysis = json.loads(response)
+                    summary = analysis.get("summary", "")
+                    recommendations = analysis.get("recommendations", [])
+                    similar_cases = analysis.get("similar_case_references", [])
+                except:
+                    summary = response[:500]
+        except Exception as e:
+            logger.error(f"Report generation error: {e}")
+            summary = f"Encounter recorded. {len(transcriptions)} audio segments captured. {len(set(all_violations))} potential violations detected."
+    else:
+        summary = f"Encounter recorded. {len(transcriptions)} audio segments captured."
+    
+    # Create report document
+    report_id = f"rpt_{uuid.uuid4().hex[:12]}"
+    report_doc = {
+        "report_id": report_id,
+        "encounter_id": encounter_id,
+        "user_id": user_id,
+        "summary": summary,
+        "violations": list(set(all_violations)),
+        "officers": officers,
+        "transcript_text": full_transcript,
+        "recommendations": recommendations if isinstance(recommendations, list) else [recommendations],
+        "legal_resources": [
+            {"name": "ACLU Know Your Rights", "url": "https://www.aclu.org/know-your-rights"},
+            {"name": "National Police Accountability Project", "url": "https://www.nlg-npap.org"},
+            {"name": "Mapping Police Violence", "url": "https://mappingpoliceviolence.org"}
+        ],
+        "similar_cases": similar_cases if isinstance(similar_cases, list) else [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.encounter_reports.insert_one(report_doc)
+    
+    # Notify user
+    await manager.send_to_user(user_id, {
+        "type": "report_ready",
+        "encounter_id": encounter_id,
+        "report_id": report_id,
+        "message": "Your encounter report is ready for review."
+    })
+    
+    logger.info(f"Generated report {report_id} for encounter {encounter_id}")
+
+@api_router.get("/encounters")
+async def list_encounters(
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """List user's encounters"""
+    query = {"user_id": current_user["user_id"]}
+    if status:
+        query["status"] = status
+    
+    encounters = await db.encounters.find(query, {"_id": 0}).sort("started_at", -1).to_list(length=100)
+    return encounters
+
+@api_router.get("/encounters/{encounter_id}")
+async def get_encounter(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get encounter details with transcriptions and report"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Get transcriptions
+    transcriptions = await db.transcriptions.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("start_time", 1).to_list(length=1000)
+    
+    # Get report if exists
+    report = await db.encounter_reports.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    # Get officers
+    officers = await db.officer_profiles.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).to_list(length=10)
+    
+    return {
+        "encounter": encounter,
+        "transcriptions": transcriptions,
+        "report": report,
+        "officers": officers
+    }
+
+@api_router.post("/encounters/{encounter_id}/officer")
+async def add_officer_info(
+    encounter_id: str,
+    name: Optional[str] = Form(None),
+    badge_number: Optional[str] = Form(None),
+    department: Optional[str] = Form(None),
+    rank: Optional[str] = Form(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Add officer information to encounter"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    officer_id = f"off_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    # Look up officer history (in production, query police misconduct databases)
+    prior_incidents = 0
+    complaints_count = 0
+    
+    # Mock: Check our own database for this officer
+    if badge_number and department:
+        existing = await db.officer_profiles.find(
+            {"badge_number": badge_number, "department": department},
+            {"_id": 0}
+        ).to_list(length=100)
+        prior_incidents = len(existing)
+    
+    officer_doc = {
+        "officer_id": officer_id,
+        "encounter_id": encounter_id,
+        "name": name,
+        "badge_number": badge_number,
+        "department": department,
+        "rank": rank,
+        "prior_incidents": prior_incidents,
+        "complaints_count": complaints_count,
+        "use_of_force_count": 0,
+        "captured_from": "manual",
+        "confidence": 1.0,
+        "created_at": now.isoformat()
+    }
+    
+    await db.officer_profiles.insert_one(officer_doc)
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$push": {"officers": officer_id}}
+    )
+    
+    return officer_doc
+
+# ============== DOCUMENT ANALYSIS ENDPOINTS ==============
+
+@api_router.post("/analyze/document")
+async def analyze_document(
+    file: UploadFile = File(...),
+    document_type: str = Form("other"),
+    analysis_focus: str = Form("all"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload and analyze legal documents for violations and bias"""
+    if not llm_service:
+        raise HTTPException(status_code=503, detail="AI service not available")
+    
+    # Save document
+    document_id = f"doc_{uuid.uuid4().hex[:12]}"
+    filename = f"{document_id}_{file.filename}"
+    file_path = UPLOAD_DIR / filename
+    
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    # Extract text based on file type
+    text_content = ""
+    file_ext = Path(file.filename).suffix.lower()
+    
+    if file_ext in {'.txt', '.md'}:
+        text_content = content.decode('utf-8', errors='ignore')
+    elif file_ext == '.pdf':
+        # For PDF, we'd use PyPDF2 or similar - simplified for now
+        text_content = f"[PDF content from {file.filename}]"
+    else:
+        # For audio/video, transcribe
+        if file_ext in {'.mp3', '.wav', '.m4a', '.webm', '.mp4'} and stt_service:
+            try:
+                with open(file_path, "rb") as audio:
+                    response = await stt_service.transcribe(
+                        file=audio,
+                        model="whisper-1",
+                        response_format="text",
+                        language="en"
+                    )
+                    text_content = response.text if response else ""
+            except Exception as e:
+                logger.error(f"Transcription error: {e}")
+                text_content = f"[Audio/video content from {file.filename}]"
+        else:
+            text_content = f"[Document content from {file.filename}]"
+    
+    # AI Analysis
+    analysis_prompt = f"""You are an expert civil rights attorney and legal analyst.
+
+DOCUMENT TYPE: {document_type}
+ANALYSIS FOCUS: {analysis_focus}
+
+DOCUMENT CONTENT:
+{text_content[:8000]}
+
+Analyze this document thoroughly for:
+
+1. CIVIL RIGHTS VIOLATIONS: Any constitutional violations (4th, 5th, 6th, 8th, 14th Amendment)
+2. BIAS INDICATORS: Language or actions suggesting racial profiling, discrimination
+3. INCONSISTENCIES: Contradictions, timeline issues, factual errors
+4. LEGAL ISSUES: Procedural violations, chain of custody issues, improper evidence handling
+5. RECOMMENDATIONS: Legal strategies and next steps
+
+Provide analysis as JSON with these keys:
+- summary: Brief document overview
+- violations_found: Array of {{type, description, severity, legal_citation}}
+- bias_indicators: Array of {{indicator, evidence, impact}}
+- inconsistencies: Array of {{description, significance}}
+- legal_issues: Array of {{issue, implication, remedy}}
+- recommendations: Array of action items
+- case_precedents: Array of {{case_name, relevance, outcome}}"""
+
+    try:
+        response = await llm_service.chat(analysis_prompt)
+        analysis = json.loads(response) if response else {}
+    except Exception as e:
+        logger.error(f"Document analysis error: {e}")
+        analysis = {
+            "summary": "Analysis could not be completed",
+            "violations_found": [],
+            "bias_indicators": [],
+            "inconsistencies": [],
+            "legal_issues": [],
+            "recommendations": ["Please review document manually"],
+            "case_precedents": []
+        }
+    
+    # Store analysis
+    analysis_id = f"ana_{uuid.uuid4().hex[:12]}"
+    analysis_doc = {
+        "analysis_id": analysis_id,
+        "document_id": document_id,
+        "user_id": current_user["user_id"],
+        "document_type": document_type,
+        "filename": filename,
+        "summary": analysis.get("summary", ""),
+        "violations_found": analysis.get("violations_found", []),
+        "bias_indicators": analysis.get("bias_indicators", []),
+        "inconsistencies": analysis.get("inconsistencies", []),
+        "legal_issues": analysis.get("legal_issues", []),
+        "recommendations": analysis.get("recommendations", []),
+        "case_precedents": analysis.get("case_precedents", []),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.document_analyses.insert_one(analysis_doc)
+    
+    return {
+        "analysis_id": analysis_id,
+        "document_id": document_id,
+        "document_type": document_type,
+        **analysis,
+        "created_at": analysis_doc["created_at"]
+    }
+
+@api_router.get("/analyze/documents")
+async def list_document_analyses(
+    current_user: dict = Depends(get_current_user)
+):
+    """List user's document analyses"""
+    analyses = await db.document_analyses.find(
+        {"user_id": current_user["user_id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(length=100)
+    return analyses
+
+@api_router.get("/analyze/document/{analysis_id}")
+async def get_document_analysis(
+    analysis_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get specific document analysis"""
+    analysis = await db.document_analyses.find_one(
+        {"analysis_id": analysis_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return analysis
+
+# ============== RIGHTS COACH ENDPOINT ==============
+
+@api_router.post("/rights-coach")
+async def get_rights_guidance(
+    situation: str = Form(...),
+    encounter_id: Optional[str] = Form(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get real-time rights guidance for current situation"""
+    if not llm_service:
+        # Fallback to pre-programmed responses
+        return get_fallback_rights_guidance(situation)
+    
+    prompt = f"""You are a civil rights attorney providing real-time guidance during a police encounter.
+
+SITUATION: {situation}
+
+Provide IMMEDIATE, ACTIONABLE guidance:
+1. What to say RIGHT NOW (exact phrases)
+2. What NOT to do
+3. Your constitutional rights in this situation
+4. Key phrases to remember
+
+Be concise - this is an emergency situation. Format as JSON:
+{{
+    "immediate_action": "What to do/say right now",
+    "do_not": ["List of things to avoid"],
+    "your_rights": ["Your applicable rights"],
+    "key_phrases": ["Exact phrases to use"],
+    "legal_basis": "Brief legal explanation"
+}}"""
+
+    try:
+        response = await llm_service.chat(prompt)
+        guidance = json.loads(response) if response else {}
+        return guidance
+    except Exception as e:
+        logger.error(f"Rights coach error: {e}")
+        return get_fallback_rights_guidance(situation)
+
+def get_fallback_rights_guidance(situation: str) -> dict:
+    """Provide fallback rights guidance without AI"""
+    situation_lower = situation.lower()
+    
+    if "search" in situation_lower or "trunk" in situation_lower or "car" in situation_lower:
+        return {
+            "immediate_action": "Say: 'I do not consent to a search.'",
+            "do_not": ["Open trunk voluntarily", "Hand over keys", "Physically resist"],
+            "your_rights": [
+                "4th Amendment protects against unreasonable searches",
+                "Officers need warrant, consent, or probable cause",
+                "You can refuse consent to search"
+            ],
+            "key_phrases": [
+                "I do not consent to a search",
+                "Am I being detained or am I free to go?",
+                "I wish to remain silent"
+            ],
+            "legal_basis": "4th Amendment - Unreasonable Search and Seizure"
+        }
+    elif "arrest" in situation_lower:
+        return {
+            "immediate_action": "Say: 'I am invoking my right to remain silent. I want a lawyer.'",
+            "do_not": ["Resist physically", "Answer questions", "Make statements"],
+            "your_rights": [
+                "5th Amendment right to remain silent",
+                "6th Amendment right to an attorney",
+                "Right to know charges against you"
+            ],
+            "key_phrases": [
+                "I am invoking my 5th Amendment right to remain silent",
+                "I want to speak to an attorney",
+                "What am I being charged with?"
+            ],
+            "legal_basis": "5th & 6th Amendments"
+        }
+    else:
+        return {
+            "immediate_action": "Stay calm. Keep hands visible. Ask: 'Am I free to go?'",
+            "do_not": ["Make sudden movements", "Argue or resist", "Consent to searches"],
+            "your_rights": [
+                "Right to remain silent",
+                "Right to refuse consent to search",
+                "Right to know if you're being detained"
+            ],
+            "key_phrases": [
+                "Am I being detained or am I free to go?",
+                "I do not consent to any searches",
+                "I wish to remain silent"
+            ],
+            "legal_basis": "4th, 5th, and 14th Amendments"
+        }
+
+# ============== SIMILAR CASES SEARCH ==============
+
+@api_router.get("/cases/similar")
+async def search_similar_cases(
+    violation_type: str,
+    department: Optional[str] = None,
+    state: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Search for similar cases and their outcomes"""
+    # Search our database first
+    query = {"violation_type": violation_type, "status": {"$in": ["resolved", "closed"]}}
+    if department:
+        query["department"] = department
+    
+    similar = await db.cases.find(query, {"_id": 0}).limit(10).to_list(length=10)
+    
+    # Mock external case data (in production, integrate with legal databases)
+    external_cases = [
+        {
+            "case_name": "Terry v. Ohio (1968)",
+            "violation_type": "4th Amendment",
+            "outcome": "Established 'stop and frisk' standards - officers need reasonable suspicion",
+            "relevance": "high" if "4th" in violation_type.lower() or "search" in violation_type.lower() else "medium"
+        },
+        {
+            "case_name": "Miranda v. Arizona (1966)",
+            "violation_type": "5th Amendment",
+            "outcome": "Established Miranda rights requirement before interrogation",
+            "relevance": "high" if "5th" in violation_type.lower() or "miranda" in violation_type.lower() else "medium"
+        },
+        {
+            "case_name": "Graham v. Connor (1989)",
+            "violation_type": "Excessive Force",
+            "outcome": "Established 'objective reasonableness' standard for force",
+            "relevance": "high" if "force" in violation_type.lower() or "8th" in violation_type.lower() else "medium"
+        }
+    ]
+    
+    return {
+        "similar_cases_in_system": similar,
+        "landmark_cases": external_cases,
+        "total_found": len(similar)
+    }
+
+# ============== EMERGENCY CONTACTS ==============
+
+@api_router.post("/settings/emergency-contacts")
+async def update_emergency_contacts(
+    contacts: List[Dict[str, str]],
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user's emergency contacts"""
+    # Validate contacts
+    validated = []
+    for contact in contacts[:5]:  # Max 5 contacts
+        if contact.get("name") and (contact.get("phone") or contact.get("email")):
+            validated.append({
+                "name": contact["name"],
+                "phone": contact.get("phone"),
+                "email": contact.get("email"),
+                "notify_on_encounter": contact.get("notify_on_encounter", True)
+            })
+    
+    await db.users.update_one(
+        {"user_id": current_user["user_id"]},
+        {"$set": {"emergency_contacts": validated}}
+    )
+    
+    return {"success": True, "contacts": validated}
+
+@api_router.get("/settings/emergency-contacts")
+async def get_emergency_contacts(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get user's emergency contacts"""
+    user = await db.users.find_one(
+        {"user_id": current_user["user_id"]},
+        {"_id": 0, "emergency_contacts": 1}
+    )
+    return user.get("emergency_contacts", [])
+
 # ============== HEALTH CHECK ==============
 
 @api_router.get("/health")
