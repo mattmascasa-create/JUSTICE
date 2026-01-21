@@ -21,7 +21,8 @@ import {
   Sun,
   Shield,
   MessageCircle,
-  Building
+  Building,
+  Map
 } from 'lucide-react';
 
 const navItems = [
@@ -32,6 +33,7 @@ const navItems = [
   { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
   { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
   { icon: MessageCircle, label: 'Messages', path: '/messages' },
+  { icon: Map, label: 'Incident Map', path: '/incident-map' },
   { icon: BookOpen, label: 'Know Your Rights', path: '/rights' },
   { icon: Building, label: 'Transparency', path: '/transparency' },
   { icon: Settings, label: 'Settings', path: '/settings' },

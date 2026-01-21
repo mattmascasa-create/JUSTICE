@@ -21,6 +21,7 @@ import AttorneysPage from "./pages/AttorneysPage";
 import KnowYourRightsPage from "./pages/KnowYourRightsPage";
 import MessagesPage from "./pages/MessagesPage";
 import TransparencyPage from "./pages/TransparencyPage";
+import IncidentMapPage from "./pages/IncidentMapPage";
 import SettingsPage from "./pages/SettingsPage";
 
 // Register service worker
@@ -72,6 +73,7 @@ function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/transparency" element={<TransparencyPage />} />
+      <Route path="/incident-map" element={<IncidentMapPage />} />
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
