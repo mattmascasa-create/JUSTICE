@@ -4158,6 +4158,9 @@ async def generate_policy_report(
     
     await db.policy_reports.insert_one(report_doc)
     
+    # Remove MongoDB _id before returning
+    report_doc.pop("_id", None)
+    
     logger.info(f"Generated policy report: {report_id} ({report_type} for {target_audience})")
     
     return report_doc
