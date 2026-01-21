@@ -3914,8 +3914,8 @@ async def generate_evidence_certificate(
     # Hash the certificate itself
     certificate["certificate_hash"] = compute_sha256(json.dumps(certificate, sort_keys=True).encode())
     
-    # Store certificate
-    await db.evidence_certificates.insert_one(certificate)
+    # Store certificate (copy to avoid _id mutation)
+    await db.evidence_certificates.insert_one(dict(certificate))
     
     return certificate
 
