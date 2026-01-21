@@ -4460,7 +4460,7 @@ async def get_policy_dashboard_data():
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "5.0.0"}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "5.1.0", "ipfs_enabled": bool(PINATA_JWT)}
 
 # Include the router
 app.include_router(api_router)
