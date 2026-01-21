@@ -430,10 +430,6 @@ class CommunitySubmitRequest(BaseModel):
     severity: str
     outcome: Optional[str] = None
     summary: str
-    legal_issues: List[Dict[str, Any]] = []
-    recommendations: List[str] = []
-    case_precedents: List[Dict[str, Any]] = []
-    created_at: datetime
 
 class MessageCreate(BaseModel):
     recipient_id: str
