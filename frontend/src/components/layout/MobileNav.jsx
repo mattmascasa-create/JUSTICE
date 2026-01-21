@@ -52,7 +52,7 @@ export default function MobileNav() {
         {/* More menu */}
         <Sheet>
           <SheetTrigger asChild>
-            <button className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-muted-foreground">
+            <button className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-muted-foreground" data-testid="mobile-nav-more">
               <div className="p-1.5 rounded-lg">
                 <Menu className="h-5 w-5" />
               </div>
@@ -60,6 +60,9 @@ export default function MobileNav() {
             </button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72 p-0">
+            <VisuallyHidden>
+              <SheetTitle>Navigation Menu</SheetTitle>
+            </VisuallyHidden>
             <Sidebar isMobileSheet />
           </SheetContent>
         </Sheet>
