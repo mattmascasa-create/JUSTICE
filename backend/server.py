@@ -22,6 +22,7 @@ import random
 import base64
 import io
 import tempfile
+import hmac
 from emergentintegrations.llm.openai import OpenAISpeechToText, LlmChat
 
 ROOT_DIR = Path(__file__).parent
