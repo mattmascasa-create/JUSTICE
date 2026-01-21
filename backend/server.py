@@ -3470,7 +3470,7 @@ async def get_department_profile(department: str, state: Optional[str] = None):
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "4.0.0"}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "4.1.0"}
 
 # Include the router
 app.include_router(api_router)
