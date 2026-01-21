@@ -3060,7 +3060,7 @@ async def get_emergency_contacts(
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "3.0.0"}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "4.0.0"}
 
 # Include the router
 app.include_router(api_router)
