@@ -432,6 +432,74 @@ class CommunitySubmitRequest(BaseModel):
     outcome: Optional[str] = None
     summary: str
 
+# ============== BLOCKCHAIN EVIDENCE MODELS ==============
+
+class EvidenceHash(BaseModel):
+    """Cryptographic hash record for evidence integrity"""
+    model_config = ConfigDict(extra="ignore")
+    hash_id: str
+    evidence_id: str
+    file_hash: str  # SHA-256 hash of file content
+    metadata_hash: str  # SHA-256 hash of metadata
+    combined_hash: str  # Hash of (file_hash + metadata_hash + timestamp)
+    algorithm: str = "SHA-256"
+    timestamp: datetime
+    block_number: Optional[int] = None  # Simulated blockchain block
+    previous_hash: Optional[str] = None  # Chain link to previous evidence
+    merkle_root: Optional[str] = None  # For batch verification
+    verified: bool = False
+
+class ChainOfCustody(BaseModel):
+    """Track every access and modification to evidence"""
+    model_config = ConfigDict(extra="ignore")
+    custody_id: str
+    evidence_id: str
+    action: str  # created, accessed, downloaded, shared, verified
+    actor_id: str
+    actor_type: str  # user, system, attorney, court
+    timestamp: datetime
+    ip_address: Optional[str] = None
+    device_info: Optional[str] = None
+    signature: str  # Digital signature of the action
+    previous_custody_hash: Optional[str] = None
+
+class EvidenceVerification(BaseModel):
+    """Verification record for court submission"""
+    model_config = ConfigDict(extra="ignore")
+    verification_id: str
+    evidence_id: str
+    original_hash: str
+    current_hash: str
+    is_valid: bool
+    chain_intact: bool
+    custody_entries: int
+    verification_timestamp: datetime
+    verifier_signature: str
+
+class BlockchainRecord(BaseModel):
+    """Simulated blockchain block for evidence"""
+    model_config = ConfigDict(extra="ignore")
+    block_number: int
+    timestamp: datetime
+    evidence_hashes: List[str]
+    previous_block_hash: str
+    nonce: int
+    block_hash: str
+
+class PolicyReport(BaseModel):
+    """Generated policy impact report"""
+    model_config = ConfigDict(extra="ignore")
+    report_id: str
+    report_type: str  # department_accountability, officer_pattern, state_analysis, violation_trend
+    target_audience: str  # city_council, media, civil_rights_org, legislators
+    title: str
+    executive_summary: str
+    key_findings: List[Dict[str, Any]]
+    data_sources: List[str]
+    recommendations: List[str]
+    charts_data: Dict[str, Any]
+    generated_at: datetime
+
 class MessageCreate(BaseModel):
     recipient_id: str
     case_id: Optional[str] = None
