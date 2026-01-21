@@ -4,7 +4,7 @@
 JUSTICE is a revolutionary **Civil Rights Defense System** - a comprehensive police accountability and constitutional rights protection platform empowering citizens to protect their constitutional rights during police encounters.
 
 ## Core Mission
-Provide AI-powered real-time assistance, evidence management, legal support connectivity, accountability tracking, and now **real-time encounter protection** for citizens facing police encounters.
+Provide AI-powered real-time assistance, evidence management, legal support connectivity, accountability tracking, real-time encounter protection, and **community-driven evidence aggregation** for citizens facing police encounters.
 
 ## Architecture
 - **Frontend**: React 18 + Tailwind CSS + shadcn/ui components + PWA
@@ -20,9 +20,10 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 ## User Personas
 1. **Citizens** - Primary users seeking rights protection during encounters
 2. **Attorneys** - Civil rights legal professionals
-3. **Researchers/Public** - Transparency portal access
+3. **Researchers/Public** - Transparency portal and community vault access
+4. **Advocates** - Using aggregated data for policy change
 
-## Implemented Features (v4.0) - Updated Jan 21, 2026
+## Implemented Features (v4.1) - Updated Jan 21, 2026
 
 ### Phase 1 (Core MVP) ✅
 - [x] User authentication (Email/Password + Google OAuth)
@@ -51,84 +52,69 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - [x] Push Notification subscription/unsubscription
 - [x] WebSocket exponential backoff reconnection
 
-### Phase 4 (Encounter Mode) ✅ - NEW
-- [x] **"I'm Being Pulled Over" emergency button** - One-tap to start recording
-- [x] **GPS location pinning** - Automatic location capture at encounter start
-- [x] **Audio recording** - Continuous audio capture during encounters
-- [x] **Real-time transcription** - Whisper-powered speech-to-text
-- [x] **AI violation detection** - Real-time analysis for civil rights violations
-- [x] **Rights reminders** - Rotating prompts about your rights
-- [x] **Officer information capture** - Record badge, name, department
-- [x] **Broadcast modes** - Save only, share with contacts, attorney, or livestream
-- [x] **Encounter reports** - AI-generated comprehensive reports after encounter ends
+### Phase 4 (Encounter Mode) ✅
+- [x] "I'm Being Pulled Over" emergency button
+- [x] GPS location pinning
+- [x] Audio recording + real-time transcription
+- [x] AI violation detection during encounters
+- [x] Rights reminders on screen
+- [x] Officer information capture
+- [x] Broadcast modes (save, share, livestream)
+- [x] Auto-generated encounter reports
 
-### Phase 5 (AI Legal Analyst) ✅ - NEW
-- [x] **Document Analysis** - Upload police reports, body cam transcripts, discovery docs
-- [x] **Violation detection** - AI identifies constitutional violations in documents
-- [x] **Bias detection** - Identifies racial profiling and discrimination indicators
-- [x] **Inconsistency analysis** - Finds contradictions and timeline issues
-- [x] **Rights Coach** - Real-time guidance on what to say/do during encounters
-- [x] **Similar Cases Search** - Find landmark cases and precedents
-- [x] **Emergency Contacts** - Configure contacts for automatic notification
+### Phase 5 (AI Legal Analyst) ✅
+- [x] Document Analysis for police reports, body cam transcripts
+- [x] Violation detection in documents
+- [x] Bias detection (racial profiling, discrimination)
+- [x] Rights Coach for real-time guidance
+- [x] Similar Cases Search with landmark precedents
+- [x] Emergency Contacts API
 
-## Backend APIs (v4.0)
+### Phase 6 (Community Evidence Vault) ✅ - NEW
+- [x] **Anonymized Submissions** - Report encounters without exposing identity
+- [x] **Department Rankings** - Track departments by incident count
+- [x] **Officer Tracking** - Monitor officers with multiple complaints
+- [x] **Aggregated Statistics** - Top violations, state distribution, severity breakdown
+- [x] **Public Access** - Browse submissions without login
+- [x] **Upvoting System** - Community validation of reports
+- [x] **Officer Profiles** - Complete history for individual officers
+- [x] **Department Profiles** - Stats, submissions, and officers by department
+- [x] **Filtering & Search** - By state, department, violation type, severity
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/session` - Google OAuth session
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - Logout
+## Backend APIs (v4.1)
 
-### Encounter Mode (NEW)
-- `POST /api/encounters/start` - Start new encounter with location
-- `POST /api/encounters/{id}/audio` - Upload audio chunk for transcription
-- `POST /api/encounters/{id}/officer` - Add officer information
-- `POST /api/encounters/{id}/end` - End encounter and generate report
-- `GET /api/encounters` - List user encounters
-- `GET /api/encounters/{id}` - Get encounter with transcriptions and report
+### Community Evidence Vault (NEW - Public endpoints)
+- `GET /api/community/stats` - Overall statistics (total submissions, departments, officers, top violations)
+- `GET /api/community/submissions` - Browse submissions with filters (state, department, violation, severity)
+- `GET /api/community/departments` - Department rankings by incidents
+- `GET /api/community/officers` - Officer rankings by incidents
+- `GET /api/community/officer/{badge}/{department}` - Officer profile with all submissions
+- `GET /api/community/department/{department}` - Department profile with stats and officers
 
-### Document Analysis (NEW)
-- `POST /api/analyze/document` - Upload and analyze document
-- `GET /api/analyze/documents` - List user's analyses
-- `GET /api/analyze/document/{id}` - Get specific analysis
+### Community Evidence Vault (Auth Required)
+- `POST /api/community/submit` - Submit anonymized encounter report
+- `POST /api/community/upvote/{id}` - Upvote a submission (prevents duplicates)
 
-### Rights & Legal (NEW)
-- `POST /api/rights-coach` - Get real-time rights guidance
-- `GET /api/cases/similar` - Search similar cases and precedents
-
-### Settings (NEW)
-- `POST /api/settings/emergency-contacts` - Update emergency contacts
-- `GET /api/settings/emergency-contacts` - Get emergency contacts
-
-### Cases
-- `GET/POST /api/cases` - List/Create cases
-- `GET /api/cases/similar` - Search similar cases
-- `GET/PATCH/DELETE /api/cases/{id}` - Case operations
-- `GET /api/cases/{id}/timeline` - Get case timeline events
-- `POST /api/cases/{id}/events` - Add event to timeline
-- `GET /api/cases/{id}/report` - Get PDF report data
-
-### Evidence
-- `GET/POST /api/evidence` - List/Create evidence
-- `POST /api/upload` - File upload (local storage)
-- `GET /api/files/{filename}` - Serve files
-
-### Other
-- `GET /api/departments` - Transparency portal departments
-- `GET /api/incidents/map` - Incident map data
-- `GET /api/attorneys` - Attorney directory
-- `POST /api/sos` - Emergency SOS
-- `POST /api/ai/chat` - AI Attorney chat
-- `WS /api/ws/{token}` - WebSocket real-time
+### All Other Endpoints
+- Authentication: `/api/auth/*`
+- Encounter Mode: `/api/encounters/*`
+- Document Analysis: `/api/analyze/*`
+- Rights Coach: `/api/rights-coach`
+- Cases: `/api/cases/*`
+- Evidence: `/api/evidence/*`, `/api/upload`
+- Messaging: `/api/messages/*`
+- Transparency: `/api/departments/*`
+- Incidents: `/api/incidents/*`
+- Settings: `/api/settings/*`
 
 ## Frontend Pages
 - `/` - Landing page (public)
 - `/login`, `/register` - Authentication
 - `/dashboard` - User dashboard
-- `/encounter` - **Encounter Mode (NEW)**
-- `/analyze` - **Document Analysis (NEW)**
-- `/cases`, `/cases/new`, `/cases/:id` - Case management
+- `/encounter` - Encounter Mode
+- `/analyze` - Document Analysis
+- `/community` - **Community Evidence Vault (NEW)**
+- `/cases/*` - Case management
 - `/evidence` - Evidence library
 - `/ai-attorney` - AI chat
 - `/sos` - Emergency SOS
@@ -143,9 +129,9 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - SMS notifications: **MOCKED** (Twilio not integrated)
 - Emergency contact notifications: **MOCKED** (logged but not sent)
 - File storage: Local `/app/backend/uploads/` (S3-ready)
+- Community Vault: **Privacy-first** - No user_id stored with submissions
 - Audio transcription: OpenAI Whisper via emergentintegrations
 - AI Analysis: GPT-5.2 via Emergent LLM key
-- Rights Coach has fallback responses when AI unavailable
 
 ## Prioritized Backlog
 
@@ -173,7 +159,8 @@ Provide AI-powered real-time assistance, evidence management, legal support conn
 - /app/test_reports/iteration_1.json - Phase 1 tests
 - /app/test_reports/iteration_2.json - Phase 2 tests
 - /app/test_reports/iteration_3.json - Phase 3 tests
-- /app/test_reports/iteration_4.json - Phase 4 & 5 tests (100% backend, 95% frontend)
+- /app/test_reports/iteration_4.json - Phase 4 & 5 tests
+- /app/test_reports/iteration_5.json - Phase 6 Community Vault tests (28/28 passed)
 
 ## Test Credentials
 - Email: encounter_test@example.com
