@@ -2902,10 +2902,11 @@ async def get_rights_guidance(
     current_user: dict = Depends(get_current_user)
 ):
     """Get real-time rights guidance for current situation"""
-    if not llm_service:
+    if not EMERGENT_LLM_KEY:
         # Fallback to pre-programmed responses
         return get_fallback_rights_guidance(situation)
     
+    llm = create_llm_chat(f"rights_coach_{current_user['user_id']}", "You are an emergency civil rights attorney providing immediate guidance during police encounters.")
     prompt = f"""You are a civil rights attorney providing real-time guidance during a police encounter.
 
 SITUATION: {situation}
@@ -2926,7 +2927,7 @@ Be concise - this is an emergency situation. Format as JSON:
 }}"""
 
     try:
-        response = await llm_service.chat(prompt)
+        response = await llm.chat(prompt)
         guidance = json.loads(response) if response else {}
         return guidance
     except Exception as e:
