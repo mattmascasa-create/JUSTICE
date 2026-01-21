@@ -243,7 +243,7 @@ export default function EncounterPage() {
             <div className="inline-flex items-center justify-center p-4 rounded-full bg-red-500/20 animate-pulse">
               <Shield className="h-16 w-16 text-red-500" />
             </div>
-            <h1 className="font-serif text-4xl font-bold">I'm Being Pulled Over</h1>
+            <h1 className="font-serif text-4xl font-bold">I&apos;m Being Pulled Over</h1>
             <p className="text-muted-foreground text-lg">
               This will record audio, pin your location, and protect your rights.
             </p>
