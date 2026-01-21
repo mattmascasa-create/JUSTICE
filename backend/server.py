@@ -272,6 +272,108 @@ class ChatResponse(BaseModel):
     violation_type: Optional[str] = None
     rights_reminder: Optional[str] = None
 
+# ============== ENCOUNTER MODE MODELS ==============
+
+class EncounterStart(BaseModel):
+    latitude: float
+    longitude: float
+    address: Optional[str] = None
+    encounter_type: str = "traffic_stop"  # traffic_stop, pedestrian_stop, arrest, search, other
+    broadcast_mode: str = "save"  # save, share_contacts, share_attorney, livestream, all
+
+class EncounterUpdate(BaseModel):
+    status: Optional[str] = None  # active, paused, ended
+    broadcast_mode: Optional[str] = None
+    notes: Optional[str] = None
+
+class EncounterResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    encounter_id: str
+    user_id: str
+    latitude: float
+    longitude: float
+    address: Optional[str] = None
+    encounter_type: str
+    status: str
+    broadcast_mode: str
+    stream_key: Optional[str] = None
+    started_at: datetime
+    ended_at: Optional[datetime] = None
+    duration_seconds: int = 0
+
+class TranscriptionSegment(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    segment_id: str
+    encounter_id: str
+    text: str
+    speaker: str = "unknown"  # user, officer, unknown
+    start_time: float
+    end_time: float
+    confidence: float = 0.0
+    violations_detected: List[str] = []
+    created_at: datetime
+
+class ViolationAnalysis(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    analysis_id: str
+    encounter_id: str
+    violation_type: str
+    severity: str  # low, medium, high, critical
+    description: str
+    legal_citation: str
+    timestamp_in_recording: float
+    evidence_segment_ids: List[str] = []
+    similar_cases: List[Dict[str, Any]] = []
+    recommended_actions: List[str] = []
+    created_at: datetime
+
+class OfficerProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    officer_id: str
+    encounter_id: str
+    name: Optional[str] = None
+    badge_number: Optional[str] = None
+    department: Optional[str] = None
+    rank: Optional[str] = None
+    prior_incidents: int = 0
+    complaints_count: int = 0
+    use_of_force_count: int = 0
+    captured_from: str = "manual"  # manual, ocr, audio
+    confidence: float = 0.0
+    created_at: datetime
+
+class EncounterReport(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    report_id: str
+    encounter_id: str
+    user_id: str
+    summary: str
+    violations: List[ViolationAnalysis] = []
+    officers: List[OfficerProfile] = []
+    transcript_text: str
+    recommendations: List[str] = []
+    legal_resources: List[Dict[str, str]] = []
+    similar_cases: List[Dict[str, Any]] = []
+    created_at: datetime
+
+class DocumentAnalysisRequest(BaseModel):
+    document_type: str  # police_report, discovery, court_filing, body_cam_transcript, other
+    analysis_focus: Optional[str] = None  # bias, violations, inconsistencies, all
+
+class DocumentAnalysisResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    analysis_id: str
+    document_id: str
+    document_type: str
+    summary: str
+    violations_found: List[Dict[str, Any]] = []
+    bias_indicators: List[Dict[str, Any]] = []
+    inconsistencies: List[Dict[str, Any]] = []
+    legal_issues: List[Dict[str, Any]] = []
+    recommendations: List[str] = []
+    case_precedents: List[Dict[str, Any]] = []
+    created_at: datetime
+
 class MessageCreate(BaseModel):
     recipient_id: str
     case_id: Optional[str] = None
