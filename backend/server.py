@@ -2573,8 +2573,9 @@ async def generate_encounter_report(encounter_id: str, user_id: str):
     recommendations = []
     similar_cases = []
     
-    if llm_service and full_transcript:
+    if EMERGENT_LLM_KEY and full_transcript:
         try:
+            llm = create_llm_chat(f"report_{encounter_id}", "You are an expert civil rights attorney generating detailed encounter reports.")
             analysis_prompt = f"""You are an expert civil rights attorney analyzing a police encounter.
 
 ENCOUNTER DETAILS:
@@ -2595,7 +2596,7 @@ Provide a comprehensive analysis including:
 
 Format as JSON with keys: summary, violations_analysis, legal_citations, recommendations, similar_case_references"""
 
-            response = await llm_service.chat(analysis_prompt)
+            response = await llm.chat(analysis_prompt)
             if response:
                 try:
                     analysis = json.loads(response)
