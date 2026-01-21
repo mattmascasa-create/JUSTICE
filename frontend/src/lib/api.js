@@ -98,6 +98,29 @@ export const departmentsAPI = {
   getIncidents: (id, limit) => api.get(`/departments/${id}/incidents`, { params: { limit } }),
 };
 
+// Incidents Map API
+export const incidentsAPI = {
+  getForMap: (params) => api.get('/incidents/map', { params }),
+  getStats: () => api.get('/incidents/stats'),
+};
+
+// Case Timeline API
+export const timelineAPI = {
+  get: (caseId) => api.get(`/cases/${caseId}/timeline`),
+  addEvent: (caseId, data) => api.post(`/cases/${caseId}/events`, null, { params: data }),
+};
+
+// Report API
+export const reportAPI = {
+  getData: (caseId) => api.get(`/cases/${caseId}/report`),
+};
+
+// Push Notifications API
+export const pushAPI = {
+  subscribe: (subscription) => api.post('/push/subscribe', subscription),
+  unsubscribe: () => api.delete('/push/unsubscribe'),
+};
+
 // Analytics API
 export const analyticsAPI = {
   getDashboard: () => api.get('/analytics/dashboard'),
