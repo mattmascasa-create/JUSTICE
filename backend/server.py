@@ -3034,7 +3034,7 @@ def get_fallback_rights_guidance(situation: str) -> dict:
 
 @api_router.post("/settings/emergency-contacts")
 async def update_emergency_contacts(
-    contacts: List[Dict[str, str]],
+    contacts: List[Dict[str, Any]],
     current_user: dict = Depends(get_current_user)
 ):
     """Update user's emergency contacts"""
