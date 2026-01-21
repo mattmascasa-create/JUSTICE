@@ -378,6 +378,58 @@ class DocumentAnalysisResponse(BaseModel):
     violations_found: List[Dict[str, Any]] = []
     bias_indicators: List[Dict[str, Any]] = []
     inconsistencies: List[Dict[str, Any]] = []
+
+# ============== COMMUNITY VAULT MODELS ==============
+
+class CommunitySubmission(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    submission_id: str
+    encounter_type: str
+    location_city: str
+    location_state: str
+    incident_date: datetime
+    violations: List[str] = []
+    department: Optional[str] = None
+    officer_badge: Optional[str] = None
+    severity: str
+    outcome: Optional[str] = None
+    summary: str
+    verified: bool = False
+    upvotes: int = 0
+    created_at: datetime
+
+class OfficerStats(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    badge_number: str
+    department: str
+    total_incidents: int = 0
+    violations_by_type: Dict[str, int] = {}
+    severity_distribution: Dict[str, int] = {}
+    first_incident: Optional[datetime] = None
+    last_incident: Optional[datetime] = None
+
+class DepartmentStats(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    department: str
+    state: str
+    total_incidents: int = 0
+    officers_with_incidents: int = 0
+    violations_by_type: Dict[str, int] = {}
+    severity_distribution: Dict[str, int] = {}
+    trend: str = "stable"  # increasing, decreasing, stable
+
+class CommunitySubmitRequest(BaseModel):
+    encounter_id: Optional[str] = None  # If sharing from an existing encounter
+    encounter_type: str
+    location_city: str
+    location_state: str
+    incident_date: datetime
+    violations: List[str]
+    department: Optional[str] = None
+    officer_badge: Optional[str] = None
+    severity: str
+    outcome: Optional[str] = None
+    summary: str
     legal_issues: List[Dict[str, Any]] = []
     recommendations: List[str] = []
     case_precedents: List[Dict[str, Any]] = []
