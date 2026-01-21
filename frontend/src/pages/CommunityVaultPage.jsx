@@ -365,10 +365,10 @@ export default function CommunityVaultPage() {
             <CardContent className="p-4">
               <div className="flex flex-wrap items-center gap-3">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={filters.state} onValueChange={(v) => setFilters(prev => ({ ...prev, state: v }))}>
+                <Select value={filters.state || "all"} onValueChange={(v) => setFilters(prev => ({ ...prev, state: v === "all" ? "" : v }))}>
                   <SelectTrigger className="w-[150px]"><SelectValue placeholder="State" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All States</SelectItem>
+                    <SelectItem value="all">All States</SelectItem>
                     {US_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -378,17 +378,17 @@ export default function CommunityVaultPage() {
                   value={filters.department}
                   onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value }))}
                 />
-                <Select value={filters.violation} onValueChange={(v) => setFilters(prev => ({ ...prev, violation: v }))}>
+                <Select value={filters.violation || "all"} onValueChange={(v) => setFilters(prev => ({ ...prev, violation: v === "all" ? "" : v }))}>
                   <SelectTrigger className="w-[180px]"><SelectValue placeholder="Violation Type" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Violations</SelectItem>
+                    <SelectItem value="all">All Violations</SelectItem>
                     {violationTypes.map(v => <SelectItem key={v} value={v}>{v.replace(/_/g, ' ')}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Select value={filters.severity} onValueChange={(v) => setFilters(prev => ({ ...prev, severity: v }))}>
+                <Select value={filters.severity || "all"} onValueChange={(v) => setFilters(prev => ({ ...prev, severity: v === "all" ? "" : v }))}>
                   <SelectTrigger className="w-[120px]"><SelectValue placeholder="Severity" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     {severityOptions.map(s => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
