@@ -3030,51 +3030,6 @@ def get_fallback_rights_guidance(situation: str) -> dict:
             "legal_basis": "4th, 5th, and 14th Amendments"
         }
 
-# ============== SIMILAR CASES SEARCH ==============
-
-@api_router.get("/cases/similar")
-async def search_similar_cases(
-    violation_type: str,
-    department: Optional[str] = None,
-    state: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    """Search for similar cases and their outcomes"""
-    # Search our database first
-    query = {"violation_type": violation_type, "status": {"$in": ["resolved", "closed"]}}
-    if department:
-        query["department"] = department
-    
-    similar = await db.cases.find(query, {"_id": 0}).limit(10).to_list(length=10)
-    
-    # Mock external case data (in production, integrate with legal databases)
-    external_cases = [
-        {
-            "case_name": "Terry v. Ohio (1968)",
-            "violation_type": "4th Amendment",
-            "outcome": "Established 'stop and frisk' standards - officers need reasonable suspicion",
-            "relevance": "high" if "4th" in violation_type.lower() or "search" in violation_type.lower() else "medium"
-        },
-        {
-            "case_name": "Miranda v. Arizona (1966)",
-            "violation_type": "5th Amendment",
-            "outcome": "Established Miranda rights requirement before interrogation",
-            "relevance": "high" if "5th" in violation_type.lower() or "miranda" in violation_type.lower() else "medium"
-        },
-        {
-            "case_name": "Graham v. Connor (1989)",
-            "violation_type": "Excessive Force",
-            "outcome": "Established 'objective reasonableness' standard for force",
-            "relevance": "high" if "force" in violation_type.lower() or "8th" in violation_type.lower() else "medium"
-        }
-    ]
-    
-    return {
-        "similar_cases_in_system": similar,
-        "landmark_cases": external_cases,
-        "total_found": len(similar)
-    }
-
 # ============== EMERGENCY CONTACTS ==============
 
 @api_router.post("/settings/emergency-contacts")
