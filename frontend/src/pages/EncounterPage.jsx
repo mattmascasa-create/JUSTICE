@@ -576,6 +576,12 @@ export default function EncounterPage() {
 
   const stopRecording = async () => {
     if (mediaRecorderRef.current) {
+      // Stop voice recognition
+      if (voiceRecognitionRef.current) {
+        voiceRecognitionRef.current.stop();
+        voiceRecognitionRef.current = null;
+      }
+      
       // Stop all recorders
       mediaRecorderRef.current.stop();
       if (audioRecorderRef.current) audioRecorderRef.current.stop();
@@ -602,6 +608,9 @@ export default function EncounterPage() {
       setIsPaused(false);
     }
   };
+  
+  // Assign to ref for voice commands
+  stopRecordingRef.current = stopRecording;
 
   const addOfficerInfo = async () => {
     if (!encounter) return;
