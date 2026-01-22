@@ -299,6 +299,86 @@ export const backupAPI = {
   getHistory: (limit = 10) => api.get('/backup/history', { params: { limit } })
 };
 
+// Attorney Collaboration API
+export const attorneyCollabAPI = {
+  // Invitation management
+  inviteAttorney: (email, encounterId, message) => {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('encounter_id', encounterId);
+    if (message) formData.append('message', message);
+    return api.post('/attorney/invite', formData);
+  },
+  getInviteDetails: (token) => api.get(`/attorney/invite/${token}/details`),
+  acceptInvite: (inviteToken, name, password) => {
+    const formData = new FormData();
+    formData.append('invite_token', inviteToken);
+    formData.append('name', name);
+    formData.append('password', password);
+    return api.post('/attorney/accept-invite', formData);
+  },
+  acceptInviteExisting: (inviteToken, email, password) => {
+    const formData = new FormData();
+    formData.append('invite_token', inviteToken);
+    formData.append('email', email);
+    formData.append('password', password);
+    return api.post('/attorney/accept-invite/existing', formData);
+  },
+  
+  // Attorney verification
+  verify: (barNumber, firmName, specialization) => {
+    const formData = new FormData();
+    formData.append('bar_number', barNumber);
+    if (firmName) formData.append('firm_name', firmName);
+    if (specialization) formData.append('specialization', specialization);
+    return api.post('/attorney/verify', formData);
+  },
+  
+  // Dashboard & data
+  getDashboard: () => api.get('/attorney/dashboard'),
+  getClients: () => api.get('/attorney/clients'),
+  getEncounters: () => api.get('/attorney/encounters'),
+  
+  // Case notes
+  createNote: (encounterId, content, noteType = 'general') => {
+    const formData = new FormData();
+    formData.append('encounter_id', encounterId);
+    formData.append('content', content);
+    formData.append('note_type', noteType);
+    return api.post('/attorney/notes', formData);
+  },
+  getNotes: (encounterId) => api.get(`/attorney/notes/${encounterId}`),
+  updateNote: (noteId, content, noteType) => {
+    const formData = new FormData();
+    formData.append('content', content);
+    if (noteType) formData.append('note_type', noteType);
+    return api.put(`/attorney/notes/${noteId}`, formData);
+  },
+  deleteNote: (noteId) => api.delete(`/attorney/notes/${noteId}`),
+  
+  // Messaging
+  sendMessage: (recipientId, content, encounterId, messageType = 'text') => {
+    const formData = new FormData();
+    formData.append('recipient_id', recipientId);
+    formData.append('content', content);
+    if (encounterId) formData.append('encounter_id', encounterId);
+    formData.append('message_type', messageType);
+    return api.post('/attorney/messages', formData);
+  },
+  getMessages: (contactId, encounterId) => api.get('/attorney/messages', { 
+    params: { contact_id: contactId, encounter_id: encounterId } 
+  }),
+  getInbox: () => api.get('/attorney/messages/inbox'),
+  markMessageRead: (messageId) => api.put(`/attorney/messages/${messageId}/read`),
+  markAllRead: (contactId) => api.put('/attorney/messages/read-all', null, { 
+    params: { contact_id: contactId } 
+  }),
+  
+  // Access management (for clients)
+  getMyAttorneys: () => api.get('/attorney/my-attorneys'),
+  revokeAccess: (encounterId) => api.delete(`/attorney/access/${encounterId}`),
+};
+
 // Policy Impact Dashboard API
 export const policyAPI = {
   getDashboardData: () => api.get('/policy/dashboard-data'),
