@@ -67,6 +67,35 @@ class ConnectionManager:
     
     def get_viewer_count(self, encounter_id: str) -> int:
         return len(self.encounter_viewers.get(encounter_id, []))
+    
+    # Shared encounter viewer methods
+    async def add_share_viewer(self, encounter_id: str, websocket: WebSocket):
+        """Add a viewer to a shared encounter"""
+        await websocket.accept()
+        if encounter_id not in self.share_viewers:
+            self.share_viewers[encounter_id] = []
+        self.share_viewers[encounter_id].append(websocket)
+    
+    def remove_share_viewer(self, encounter_id: str, websocket: WebSocket):
+        """Remove a viewer from a shared encounter"""
+        if encounter_id in self.share_viewers:
+            if websocket in self.share_viewers[encounter_id]:
+                self.share_viewers[encounter_id].remove(websocket)
+            if not self.share_viewers[encounter_id]:
+                del self.share_viewers[encounter_id]
+    
+    async def broadcast_to_share_viewers(self, encounter_id: str, message: dict):
+        """Send a message to all viewers of a shared encounter"""
+        if encounter_id in self.share_viewers:
+            for viewer in self.share_viewers[encounter_id][:]:  # Copy list to avoid mutation during iteration
+                try:
+                    await viewer.send_json(message)
+                except:
+                    self.remove_share_viewer(encounter_id, viewer)
+    
+    def get_share_viewer_count(self, encounter_id: str) -> int:
+        """Get the number of viewers for a shared encounter"""
+        return len(self.share_viewers.get(encounter_id, []))
 
 
 # Global manager instance
