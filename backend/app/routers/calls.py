@@ -1082,6 +1082,156 @@ async def search_transcripts(
     }
 
 
+# ============== AI TRANSCRIPT SUMMARY ==============
+
+@router.post("/{recording_id}/summarize")
+async def generate_transcript_summary(
+    recording_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate an AI-powered summary of a call transcript with key points and action items"""
+    user_id = current_user["user_id"]
+    
+    # Get the recording
+    recording = await db.call_recordings.find_one({"recording_id": recording_id}, {"_id": 0})
+    if not recording:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    
+    if user_id not in recording.get("participants", []):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    transcript = recording.get("transcript") or recording.get("speaker_transcript")
+    if not transcript:
+        raise HTTPException(status_code=400, detail="No transcript available. Please transcribe the recording first.")
+    
+    # Check if summary already exists and is recent
+    existing_summary = recording.get("ai_summary")
+    if existing_summary:
+        summarized_at = recording.get("summarized_at")
+        if summarized_at and hasattr(summarized_at, 'isoformat'):
+            summarized_at = summarized_at.isoformat()
+        return {
+            "recording_id": recording_id,
+            "status": "already_summarized",
+            "summary": existing_summary,
+            "summarized_at": summarized_at
+        }
+    
+    try:
+        from emergentintegrations.llm.openai import chat
+        
+        api_key = os.environ.get("EMERGENT_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI API key not configured")
+        
+        # Get call details
+        call = await db.video_calls.find_one({"call_id": recording["call_id"]}, {"_id": 0})
+        
+        # Build context
+        caller_name = call.get("caller_name", "Participant 1") if call else "Participant 1"
+        recipient_name = call.get("recipient_name", "Participant 2") if call else "Participant 2"
+        duration = recording.get("duration_seconds", 0)
+        duration_mins = duration // 60 if duration else 0
+        
+        summary_prompt = f"""Analyze this transcript of a legal consultation call between {caller_name} and {recipient_name} ({duration_mins} minutes).
+
+TRANSCRIPT:
+{transcript[:8000]}
+
+Generate a comprehensive summary with the following sections:
+
+1. **OVERVIEW** (2-3 sentences describing the main topic and purpose of the call)
+
+2. **KEY DISCUSSION POINTS** (bullet points of main topics discussed)
+   - Topic and brief summary
+   - Important details mentioned
+
+3. **ACTION ITEMS** (specific tasks or follow-ups mentioned)
+   - Task description
+   - Who is responsible (if mentioned)
+   - Deadline (if mentioned)
+
+4. **LEGAL CONCERNS** (any legal issues, risks, or considerations mentioned)
+   - Issue description
+   - Potential implications
+
+5. **RECOMMENDATIONS** (advice given during the call)
+   - Recommendation
+   - Context
+
+6. **FOLLOW-UP NOTES** (anything requiring additional attention or research)
+
+Format your response as clear, professional text that an attorney or client could use for case documentation. Use markdown formatting for sections and bullet points."""
+
+        response = await chat(
+            api_key=api_key,
+            prompt=summary_prompt,
+            model="gpt-4o-mini"
+        )
+        
+        if not response:
+            raise HTTPException(status_code=500, detail="Failed to generate summary")
+        
+        # Store the summary
+        now = datetime.now(timezone.utc)
+        await db.call_recordings.update_one(
+            {"recording_id": recording_id},
+            {"$set": {
+                "ai_summary": response,
+                "summarized_at": now
+            }}
+        )
+        
+        logger.info(f"AI summary generated for recording {recording_id}")
+        
+        return {
+            "recording_id": recording_id,
+            "status": "completed",
+            "summary": response,
+            "summarized_at": now.isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Summary generation failed for {recording_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Summary generation failed: {str(e)}")
+
+
+@router.get("/{recording_id}/summary")
+async def get_transcript_summary(
+    recording_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the AI-generated summary for a recording"""
+    user_id = current_user["user_id"]
+    
+    recording = await db.call_recordings.find_one({"recording_id": recording_id}, {"_id": 0})
+    if not recording:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    
+    if user_id not in recording.get("participants", []):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    summary = recording.get("ai_summary")
+    if not summary:
+        return {
+            "recording_id": recording_id,
+            "has_summary": False
+        }
+    
+    summarized_at = recording.get("summarized_at")
+    if summarized_at and hasattr(summarized_at, 'isoformat'):
+        summarized_at = summarized_at.isoformat()
+    
+    return {
+        "recording_id": recording_id,
+        "has_summary": True,
+        "summary": summary,
+        "summarized_at": summarized_at
+    }
+
+
 # ============== REAL-TIME TRANSCRIPTION ==============
 
 # Store for live transcription sessions
