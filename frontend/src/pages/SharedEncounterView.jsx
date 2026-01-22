@@ -103,6 +103,7 @@ export default function SharedEncounterView() {
   const [highlights, setHighlights] = useState([]);
   const [highlightFilter, setHighlightFilter] = useState('all');
   const [showHighlights, setShowHighlights] = useState(true);
+  const [exportStyle, setExportStyle] = useState('formal');
   
   const wsRef = useRef(null);
   const transcriptEndRef = useRef(null);
