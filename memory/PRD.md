@@ -407,6 +407,9 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - `POST /api/calls/{call_id}/recording/upload` - Upload recording to S3
 - `GET /api/calls/{call_id}/recordings` - Get recordings for a call
 - `GET /api/calls/recordings/my` - Get all user's recordings
+- `POST /api/calls/{recording_id}/transcribe` - Transcribe recording with AI
+- `GET /api/calls/{recording_id}/transcript` - Get transcript for recording
+- `GET /api/calls/transcripts/search` - Search across all transcripts
 
 ### Backup API (NEW - v5.9.0)
 - `GET /api/backup/status` - Get S3 backup status
