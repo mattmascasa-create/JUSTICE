@@ -94,6 +94,7 @@ export default function SharedEncounterView() {
       setEncounter(data);
       setTranscriptions(data.transcriptions || []);
       setMessages(data.guidance_messages || []);
+      setHasScreenRecording(data.has_screen_recording || false);
       setLoading(false);
     } catch (err) {
       setError(err.message);
