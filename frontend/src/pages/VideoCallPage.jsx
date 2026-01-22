@@ -236,6 +236,16 @@ export default function VideoCallPage() {
       case 'screen-share-stop':
         toast.info('Remote user stopped screen sharing');
         break;
+
+      case 'recording-started':
+        toast.info('Recording started by other party');
+        setIsRecording(true);
+        break;
+
+      case 'recording-stopped':
+        toast.info('Recording stopped');
+        setIsRecording(false);
+        break;
     }
   };
 
