@@ -137,12 +137,21 @@ export const encounterAPI = {
   start: (data) => api.post('/encounters/start', data),
   end: (encounterId) => api.post(`/encounters/${encounterId}/end`),
   get: (encounterId) => api.get(`/encounters/${encounterId}`),
+  getReport: (encounterId) => api.get(`/encounters/${encounterId}/report`),
   list: (status) => api.get('/encounters', { params: { status } }),
   uploadAudio: (encounterId, audioBlob, chunkIndex) => {
     const formData = new FormData();
     formData.append('audio_file', audioBlob, `chunk_${chunkIndex}.webm`);
     formData.append('chunk_index', chunkIndex);
     return api.post(`/encounters/${encounterId}/audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  uploadVideo: (encounterId, videoBlob, chunkIndex) => {
+    const formData = new FormData();
+    formData.append('video_file', videoBlob, `video_chunk_${chunkIndex}.webm`);
+    formData.append('chunk_index', chunkIndex);
+    return api.post(`/encounters/${encounterId}/video`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
