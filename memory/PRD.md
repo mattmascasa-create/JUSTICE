@@ -267,6 +267,17 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Role-based Access Control**: Proper 403 responses for non-attorneys
 - **Version**: 5.8.0
 
+### Phase 17 (Video Call Integration) ✅ - Jan 22, 2026
+- **WebRTC Video Calls**: Peer-to-peer video/audio calls between attorney and client
+- **Call Management API**: Initiate, answer, reject, end calls with history tracking
+- **WebSocket Signaling**: Real-time SDP offer/answer and ICE candidate exchange
+- **Screen Sharing**: Share screen during calls for document review
+- **Incoming Call Modal**: Full-screen modal for incoming calls with accept/reject
+- **Call Controls**: Toggle video, audio, screen share, fullscreen, end call
+- **Call History**: Database-persisted call records with duration tracking
+- **Attorney Workspace Integration**: Video Call button in Messages tab
+- **Version**: 5.9.0
+
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
