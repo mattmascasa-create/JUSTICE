@@ -30,6 +30,9 @@ export default function EvidencePage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedCase, setSelectedCase] = useState('');
   const [fileDescription, setFileDescription] = useState('');
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [selectedReportCase, setSelectedReportCase] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -48,6 +51,28 @@ export default function EvidencePage() {
       toast.error('Failed to load evidence');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!selectedReportCase) {
+      toast.error('Please select a case');
+      return;
+    }
+    
+    setGeneratingReport(true);
+    try {
+      const response = await blockchainAPI.getEvidenceReport(selectedReportCase);
+      const doc = await generateEvidenceReport(response.data);
+      downloadEvidenceReport(doc, selectedReportCase);
+      toast.success('Evidence report downloaded successfully!');
+      setReportDialogOpen(false);
+      setSelectedReportCase('');
+    } catch (error) {
+      console.error('Report generation error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to generate report');
+    } finally {
+      setGeneratingReport(false);
     }
   };
 
