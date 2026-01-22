@@ -433,21 +433,36 @@ export async function generateEvidenceReport(reportData) {
         yPos = doc.lastAutoTable.finalY + 3;
       }
 
-      // IPFS info
+      // IPFS info with QR code
       if (ev.ipfs_cid) {
+        const ipfsUrl = ev.ipfs_gateway_url || `https://gateway.pinata.cloud/ipfs/${ev.ipfs_cid}`;
+        
+        // Generate QR code for IPFS URL
+        const qrDataUrl = await generateQRCode(ipfsUrl, 80);
+        
+        // IPFS banner
         doc.setFillColor(34, 197, 94);
-        doc.rect(margin, yPos, pageWidth - 2 * margin, 12, 'F');
+        doc.rect(margin, yPos, pageWidth - 2 * margin, qrDataUrl ? 28 : 12, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
         doc.text('IPFS DECENTRALIZED STORAGE', margin + 3, yPos + 4);
         doc.setFont('helvetica', 'normal');
         doc.text(`CID: ${ev.ipfs_cid}`, margin + 3, yPos + 9);
-        yPos += 15;
+        
+        // Add QR code if generated
+        if (qrDataUrl) {
+          doc.addImage(qrDataUrl, 'PNG', pageWidth - margin - 25, yPos + 2, 24, 24);
+          doc.setFontSize(5);
+          doc.text('Scan to verify', pageWidth - margin - 22, yPos + 27);
+          yPos += 30;
+        } else {
+          yPos += 15;
+        }
+        
         doc.setTextColor(0, 0, 0);
-
         doc.setFontSize(6);
-        doc.text(`Verification URL: ${ev.ipfs_gateway_url || `https://gateway.pinata.cloud/ipfs/${ev.ipfs_cid}`}`, margin, yPos);
+        doc.text(`Verification URL: ${ipfsUrl}`, margin, yPos);
         yPos += 5;
       }
 
