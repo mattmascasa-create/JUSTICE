@@ -428,6 +428,180 @@ export default function SharedEncounterView() {
             </CardContent>
           </Card>
 
+          {/* Video Player */}
+          <Card className="bg-slate-800 border-slate-700 overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center justify-between text-white">
+                <div className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-red-400" />
+                  Live Video Feed
+                  {videoChunks.length > 0 && (
+                    <Badge variant="outline" className="text-xs border-gray-600">
+                      {videoChunks.length} chunks
+                    </Badge>
+                  )}
+                </div>
+                {!isLive && videoChunks.length > 0 && (
+                  <Button 
+                    size="sm" 
+                    variant="destructive"
+                    onClick={goLive}
+                    className="text-xs"
+                    data-testid="go-live-btn"
+                  >
+                    <Radio className="h-3 w-3 mr-1 animate-pulse" />
+                    Go Live
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {videoChunks.length === 0 ? (
+                <div className="aspect-video bg-slate-900 flex flex-col items-center justify-center">
+                  <VideoOff className="h-16 w-16 text-gray-600 mb-4" />
+                  <p className="text-gray-500">Waiting for video...</p>
+                  <p className="text-xs text-gray-600 mt-1">Video will appear when recording starts</p>
+                </div>
+              ) : (
+                <>
+                  {/* Video element */}
+                  <div className="relative aspect-video bg-black">
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-contain"
+                      src={videoChunks[currentChunkIndex] ? getVideoChunkUrl(videoChunks[currentChunkIndex].filename) : ''}
+                      autoPlay={isPlaying}
+                      onEnded={handleVideoEnded}
+                      onError={() => setVideoError(true)}
+                      onLoadStart={() => setVideoError(false)}
+                      controls={false}
+                      playsInline
+                      data-testid="video-player"
+                    />
+                    
+                    {/* Live indicator */}
+                    {isLive && encounter?.status === 'active' && (
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-red-500 text-white animate-pulse">
+                          <Radio className="h-3 w-3 mr-1" />
+                          LIVE
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {/* Chunk info */}
+                    <div className="absolute top-3 right-3">
+                      <Badge variant="secondary" className="bg-black/60 text-white">
+                        {formatChunkTime(currentChunkIndex)} / {formatChunkTime(videoChunks.length - 1)}
+                      </Badge>
+                    </div>
+                    
+                    {/* Error overlay */}
+                    {videoError && (
+                      <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                        <div className="text-center">
+                          <AlertCircle className="h-10 w-10 text-red-400 mx-auto mb-2" />
+                          <p className="text-gray-400">Video unavailable</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Video Controls */}
+                  <div className="p-3 bg-slate-900 space-y-3">
+                    {/* Timeline */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-400 w-12">{formatChunkTime(currentChunkIndex)}</span>
+                      <Slider
+                        value={[currentChunkIndex]}
+                        max={Math.max(videoChunks.length - 1, 0)}
+                        step={1}
+                        onValueChange={([val]) => goToChunk(val)}
+                        className="flex-1"
+                        data-testid="video-timeline"
+                      />
+                      <span className="text-xs text-gray-400 w-12 text-right">{formatChunkTime(videoChunks.length - 1)}</span>
+                    </div>
+                    
+                    {/* Playback controls */}
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => goToChunk(currentChunkIndex - 1)}
+                        disabled={currentChunkIndex === 0}
+                        data-testid="prev-chunk-btn"
+                      >
+                        <SkipBack className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (videoRef.current) {
+                            if (isPlaying) {
+                              videoRef.current.pause();
+                            } else {
+                              videoRef.current.play();
+                            }
+                            setIsPlaying(!isPlaying);
+                          }
+                        }}
+                        data-testid="play-pause-btn"
+                      >
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => goToChunk(currentChunkIndex + 1)}
+                        disabled={currentChunkIndex >= videoChunks.length - 1}
+                        data-testid="next-chunk-btn"
+                      >
+                        <SkipForward className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (videoRef.current) {
+                            videoRef.current.requestFullscreen?.();
+                          }
+                        }}
+                        data-testid="fullscreen-btn"
+                      >
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Chunk thumbnails/timeline markers */}
+                    {videoChunks.length > 1 && videoChunks.length <= 20 && (
+                      <div className="flex gap-1 overflow-x-auto pb-2">
+                        {videoChunks.map((chunk, idx) => (
+                          <button
+                            key={chunk.index}
+                            onClick={() => goToChunk(idx)}
+                            className={`flex-shrink-0 w-12 h-8 rounded text-xs flex items-center justify-center transition-all ${
+                              idx === currentChunkIndex 
+                                ? 'bg-blue-500 text-white' 
+                                : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
+                            }`}
+                            data-testid={`chunk-btn-${idx}`}
+                          >
+                            {formatChunkTime(idx)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Live Transcript */}
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader className="pb-3">
