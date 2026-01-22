@@ -13,9 +13,10 @@ import {
   Radio, MessageCircle, AlertCircle, CheckCircle, XCircle,
   Volume2, Mic, User, ChevronDown, Video, Play, Pause,
   SkipBack, SkipForward, Maximize2, VideoOff, Zap, Scale,
-  Target, Flag, Filter
+  Target, Flag, Filter, Download, FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { encounterAPI } from '../lib/api';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
