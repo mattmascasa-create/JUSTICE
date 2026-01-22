@@ -141,6 +141,13 @@ export const encounterAPI = {
   getMediaUrl: (encounterId, filename) => `${API_URL}/encounters/${encounterId}/media/${filename}`,
   getStreamToken: (encounterId) => api.get(`/encounters/${encounterId}/stream-token`),
   verifyStreamAccess: (encounterId, token) => api.get(`/live/${encounterId}/verify`, { params: { token } }),
+  analyzeRealtime: (encounterId, text, analysisType = 'full') => {
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('analysis_type', analysisType);
+    return api.post(`/encounters/${encounterId}/analyze`, formData);
+  },
+  getViolations: (encounterId) => api.get(`/encounters/${encounterId}/violations`),
   list: (status) => api.get('/encounters', { params: { status } }),
   uploadAudio: (encounterId, audioBlob, chunkIndex) => {
     const formData = new FormData();
