@@ -55,6 +55,13 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Visual feedback when command recognized
   - Manual violation marks persisted with timestamps
   - Toggle switch to enable/disable voice listening
+- **Enhanced Live Transcription** ✅ (Jan 22, 2026):
+  - Real-time scrolling transcript display with segment timestamps
+  - Keyword highlighting: danger words (red), rights words (green), commands (yellow)
+  - Violation alerts inline with transcript segments
+  - Typing indicator while listening
+  - Expandable full transcript summary
+  - Auto-scroll to latest transcription
 
 ### Phase 5 (AI Legal Analyst) ✅
 - Document Analysis (police reports, body cam, discovery)
