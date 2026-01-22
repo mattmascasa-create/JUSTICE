@@ -654,152 +654,334 @@ export default function VideoCallPage() {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black flex flex-col" data-testid="video-call-page">
-      {/* Remote Video (Full Screen) */}
-      <div className="flex-1 relative">
-        <video
-          ref={remoteVideoRef}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover"
-          data-testid="remote-video"
-        />
-        
-        {/* Status Overlay */}
-        {callStatus !== 'active' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-            <div className="text-center text-white">
-              <div className="h-24 w-24 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4">
-                <User className="h-12 w-12" />
-              </div>
-              <h2 className="text-2xl font-semibold mb-2">
-                {callStatus === 'connecting' && 'Connecting...'}
-                {callStatus === 'ringing' && (isIncoming ? 'Incoming Call' : 'Calling...')}
-              </h2>
-              {callStatus === 'ringing' && (
-                <div className="flex items-center justify-center gap-2 text-gray-400">
-                  <Phone className="h-4 w-4 animate-pulse" />
-                  <span>Waiting for answer...</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+  // Auto-scroll transcript to bottom
+  useEffect(() => {
+    if (transcriptEndRef.current && showTranscriptPanel) {
+      transcriptEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [liveTranscript, showTranscriptPanel]);
 
-        {/* Local Video (Picture-in-Picture) */}
-        <div className="absolute top-4 right-4 w-48 h-36 rounded-lg overflow-hidden shadow-lg border-2 border-white/20">
+  return (
+    <div className="fixed inset-0 bg-black flex" data-testid="video-call-page">
+      {/* Main Video Area */}
+      <div className={`flex-1 flex flex-col ${showTranscriptPanel ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+        {/* Remote Video (Full Screen) */}
+        <div className="flex-1 relative">
           <video
-            ref={localVideoRef}
+            ref={remoteVideoRef}
             autoPlay
             playsInline
-            muted
             className="w-full h-full object-cover"
-            data-testid="local-video"
+            data-testid="remote-video"
           />
-          {!isVideoEnabled && (
-            <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-              <VideoOff className="h-8 w-8 text-gray-400" />
+          
+          {/* Status Overlay */}
+          {callStatus !== 'active' && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+              <div className="text-center text-white">
+                <div className="h-24 w-24 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4">
+                  <User className="h-12 w-12" />
+                </div>
+                <h2 className="text-2xl font-semibold mb-2">
+                  {callStatus === 'connecting' && 'Connecting...'}
+                  {callStatus === 'ringing' && (isIncoming ? 'Incoming Call' : 'Calling...')}
+                </h2>
+                {callStatus === 'ringing' && (
+                  <div className="flex items-center justify-center gap-2 text-gray-400">
+                    <Phone className="h-4 w-4 animate-pulse" />
+                    <span>Waiting for answer...</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
+          {/* Local Video (Picture-in-Picture) */}
+          <div className={`absolute top-4 ${showTranscriptPanel ? 'right-4' : 'right-4'} w-48 h-36 rounded-lg overflow-hidden shadow-lg border-2 border-white/20`}>
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+              data-testid="local-video"
+            />
+            {!isVideoEnabled && (
+              <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                <VideoOff className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Call Info Overlay */}
+          <div className="absolute top-4 left-4 flex items-center gap-3 flex-wrap">
+            {callStatus === 'active' && (
+              <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                <Clock className="h-3 w-3 mr-1" />
+                {formatDuration(duration)}
+              </Badge>
+            )}
+            {isRecording && (
+              <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">
+                <Circle className="h-3 w-3 mr-1 fill-red-500" />
+                REC {formatDuration(recordingDuration)}
+              </Badge>
+            )}
+            {isTranscribing && (
+              <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30 animate-pulse">
+                <FileText className="h-3 w-3 mr-1" />
+                Live Transcribing
+              </Badge>
+            )}
+            {isUploading && (
+              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                <Download className="h-3 w-3 mr-1 animate-bounce" />
+                Uploading...
+              </Badge>
+            )}
+            {isScreenSharing && (
+              <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                <Monitor className="h-3 w-3 mr-1" />
+                Screen Sharing
+              </Badge>
+            )}
+          </div>
+
+          {/* Toggle Transcript Panel Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`absolute bottom-4 right-4 ${showTranscriptPanel ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'bg-gray-800/80 border-white/20 text-white'}`}
+            onClick={() => setShowTranscriptPanel(!showTranscriptPanel)}
+            data-testid="toggle-transcript-panel-btn"
+          >
+            {showTranscriptPanel ? <ChevronRight className="h-4 w-4 mr-1" /> : <ChevronLeft className="h-4 w-4 mr-1" />}
+            <FileText className="h-4 w-4 mr-1" />
+            Transcript
+          </Button>
         </div>
 
-        {/* Call Info Overlay */}
-        <div className="absolute top-4 left-4 flex items-center gap-3">
-          {callStatus === 'active' && (
-            <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-              <Clock className="h-3 w-3 mr-1" />
-              {formatDuration(duration)}
-            </Badge>
-          )}
-          {isRecording && (
-            <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">
-              <Circle className="h-3 w-3 mr-1 fill-red-500" />
-              REC {formatDuration(recordingDuration)}
-            </Badge>
-          )}
-          {isUploading && (
-            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-              <Download className="h-3 w-3 mr-1 animate-bounce" />
-              Uploading...
-            </Badge>
-          )}
-          {isScreenSharing && (
-            <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-              <Monitor className="h-3 w-3 mr-1" />
-              Screen Sharing
-            </Badge>
-          )}
+        {/* Controls */}
+        <div className="bg-gray-900/90 p-4">
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className={`rounded-full h-12 w-12 ${!isAudioEnabled ? 'bg-red-500/20 border-red-500 text-red-400' : 'border-white/20 text-white'}`}
+              onClick={toggleAudio}
+              data-testid="toggle-audio-btn"
+            >
+              {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              className={`rounded-full h-12 w-12 ${!isVideoEnabled ? 'bg-red-500/20 border-red-500 text-red-400' : 'border-white/20 text-white'}`}
+              onClick={toggleVideo}
+              data-testid="toggle-video-btn"
+            >
+              {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              className={`rounded-full h-12 w-12 ${isScreenSharing ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'border-white/20 text-white'}`}
+              onClick={toggleScreenShare}
+              data-testid="toggle-screen-btn"
+            >
+              {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+            </Button>
+
+            {/* Recording Button */}
+            <Button
+              variant="outline"
+              size="lg"
+              className={`rounded-full h-12 w-12 ${isRecording ? 'bg-red-500 border-red-500 text-white animate-pulse' : 'border-white/20 text-white'}`}
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={callStatus !== 'active' || isUploading}
+              data-testid="toggle-recording-btn"
+              title={isRecording ? 'Stop Recording' : 'Start Recording'}
+            >
+              {isRecording ? <Square className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
+            </Button>
+
+            {/* Live Transcription Button */}
+            <Button
+              variant="outline"
+              size="lg"
+              className={`rounded-full h-12 w-12 ${isTranscribing ? 'bg-purple-500 border-purple-500 text-white animate-pulse' : 'border-white/20 text-white'}`}
+              onClick={isTranscribing ? stopLiveTranscription : startLiveTranscription}
+              disabled={callStatus !== 'active'}
+              data-testid="toggle-transcription-btn"
+              title={isTranscribing ? 'Stop Transcription' : 'Start Live Transcription'}
+            >
+              <FileText className="h-5 w-5" />
+            </Button>
+
+            <Button
+              variant="destructive"
+              size="lg"
+              className="rounded-full h-14 w-14"
+              onClick={endCall}
+              data-testid="end-call-btn"
+            >
+              <PhoneOff className="h-6 w-6" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full h-12 w-12 border-white/20 text-white"
+              onClick={toggleFullscreen}
+              data-testid="fullscreen-btn"
+            >
+              {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="bg-gray-900/90 p-6">
-        <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="outline"
-            size="lg"
-            className={`rounded-full h-14 w-14 ${!isAudioEnabled ? 'bg-red-500/20 border-red-500 text-red-400' : 'border-white/20 text-white'}`}
-            onClick={toggleAudio}
-            data-testid="toggle-audio-btn"
-          >
-            {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-          </Button>
+      {/* Live Transcript Panel */}
+      {showTranscriptPanel && (
+        <div className="w-1/3 bg-gray-900 border-l border-gray-800 flex flex-col" data-testid="transcript-panel">
+          {/* Panel Header */}
+          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-400" />
+              <h3 className="text-white font-medium">Live Transcript</h3>
+              {isTranscribing && (
+                <span className="flex items-center gap-1 text-xs text-purple-400">
+                  <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                  Active
+                </span>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTranscriptPanel(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
 
-          <Button
-            variant="outline"
-            size="lg"
-            className={`rounded-full h-14 w-14 ${!isVideoEnabled ? 'bg-red-500/20 border-red-500 text-red-400' : 'border-white/20 text-white'}`}
-            onClick={toggleVideo}
-            data-testid="toggle-video-btn"
-          >
-            {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-          </Button>
+          {/* Transcript Content */}
+          <ScrollArea className="flex-1 p-4">
+            {liveTranscript.length === 0 && !isTranscribing ? (
+              <div className="text-center text-gray-500 py-8">
+                <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No transcript yet</p>
+                <p className="text-xs mt-1">Click the transcript button to start</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Transcript Segments */}
+                {liveTranscript.map((segment, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50"
+                    data-testid={`transcript-segment-${index}`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs text-blue-400 border-blue-500/30">
+                        {formatTimestamp(segment.timestamp || 0)}
+                      </Badge>
+                      {segment.speaker && segment.speaker !== 'unknown' && (
+                        <Badge variant="secondary" className="text-xs bg-purple-500/20 text-purple-400">
+                          {segment.speaker}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-gray-200 text-sm">{segment.text}</p>
+                  </div>
+                ))}
 
-          <Button
-            variant="outline"
-            size="lg"
-            className={`rounded-full h-14 w-14 ${isScreenSharing ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'border-white/20 text-white'}`}
-            onClick={toggleScreenShare}
-            data-testid="toggle-screen-btn"
-          >
-            {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
-          </Button>
+                {/* Notes */}
+                {liveNotes.map((note, index) => (
+                  <div 
+                    key={`note-${index}`}
+                    className={`rounded-lg p-3 border ${
+                      note.note_type === 'important' ? 'bg-red-500/10 border-red-500/30' :
+                      note.note_type === 'action_item' ? 'bg-green-500/10 border-green-500/30' :
+                      note.note_type === 'question' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                      'bg-blue-500/10 border-blue-500/30'
+                    }`}
+                    data-testid={`note-${index}`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {getNoteTypeIcon(note.note_type)}
+                      <Badge variant="outline" className="text-xs">
+                        {formatTimestamp(note.timestamp || 0)}
+                      </Badge>
+                      <span className="text-xs text-gray-400">{note.user_name}</span>
+                    </div>
+                    <p className="text-sm text-gray-200">{note.content}</p>
+                  </div>
+                ))}
 
-          {/* Recording Button */}
-          <Button
-            variant="outline"
-            size="lg"
-            className={`rounded-full h-14 w-14 ${isRecording ? 'bg-red-500 border-red-500 text-white animate-pulse' : 'border-white/20 text-white'}`}
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={callStatus !== 'active' || isUploading}
-            data-testid="toggle-recording-btn"
-            title={isRecording ? 'Stop Recording' : 'Start Recording'}
-          >
-            {isRecording ? <Square className="h-6 w-6" /> : <Circle className="h-6 w-6" />}
-          </Button>
+                {/* Transcribing Indicator */}
+                {isTranscribing && (
+                  <div className="flex items-center gap-2 text-purple-400 text-sm py-2">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span>Listening...</span>
+                  </div>
+                )}
+                <div ref={transcriptEndRef} />
+              </div>
+            )}
+          </ScrollArea>
 
-          <Button
-            variant="destructive"
-            size="lg"
-            className="rounded-full h-16 w-16"
-            onClick={endCall}
-            data-testid="end-call-btn"
-          >
-            <PhoneOff className="h-7 w-7" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            className="rounded-full h-14 w-14 border-white/20 text-white"
-            onClick={toggleFullscreen}
-            data-testid="fullscreen-btn"
-          >
-            {isFullscreen ? <Minimize2 className="h-6 w-6" /> : <Maximize2 className="h-6 w-6" />}
-          </Button>
+          {/* Note Input */}
+          <div className="p-4 border-t border-gray-800">
+            <div className="flex gap-2 mb-2">
+              {['general', 'important', 'action_item', 'question'].map((type) => (
+                <Button
+                  key={type}
+                  variant={selectedNoteType === type ? 'default' : 'outline'}
+                  size="sm"
+                  className={`text-xs px-2 py-1 ${
+                    selectedNoteType === type 
+                      ? type === 'important' ? 'bg-red-600' :
+                        type === 'action_item' ? 'bg-green-600' :
+                        type === 'question' ? 'bg-yellow-600' : 'bg-blue-600'
+                      : 'border-gray-600 text-gray-400'
+                  }`}
+                  onClick={() => setSelectedNoteType(type)}
+                  data-testid={`note-type-${type}`}
+                >
+                  {getNoteTypeIcon(type)}
+                  <span className="ml-1 capitalize">{type.replace('_', ' ')}</span>
+                </Button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add a note..."
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addNote()}
+                className="bg-gray-800 border-gray-700 text-white"
+                data-testid="note-input"
+              />
+              <Button 
+                onClick={addNote}
+                disabled={!noteInput.trim() || callStatus !== 'active'}
+                className="bg-purple-600 hover:bg-purple-700"
+                data-testid="add-note-btn"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
