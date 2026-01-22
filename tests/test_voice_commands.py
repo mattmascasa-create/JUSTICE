@@ -177,14 +177,16 @@ class TestVoiceCommands:
     
     def test_mark_violation_invalid_encounter(self):
         """Test mark violation with non-existent encounter"""
+        headers = {"Authorization": f"Bearer {self.token}"}
         mark_data = {
-            "timestamp": 45.5,
+            "timestamp": "45.5",
             "note": "Test mark"
         }
         
-        response = self.session.post(
+        response = requests.post(
             f"{BASE_URL}/api/encounters/invalid_encounter_id/mark-violation",
-            data=mark_data
+            data=mark_data,
+            headers=headers
         )
         
         assert response.status_code == 404
