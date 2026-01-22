@@ -140,19 +140,22 @@ class TestVoiceCommands:
         """Test that marks are persisted in the encounter document"""
         encounter_id = self.test_create_encounter_for_voice_commands()
         
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
         # Add multiple marks
         marks_to_add = [
-            {"timestamp": 30.0, "note": "Voice command: violation marked"},
-            {"timestamp": 60.0, "note": "Manual mark - suspicious behavior"},
-            {"timestamp": 90.0, "note": "Voice command: flag violation"}
+            {"timestamp": "30.0", "note": "Voice command: violation marked"},
+            {"timestamp": "60.0", "note": "Manual mark - suspicious behavior"},
+            {"timestamp": "90.0", "note": "Voice command: flag violation"}
         ]
         
         for mark_data in marks_to_add:
-            response = self.session.post(
+            response = requests.post(
                 f"{BASE_URL}/api/encounters/{encounter_id}/mark-violation",
-                data=mark_data
+                data=mark_data,
+                headers=headers
             )
-            assert response.status_code == 200
+            assert response.status_code == 200, f"Mark failed: {response.text}"
         
         # Get encounter and verify marks are embedded
         response = self.session.get(f"{BASE_URL}/api/encounters/{encounter_id}")
