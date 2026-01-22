@@ -98,6 +98,12 @@ export default function EncounterPage() {
   const [videoChunkCount, setVideoChunkCount] = useState(0);
   const [uploadingChunk, setUploadingChunk] = useState(false);
   
+  // Voice Commands State
+  const [voiceCommandsEnabled, setVoiceCommandsEnabled] = useState(true);
+  const [lastVoiceCommand, setLastVoiceCommand] = useState(null);
+  const [voiceCommandFeedback, setVoiceCommandFeedback] = useState('');
+  const [manualViolationMarks, setManualViolationMarks] = useState([]);
+  
   const mediaRecorderRef = useRef(null);
   const audioRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -110,6 +116,7 @@ export default function EncounterPage() {
   const timerRef = useRef(null);
   const analysisQueueRef = useRef([]);
   const lastAnalysisRef = useRef(0);
+  const voiceRecognitionRef = useRef(null);
 
   // Perform real-time AI analysis on transcriptions
   const performAIAnalysis = async (text) => {
