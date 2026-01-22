@@ -228,6 +228,13 @@ export const blockchainAPI = {
   batchExport: (caseId) => api.get(`/evidence/batch-export/${caseId}`, { responseType: 'blob' })
 };
 
+// S3 Backup API
+export const backupAPI = {
+  getStatus: () => api.get('/backup/status'),
+  triggerBackup: () => api.post('/backup/trigger'),
+  getHistory: (limit = 10) => api.get('/backup/history', { params: { limit } })
+};
+
 // Policy Impact Dashboard API
 export const policyAPI = {
   getDashboardData: () => api.get('/policy/dashboard-data'),
