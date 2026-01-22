@@ -2956,26 +2956,39 @@ async def mark_violation(
     if not encounter:
         raise HTTPException(status_code=404, detail="Encounter not found")
     
-    mark = {
-        "mark_id": f"mark_{uuid.uuid4().hex[:8]}",
+    mark_id = f"mark_{uuid.uuid4().hex[:8]}"
+    created_at = datetime.now(timezone.utc).isoformat()
+    source = "voice_command" if "voice" in note.lower() else "manual"
+    
+    mark_doc = {
+        "mark_id": mark_id,
         "encounter_id": encounter_id,
         "timestamp_seconds": timestamp,
         "note": note,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "source": "voice_command" if "voice" in note.lower() else "manual"
+        "created_at": created_at,
+        "source": source
     }
     
-    await db.encounter_marks.insert_one(mark)
+    await db.encounter_marks.insert_one(mark_doc)
+    
+    # Create clean mark for embedding (without _id)
+    clean_mark = {
+        "mark_id": mark_id,
+        "timestamp_seconds": timestamp,
+        "note": note,
+        "created_at": created_at,
+        "source": source
+    }
     
     # Also update the encounter with the mark
     await db.encounters.update_one(
         {"encounter_id": encounter_id},
-        {"$push": {"manual_marks": mark}}
+        {"$push": {"manual_marks": clean_mark}}
     )
     
     return {
         "success": True,
-        "mark": mark
+        "mark": clean_mark
     }
 
 @api_router.post("/encounters/{encounter_id}/end")
