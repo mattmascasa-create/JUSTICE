@@ -301,6 +301,12 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Color-coded speaker segments (Attorney: blue, Client: purple)
   - Speaker labels with participant names
   - Formatted output for legal documentation
+- **Timestamp Video Sync**: Click transcript segments to jump to video
+  - Each segment shows timestamp badge (e.g., "2:35")
+  - Clicking a segment switches to video tab and seeks to that moment
+  - Auto-plays from clicked position
+  - Segments are highlighted and clickable
+  - Helper text explains click-to-seek functionality
 - **Version**: 5.11.0
 
 ### Settings Enhancements ✅
