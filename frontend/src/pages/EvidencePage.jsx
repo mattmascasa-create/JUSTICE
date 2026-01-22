@@ -318,6 +318,7 @@ export default function EvidencePage() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Info Banner */}
