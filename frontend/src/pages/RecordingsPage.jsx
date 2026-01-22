@@ -724,31 +724,70 @@ export default function RecordingsPage() {
                         </div>
                       </div>
                       
-                      {/* Speaker-labeled transcript */}
+                      {/* Speaker-labeled transcript with timestamps */}
                       <ScrollArea className="h-[400px]">
                         {transcript.speaker_segments && transcript.speaker_segments.length > 0 ? (
-                          <div className="space-y-4">
-                            {transcript.speaker_segments.map((segment, index) => (
-                              <div 
-                                key={index} 
-                                className={`p-3 rounded-lg ${
-                                  segment.speaker === 'attorney' 
-                                    ? 'bg-blue-900/30 border-l-4 border-blue-500' 
-                                    : 'bg-purple-900/30 border-l-4 border-purple-500'
-                                }`}
-                              >
-                                <div className={`text-xs font-semibold mb-1 ${
-                                  segment.speaker === 'attorney' ? 'text-blue-400' : 'text-purple-400'
-                                }`}>
-                                  {segment.speaker === 'attorney' 
-                                    ? `Attorney (${transcript.speaker_labels?.attorney || 'Unknown'})` 
-                                    : `Client (${transcript.speaker_labels?.client || 'Unknown'})`}
+                          <div className="space-y-3">
+                            <p className="text-xs text-white/50 mb-2">
+                              💡 Click any segment to jump to that moment in the video
+                            </p>
+                            {transcript.speaker_segments.map((segment, index) => {
+                              const startTime = segment.start || 0;
+                              const mins = Math.floor(startTime / 60);
+                              const secs = Math.floor(startTime % 60);
+                              const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+                              
+                              return (
+                                <div 
+                                  key={index} 
+                                  className={`p-3 rounded-lg cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg ${
+                                    segment.speaker === 'attorney' 
+                                      ? 'bg-blue-900/30 border-l-4 border-blue-500 hover:bg-blue-900/50' 
+                                      : segment.speaker === 'client'
+                                        ? 'bg-purple-900/30 border-l-4 border-purple-500 hover:bg-purple-900/50'
+                                        : 'bg-gray-800/50 border-l-4 border-gray-500 hover:bg-gray-800/70'
+                                  }`}
+                                  onClick={() => {
+                                    // Switch to video tab and seek
+                                    setActiveTab('video');
+                                    setTimeout(() => {
+                                      if (videoRef.current) {
+                                        videoRef.current.currentTime = startTime;
+                                        videoRef.current.play();
+                                        setIsPlaying(true);
+                                      }
+                                    }, 100);
+                                  }}
+                                  data-testid={`transcript-segment-${index}`}
+                                >
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className={`text-xs font-semibold ${
+                                      segment.speaker === 'attorney' 
+                                        ? 'text-blue-400' 
+                                        : segment.speaker === 'client' 
+                                          ? 'text-purple-400'
+                                          : 'text-gray-400'
+                                    }`}>
+                                      {segment.speaker === 'attorney' 
+                                        ? `Attorney (${transcript.speaker_labels?.attorney || 'Unknown'})` 
+                                        : segment.speaker === 'client'
+                                          ? `Client (${transcript.speaker_labels?.client || 'Unknown'})`
+                                          : 'Speaker'}
+                                    </span>
+                                    <Badge 
+                                      variant="outline" 
+                                      className="text-xs border-white/20 text-white/60 hover:bg-white/10"
+                                    >
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      {timeStr}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-white/90 leading-relaxed">
+                                    {segment.text}
+                                  </p>
                                 </div>
-                                <p className="text-white/90 leading-relaxed">
-                                  {segment.text}
-                                </p>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : transcript.speaker_transcript ? (
                           <div 
@@ -757,7 +796,7 @@ export default function RecordingsPage() {
                               __html: transcript.speaker_transcript
                                 .replace(/\*\*Attorney[^:]*:\*\*/g, '<span class="text-blue-400 font-semibold">Attorney:</span>')
                                 .replace(/\*\*Client[^:]*:\*\*/g, '<span class="text-purple-400 font-semibold">Client:</span>')
-                                .replace(/\n/g, '<br/>') 
+                                .replace(/\n/g, '<br/>')  
                             }}
                           />
                         ) : (
