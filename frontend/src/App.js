@@ -83,6 +83,7 @@ function AppRouter() {
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/encounter" element={<ProtectedRoute><EncounterPage /></ProtectedRoute>} />
+      <Route path="/encounters/:encounterId" element={<ProtectedRoute><EncounterReportPage /></ProtectedRoute>} />
       <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
       <Route path="/cases/new" element={<ProtectedRoute><NewCasePage /></ProtectedRoute>} />
       <Route path="/cases/:caseId" element={<ProtectedRoute><CaseDetailPage /></ProtectedRoute>} />
