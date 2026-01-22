@@ -85,6 +85,12 @@ async def run_backup_job(user_id: str = None):
         for ev in evidence_list:
             file_name = ev.get("file_name")
             evidence_id = ev.get("evidence_id")
+            
+            if not file_name:
+                backup_record["files_failed"] += 1
+                backup_record["errors"].append(f"Evidence {evidence_id}: No file_name")
+                continue
+                
             file_path = UPLOADS_DIR / file_name
             
             if not file_path.exists():
