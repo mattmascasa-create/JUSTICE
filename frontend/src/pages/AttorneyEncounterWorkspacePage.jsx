@@ -465,14 +465,31 @@ export default function AttorneyEncounterWorkspacePage() {
           {/* Messages Tab */}
           <TabsContent value="messages">
             <Card className="flex flex-col h-[500px]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5" />
-                  Client Communication
-                </CardTitle>
-                <CardDescription>
-                  Secure messaging with {encounter.client_name}
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    Client Communication
+                  </CardTitle>
+                  <CardDescription>
+                    Secure messaging with {encounter.client_name}
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const res = await callsAPI.initiateCall(encounter.client_id, 'video', encounterId);
+                      navigate(`/call/${res.data.call_id}`);
+                    } catch (error) {
+                      toast.error(error.response?.data?.detail || 'Failed to start call');
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                  data-testid="start-video-call-btn"
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Video Call
+                </Button>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
                 {/* Messages List */}
