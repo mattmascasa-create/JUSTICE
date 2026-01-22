@@ -80,6 +80,7 @@ function AppRouter() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/transparency" element={<TransparencyPage />} />
       <Route path="/incident-map" element={<IncidentMapPage />} />
+      <Route path="/live/:encounterId" element={<LiveStreamPage />} />
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -98,6 +99,9 @@ function AppRouter() {
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
       <Route path="/rights" element={<ProtectedRoute><KnowYourRightsPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      
+      {/* Auth Callback */}
+      <Route path="/auth/callback" element={<AuthCallback />} />
       
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
