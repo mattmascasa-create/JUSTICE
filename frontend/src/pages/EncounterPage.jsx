@@ -931,6 +931,32 @@ export default function EncounterPage() {
             </CardContent>
           </Card>
 
+          {/* Real-time Sharing Option */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-blue-500" />
+                Real-time Sharing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="auto-share">Auto-share with emergency contacts</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Contacts can watch live and send guidance messages
+                  </p>
+                </div>
+                <Switch
+                  id="auto-share"
+                  checked={autoShare}
+                  onCheckedChange={setAutoShare}
+                  data-testid="auto-share-toggle"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Start Button */}
           <Button 
             size="lg" 
