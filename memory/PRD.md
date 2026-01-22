@@ -230,6 +230,19 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Evidence Value**: Captures texts, app interactions, and on-screen evidence
 - **Version**: 5.5.0
 
+### Phase 14 (AI Evidence Highlights) ✅ - Jan 22, 2026
+- **Auto-detect Key Moments**: AI scans transcriptions to identify violations, escalations, important statements
+- **Timestamped Highlights**: Each highlight linked to specific moment in video for easy navigation
+- **Categorized Tags**: violation, escalation, threat, rights_assertion, cooperation, important_statement, procedural_issue
+- **Severity Scoring**: critical (red), high (orange), medium (yellow), low (blue) for quick triage
+- **Timeline Markers**: Colored dots on video timeline showing highlight locations
+- **Click-to-Jump**: Click any highlight to jump to that timestamp in video
+- **Filter by Category/Severity**: Dropdown to filter highlights
+- **Auto-generate + Regenerate**: Auto-generate after encounter ends + regenerate button with feedback
+- **Real-time for Viewers**: Shared viewers see highlights as they're generated
+- **Legal Relevance Notes**: Each highlight includes legal significance explanation
+- **Version**: 5.6.0
+
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
