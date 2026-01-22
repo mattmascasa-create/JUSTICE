@@ -154,6 +154,10 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - `GET /api/evidence/{id}/certificate` - Generate court certificate
 - `GET /api/blockchain/status` - Blockchain status
 
+### Encounter Mode (NEW - AI Real-Time Analysis)
+- `POST /api/encounters/{id}/analyze` - Analyze transcript for violations, bias, procedural issues
+- `GET /api/encounters/{id}/violations` - Get all detected violations for an encounter
+
 ### All Other Endpoints
 - Community Vault: `/api/community/*`
 - Policy Impact: `/api/policy/*`
