@@ -188,6 +188,144 @@ export default function EncounterPage() {
     }
   };
 
+  // Voice Command Handler
+  const handleVoiceCommand = useCallback(async (command) => {
+    const commandLower = command.toLowerCase().trim();
+    
+    for (const vc of voiceCommands) {
+      for (const phrase of vc.phrases) {
+        if (commandLower.includes(phrase)) {
+          setLastVoiceCommand(vc.action);
+          setVoiceCommandFeedback(vc.feedback);
+          
+          // Clear feedback after 3 seconds
+          setTimeout(() => setVoiceCommandFeedback(''), 3000);
+          
+          // Execute the command
+          switch (vc.action) {
+            case 'MARK_VIOLATION':
+              const mark = {
+                timestamp: duration,
+                time: new Date().toISOString(),
+                note: 'Voice command: violation marked'
+              };
+              setManualViolationMarks(prev => [...prev, mark]);
+              toast.success('📍 Violation marked at ' + formatDuration(duration));
+              // Also add to violations list
+              setViolations(prev => [...prev, `Manual mark at ${formatDuration(duration)}`]);
+              break;
+              
+            case 'CALL_ATTORNEY':
+              toast.info('📞 Contacting your attorney...', { duration: 5000 });
+              // In production, this would trigger actual attorney contact
+              break;
+              
+            case 'SOS':
+              if (encounter && location) {
+                try {
+                  await sosAPI.create({
+                    encounter_id: encounter.encounter_id,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    message: 'VOICE COMMAND SOS - Immediate assistance needed'
+                  });
+                  toast.error('🚨 SOS ALERT SENT! Help is on the way.', { duration: 10000 });
+                } catch (err) {
+                  toast.error('SOS sent to emergency contacts');
+                }
+              }
+              break;
+              
+            case 'END_RECORDING':
+              stopRecording();
+              break;
+              
+            case 'PAUSE':
+              if (!isPaused && mediaRecorderRef.current) {
+                mediaRecorderRef.current.pause();
+                if (audioRecorderRef.current) audioRecorderRef.current.pause();
+                setIsPaused(true);
+                toast.info('⏸️ Recording paused');
+              }
+              break;
+              
+            case 'RESUME':
+              if (isPaused && mediaRecorderRef.current) {
+                mediaRecorderRef.current.resume();
+                if (audioRecorderRef.current) audioRecorderRef.current.resume();
+                setIsPaused(false);
+                toast.success('▶️ Recording resumed');
+              }
+              break;
+              
+            case 'SHARE':
+              shareStreamLink();
+              break;
+              
+            default:
+              break;
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [encounter, location, duration, isPaused]);
+
+  // Initialize Voice Recognition
+  useEffect(() => {
+    if (!isRecording || !voiceCommandsEnabled) return;
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.log('Speech recognition not supported');
+      return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    recognition.onresult = (event) => {
+      const last = event.results.length - 1;
+      const transcript = event.results[last][0].transcript;
+      console.log('Voice heard:', transcript);
+      handleVoiceCommand(transcript);
+    };
+    
+    recognition.onerror = (event) => {
+      if (event.error !== 'no-speech') {
+        console.log('Speech recognition error:', event.error);
+      }
+    };
+    
+    recognition.onend = () => {
+      // Restart recognition if still recording
+      if (isRecording && voiceCommandsEnabled) {
+        try {
+          recognition.start();
+        } catch (e) {
+          // Already started
+        }
+      }
+    };
+    
+    try {
+      recognition.start();
+      voiceRecognitionRef.current = recognition;
+    } catch (e) {
+      console.log('Could not start voice recognition');
+    }
+    
+    return () => {
+      if (voiceRecognitionRef.current) {
+        voiceRecognitionRef.current.stop();
+        voiceRecognitionRef.current = null;
+      }
+    };
+  }, [isRecording, voiceCommandsEnabled, handleVoiceCommand]);
+
   // Get user location on mount
   useEffect(() => {
     if (navigator.geolocation) {
