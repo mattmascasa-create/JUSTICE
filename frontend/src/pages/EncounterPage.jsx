@@ -239,7 +239,7 @@ export default function EncounterPage() {
               break;
               
             case 'END_RECORDING':
-              stopRecording();
+              if (stopRecordingRef.current) stopRecordingRef.current();
               break;
               
             case 'PAUSE':
@@ -261,7 +261,7 @@ export default function EncounterPage() {
               break;
               
             case 'SHARE':
-              shareStreamLink();
+              if (shareStreamLinkRef.current) shareStreamLinkRef.current();
               break;
               
             default:
