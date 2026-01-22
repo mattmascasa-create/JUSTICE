@@ -335,6 +335,7 @@ export default function SharedEncounterView() {
   useEffect(() => {
     fetchEncounter();
     fetchVideoChunks();
+    fetchScreenChunks();
     connectWebSocket();
     
     // Polling fallback for updates
