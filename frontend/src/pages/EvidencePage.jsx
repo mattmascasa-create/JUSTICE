@@ -171,28 +171,95 @@ export default function EvidencePage() {
             <h1 className="font-serif text-3xl font-bold">Evidence Library</h1>
             <p className="text-muted-foreground mt-1">Secure, blockchain-verified evidence storage</p>
           </div>
-          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="upload-evidence-btn">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Evidence
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="font-serif">Upload Evidence</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleUpload} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Case *</Label>
-                  <Select 
-                    value={selectedCase} 
-                    onValueChange={setSelectedCase}
+          <div className="flex gap-2">
+            {/* Generate Report Dialog */}
+            <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" data-testid="generate-report-btn">
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Evidence Report
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="font-serif flex items-center gap-2">
+                    <FileDown className="h-5 w-5 text-primary" />
+                    Generate Evidence Report
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Generate a comprehensive PDF report with all evidence for a case, including:
+                  </p>
+                  <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                    <li>SHA-256 cryptographic hashes</li>
+                    <li>IPFS Content Identifiers (CIDs)</li>
+                    <li>Chain of custody audit trail</li>
+                    <li>Verification URLs for court use</li>
+                  </ul>
+                  <div className="space-y-2">
+                    <Label>Select Case *</Label>
+                    <Select 
+                      value={selectedReportCase} 
+                      onValueChange={setSelectedReportCase}
+                    >
+                      <SelectTrigger data-testid="report-case-select">
+                        <SelectValue placeholder="Select a case" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cases.filter(c => evidence.some(e => e.case_id === c.case_id)).map((c) => (
+                          <SelectItem key={c.case_id} value={c.case_id}>
+                            {c.title} ({evidence.filter(e => e.case_id === c.case_id).length} files)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    onClick={handleGenerateReport}
+                    disabled={generatingReport || !selectedReportCase}
+                    data-testid="download-report-btn"
                   >
-                    <SelectTrigger data-testid="evidence-case-select">
-                      <SelectValue placeholder="Select a case" />
-                    </SelectTrigger>
-                    <SelectContent>
+                    {generatingReport ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Download PDF Report
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            {/* Upload Dialog */}
+            <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="upload-evidence-btn">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Evidence
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="font-serif">Upload Evidence</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleUpload} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Case *</Label>
+                    <Select 
+                      value={selectedCase} 
+                      onValueChange={setSelectedCase}
+                    >
+                      <SelectTrigger data-testid="evidence-case-select">
+                        <SelectValue placeholder="Select a case" />
+                      </SelectTrigger>
+                      <SelectContent>
                       {cases.map((c) => (
                         <SelectItem key={c.case_id} value={c.case_id}>{c.title}</SelectItem>
                       ))}
