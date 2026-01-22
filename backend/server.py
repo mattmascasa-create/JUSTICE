@@ -3011,6 +3011,145 @@ async def get_encounter_report(
         "download_available": True
     }
 
+@api_router.get("/encounters/{encounter_id}/media/{filename}")
+async def get_encounter_media(
+    encounter_id: str,
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Serve video/audio files from encounter recordings"""
+    # Verify user owns this encounter
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Sanitize filename to prevent path traversal
+    safe_filename = Path(filename).name
+    file_path = ENCOUNTERS_DIR / encounter_id / safe_filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Media file not found")
+    
+    # Determine content type
+    if safe_filename.endswith('.webm'):
+        if safe_filename.startswith('video_'):
+            media_type = "video/webm"
+        else:
+            media_type = "audio/webm"
+    elif safe_filename.endswith('.mp4'):
+        media_type = "video/mp4"
+    elif safe_filename.endswith('.mp3'):
+        media_type = "audio/mpeg"
+    else:
+        media_type = "application/octet-stream"
+    
+    return FileResponse(
+        file_path,
+        media_type=media_type,
+        filename=safe_filename
+    )
+
+@api_router.get("/encounters/{encounter_id}/stream-token")
+async def generate_stream_token(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate a shareable token for live streaming access"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Create a time-limited token (valid for 24 hours)
+    token_data = {
+        "encounter_id": encounter_id,
+        "user_id": current_user["user_id"],
+        "type": "stream_access",
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24)
+    }
+    
+    stream_token = jwt.encode(token_data, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    
+    # Store token info
+    await db.stream_tokens.insert_one({
+        "token_id": f"stk_{uuid.uuid4().hex[:12]}",
+        "encounter_id": encounter_id,
+        "user_id": current_user["user_id"],
+        "created_at": datetime.now(timezone.utc),
+        "expires_at": token_data["exp"],
+        "active": True
+    })
+    
+    return {
+        "stream_token": stream_token,
+        "expires_in_hours": 24,
+        "share_url": f"/live/{encounter_id}?token={stream_token}"
+    }
+
+@api_router.get("/live/{encounter_id}/verify")
+async def verify_stream_access(
+    encounter_id: str,
+    token: str
+):
+    """Verify stream access token (no auth required - for viewers)"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("encounter_id") != encounter_id:
+            raise HTTPException(status_code=403, detail="Invalid token for this encounter")
+        if payload.get("type") != "stream_access":
+            raise HTTPException(status_code=403, detail="Invalid token type")
+        
+        # Get encounter info
+        encounter = await db.encounters.find_one(
+            {"encounter_id": encounter_id},
+            {"_id": 0, "status": 1, "encounter_type": 1, "address": 1, "started_at": 1}
+        )
+        if not encounter:
+            raise HTTPException(status_code=404, detail="Encounter not found")
+        
+        return {
+            "valid": True,
+            "encounter_id": encounter_id,
+            "status": encounter.get("status"),
+            "encounter_type": encounter.get("encounter_type"),
+            "location": encounter.get("address"),
+            "started_at": encounter.get("started_at")
+        }
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=403, detail="Stream token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=403, detail="Invalid stream token")
+
+@api_router.get("/live/{encounter_id}/media/{filename}")
+async def get_live_media(
+    encounter_id: str,
+    filename: str,
+    token: str
+):
+    """Serve media files for live stream viewers (token-based auth)"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("encounter_id") != encounter_id:
+            raise HTTPException(status_code=403, detail="Invalid token")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=403, detail="Invalid token")
+    
+    safe_filename = Path(filename).name
+    file_path = ENCOUNTERS_DIR / encounter_id / safe_filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Media file not found")
+    
+    media_type = "video/webm" if safe_filename.startswith('video_') else "audio/webm"
+    
+    return FileResponse(file_path, media_type=media_type)
+
 @api_router.post("/encounters/{encounter_id}/officer")
 async def add_officer_info(
     encounter_id: str,
