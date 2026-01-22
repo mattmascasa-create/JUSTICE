@@ -148,6 +148,12 @@ export const encounterAPI = {
     return api.post(`/encounters/${encounterId}/analyze`, formData);
   },
   getViolations: (encounterId) => api.get(`/encounters/${encounterId}/violations`),
+  markViolation: (encounterId, timestamp, note = 'Manual violation mark') => {
+    const formData = new FormData();
+    formData.append('timestamp', timestamp);
+    formData.append('note', note);
+    return api.post(`/encounters/${encounterId}/mark-violation`, formData);
+  },
   list: (status) => api.get('/encounters', { params: { status } }),
   uploadAudio: (encounterId, audioBlob, chunkIndex) => {
     const formData = new FormData();
