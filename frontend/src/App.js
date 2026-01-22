@@ -111,6 +111,7 @@ function AppRouter() {
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/attorney-dashboard" element={<ProtectedRoute><AttorneyDashboardPage /></ProtectedRoute>} />
       <Route path="/attorney/encounter/:encounterId" element={<ProtectedRoute><AttorneyEncounterWorkspacePage /></ProtectedRoute>} />
+      <Route path="/call/:callId" element={<ProtectedRoute><VideoCallPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
