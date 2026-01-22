@@ -297,32 +297,99 @@ export default function EncounterReportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Video Files */}
+            {/* Video Player */}
             {videoFiles.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-sm font-medium flex items-center gap-2">
                   <Video className="h-4 w-4" />
-                  Video Recordings ({videoFiles.length} chunks)
+                  Video Playback ({videoFiles.length} chunks)
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {videoFiles.slice(0, 8).map((file, index) => (
-                    <div 
-                      key={index}
-                      className="p-2 rounded bg-muted/50 text-center text-xs"
-                    >
-                      <Play className="h-4 w-4 mx-auto mb-1 text-primary" />
-                      <span className="truncate block">{file.filename}</span>
-                      <span className="text-muted-foreground">
-                        {(file.size_bytes / 1024).toFixed(0)} KB
-                      </span>
+                
+                {/* Main Video Player */}
+                <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                  <video
+                    ref={videoRef}
+                    src={getVideoUrl(videoFiles[currentVideoIndex]?.filename)}
+                    className="w-full h-full"
+                    onEnded={handleVideoEnded}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    controls={false}
+                  />
+                  
+                  {/* Custom Controls Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white hover:bg-white/20"
+                          onClick={handlePrevVideo}
+                          disabled={currentVideoIndex === 0}
+                        >
+                          <SkipBack className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white hover:bg-white/20 h-12 w-12"
+                          onClick={handlePlayPause}
+                        >
+                          {isPlaying ? (
+                            <Pause className="h-6 w-6" />
+                          ) : (
+                            <Play className="h-6 w-6" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white hover:bg-white/20"
+                          onClick={handleNextVideo}
+                          disabled={currentVideoIndex === videoFiles.length - 1}
+                        >
+                          <SkipForward className="h-5 w-5" />
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <Badge variant="secondary" className="bg-black/50">
+                          Chunk {currentVideoIndex + 1} / {videoFiles.length}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white hover:bg-white/20"
+                          onClick={() => videoRef.current?.requestFullscreen()}
+                        >
+                          <Maximize className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </div>
+                  </div>
+                </div>
+                
+                {/* Video Chunk Thumbnails */}
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {videoFiles.map((file, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCurrentVideoIndex(index);
+                        setIsPlaying(false);
+                      }}
+                      className={`flex-shrink-0 p-2 rounded text-xs transition-all ${
+                        index === currentVideoIndex 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted/50 hover:bg-muted'
+                      }`}
+                    >
+                      <Play className="h-3 w-3 mx-auto mb-1" />
+                      <span>#{index + 1}</span>
+                    </button>
                   ))}
                 </div>
-                {videoFiles.length > 8 && (
-                  <p className="text-xs text-muted-foreground">
-                    +{videoFiles.length - 8} more video chunks
-                  </p>
-                )}
               </div>
             )}
 
@@ -332,6 +399,22 @@ export default function EncounterReportPage() {
                 <p className="text-sm font-medium flex items-center gap-2">
                   <Mic className="h-4 w-4" />
                   Audio Recordings ({audioFiles.length} chunks)
+                </p>
+                <div className="space-y-2">
+                  {audioFiles.slice(0, 5).map((file, index) => (
+                    <div key={index} className="flex items-center gap-3 p-2 rounded bg-muted/50">
+                      <Volume2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm flex-1 truncate">{file.filename}</span>
+                      <audio 
+                        src={getVideoUrl(file.filename)} 
+                        controls 
+                        className="h-8 max-w-[200px]"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
                 </p>
               </div>
             )}
