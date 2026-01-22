@@ -202,7 +202,7 @@ async def accept_invite(
     )
     
     # Generate token
-    token = create_token(attorney_id)
+    token = create_access_token(attorney_id)
     
     return {
         "success": True,
@@ -277,7 +277,7 @@ async def accept_invite_existing_user(
         {"$addToSet": {"attorney_profile.clients": invite["client_id"]}}
     )
     
-    token = create_token(attorney_id)
+    token = create_access_token(attorney_id)
     
     return {
         "success": True,
