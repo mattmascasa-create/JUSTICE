@@ -33,6 +33,8 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Violation detection**: AI-powered analysis of police conduct
 - **Rights reminders**: Rotating prompts during encounters
 - **Officer identification**: Capture badge number, name, department
+- **Video Playback**: Full video player with chunk navigation in reports
+- **Live Sharing**: Share encounter link with emergency contacts/attorneys
 - **Detailed Incident Reports**: AI-generated reports with:
   - Encounter summary and timeline
   - Violation analysis with legal citations
