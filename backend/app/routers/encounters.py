@@ -17,7 +17,8 @@ from app.core.security import get_current_user
 from app.services.websocket import manager
 from app.services.ai_service import (
     transcribe_audio, analyze_for_violations, 
-    identify_speaker_and_tone, perform_deep_analysis, stt_service
+    identify_speaker_and_tone, perform_deep_analysis, stt_service,
+    generate_evidence_highlights, regenerate_highlights_with_feedback
 )
 from app.models.schemas import EncounterStart, EncounterResponse
 
