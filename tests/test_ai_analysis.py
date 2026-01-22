@@ -121,9 +121,11 @@ class TestAIAnalysis:
         response = session.get(f"{BASE_URL}/api/encounters/{encounter_id}", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data["encounter_id"] == encounter_id
-        assert data["status"] == "active"
-        print(f"✓ Encounter retrieved: {data['encounter_id']}")
+        # Response has nested structure with 'encounter' key
+        encounter = data.get("encounter", data)
+        assert encounter["encounter_id"] == encounter_id
+        assert encounter["status"] == "active"
+        print(f"✓ Encounter retrieved: {encounter['encounter_id']}")
     
     def test_06_ai_analysis_endpoint(self, session, headers):
         """Test AI analysis endpoint with sample transcript"""
