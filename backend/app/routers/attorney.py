@@ -235,7 +235,7 @@ async def accept_invite_existing_user(
     
     # Verify login
     user = await db.users.find_one({"email": email.lower()}, {"_id": 0})
-    if not user or not verify_password(password, user.get("password", "")):
+    if not user or not user.get("password_hash") or not verify_password(password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Continue with acceptance
