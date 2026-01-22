@@ -4299,6 +4299,16 @@ async def batch_export_evidence(
     - Verification manifest (JSON)
     - Summary report (TXT)
     """
+    # Helper to safely convert dates
+    def safe_isoformat(date_val):
+        if date_val is None:
+            return None
+        if isinstance(date_val, str):
+            return date_val
+        if hasattr(date_val, 'isoformat'):
+            return date_val.isoformat()
+        return str(date_val)
+    
     # Get the case
     case = await db.cases.find_one({"case_id": case_id})
     if not case:
