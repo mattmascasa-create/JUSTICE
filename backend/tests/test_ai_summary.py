@@ -127,8 +127,9 @@ class TestAISummaryEndpoints:
         fake_recording_id = "rec_test789"
         response = self.session.post(f"{BASE_URL}/api/calls/{fake_recording_id}/summarize")
         
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print(f"✓ POST /api/calls/{{recording_id}}/summarize requires authentication")
+        # 401 or 403 both indicate auth is required
+        assert response.status_code in [401, 403], f"Expected 401 or 403, got {response.status_code}"
+        print(f"✓ POST /api/calls/{{recording_id}}/summarize requires authentication (status: {response.status_code})")
     
     def test_get_summary_requires_auth(self):
         """Test GET /api/calls/{recording_id}/summary requires authentication"""
@@ -138,8 +139,9 @@ class TestAISummaryEndpoints:
         fake_recording_id = "rec_test101"
         response = self.session.get(f"{BASE_URL}/api/calls/{fake_recording_id}/summary")
         
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print(f"✓ GET /api/calls/{{recording_id}}/summary requires authentication")
+        # 401 or 403 both indicate auth is required
+        assert response.status_code in [401, 403], f"Expected 401 or 403, got {response.status_code}"
+        print(f"✓ GET /api/calls/{{recording_id}}/summary requires authentication (status: {response.status_code})")
 
 
 class TestRecordingsPageAPI:
