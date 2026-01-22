@@ -1948,6 +1948,248 @@ async def get_public_stats():
         "departments_by_state": [{"state": s["_id"], "count": s["count"]} for s in states]
     }
 
+# ============== ENCOUNTER ANALYTICS DASHBOARD ==============
+
+@api_router.get("/analytics/encounters/summary")
+async def get_encounter_summary(current_user: dict = Depends(get_current_user)):
+    """Get comprehensive encounter statistics for the user"""
+    user_id = current_user["user_id"]
+    
+    # Basic counts
+    total_encounters = await db.encounters.count_documents({"user_id": user_id})
+    active_encounters = await db.encounters.count_documents({"user_id": user_id, "status": "active"})
+    completed_encounters = await db.encounters.count_documents({"user_id": user_id, "status": "completed"})
+    
+    # Get all transcriptions for this user's encounters
+    user_encounters = await db.encounters.find(
+        {"user_id": user_id},
+        {"encounter_id": 1, "_id": 0}
+    ).to_list(1000)
+    encounter_ids = [e["encounter_id"] for e in user_encounters]
+    
+    # Aggregate tone data from transcriptions
+    tone_pipeline = [
+        {"$match": {"encounter_id": {"$in": encounter_ids}}},
+        {"$group": {
+            "_id": "$tone",
+            "count": {"$sum": 1},
+            "avg_confidence": {"$avg": "$tone_confidence"}
+        }},
+        {"$sort": {"count": -1}}
+    ]
+    tone_distribution = await db.transcriptions.aggregate(tone_pipeline).to_list(20)
+    
+    # Aggregate officer aggression levels
+    aggression_pipeline = [
+        {"$match": {"encounter_id": {"$in": encounter_ids}, "officer_demeanor.aggression_level": {"$exists": True}}},
+        {"$group": {
+            "_id": None,
+            "avg_aggression": {"$avg": "$officer_demeanor.aggression_level"},
+            "max_aggression": {"$max": "$officer_demeanor.aggression_level"},
+            "avg_intimidation": {"$avg": "$officer_demeanor.intimidation_level"},
+            "avg_professionalism": {"$avg": "$officer_demeanor.professionalism"}
+        }}
+    ]
+    aggression_stats = await db.transcriptions.aggregate(aggression_pipeline).to_list(1)
+    aggression_data = aggression_stats[0] if aggression_stats else {
+        "avg_aggression": 0, "max_aggression": 0, "avg_intimidation": 0, "avg_professionalism": 1
+    }
+    
+    # Violation types from encounters
+    violation_pipeline = [
+        {"$match": {"encounter_id": {"$in": encounter_ids}}},
+        {"$unwind": {"path": "$violations_detected", "preserveNullAndEmptyArrays": False}},
+        {"$group": {"_id": "$violations_detected", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    violations = await db.transcriptions.aggregate(violation_pipeline).to_list(10)
+    
+    # Escalation counts
+    escalation_pipeline = [
+        {"$match": {"encounter_id": {"$in": encounter_ids}, "escalation_detected": True}},
+        {"$group": {"_id": "$escalation_direction", "count": {"$sum": 1}}}
+    ]
+    escalations = await db.transcriptions.aggregate(escalation_pipeline).to_list(10)
+    
+    # Calculate risk score (0-100)
+    risk_score = min(100, int(
+        (aggression_data.get("avg_aggression", 0) or 0) * 40 +
+        (aggression_data.get("avg_intimidation", 0) or 0) * 30 +
+        (1 - (aggression_data.get("avg_professionalism", 1) or 1)) * 30
+    ))
+    
+    return {
+        "total_encounters": total_encounters,
+        "active_encounters": active_encounters,
+        "completed_encounters": completed_encounters,
+        "tone_distribution": [{"tone": t["_id"], "count": t["count"], "avg_confidence": round(t.get("avg_confidence", 0) or 0, 2)} for t in tone_distribution if t["_id"]],
+        "officer_demeanor": {
+            "avg_aggression": round((aggression_data.get("avg_aggression", 0) or 0) * 100, 1),
+            "max_aggression": round((aggression_data.get("max_aggression", 0) or 0) * 100, 1),
+            "avg_intimidation": round((aggression_data.get("avg_intimidation", 0) or 0) * 100, 1),
+            "avg_professionalism": round((aggression_data.get("avg_professionalism", 1) or 1) * 100, 1)
+        },
+        "violations_by_type": [{"type": v["_id"], "count": v["count"]} for v in violations],
+        "escalation_stats": [{"direction": e["_id"], "count": e["count"]} for e in escalations],
+        "risk_score": risk_score
+    }
+
+@api_router.get("/analytics/encounters/patterns")
+async def get_encounter_patterns(current_user: dict = Depends(get_current_user)):
+    """Get time-of-day and day-of-week patterns for encounters"""
+    user_id = current_user["user_id"]
+    
+    # Get encounters with timestamps
+    encounters = await db.encounters.find(
+        {"user_id": user_id, "started_at": {"$exists": True}},
+        {"_id": 0, "encounter_id": 1, "started_at": 1, "encounter_type": 1, "latitude": 1, "longitude": 1}
+    ).to_list(1000)
+    
+    # Time of day distribution (0-23 hours)
+    hour_counts = {i: 0 for i in range(24)}
+    day_counts = {i: 0 for i in range(7)}  # 0=Monday, 6=Sunday
+    type_counts = {}
+    
+    for enc in encounters:
+        started_at = enc.get("started_at")
+        if started_at:
+            try:
+                if isinstance(started_at, str):
+                    dt = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+                else:
+                    dt = started_at
+                hour_counts[dt.hour] += 1
+                day_counts[dt.weekday()] += 1
+            except:
+                pass
+        
+        enc_type = enc.get("encounter_type", "unknown")
+        type_counts[enc_type] = type_counts.get(enc_type, 0) + 1
+    
+    day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    
+    return {
+        "by_hour": [{"hour": h, "count": c} for h, c in hour_counts.items()],
+        "by_day": [{"day": day_names[d], "day_index": d, "count": c} for d, c in day_counts.items()],
+        "by_type": [{"type": t, "count": c} for t, c in sorted(type_counts.items(), key=lambda x: -x[1])],
+        "peak_hour": max(hour_counts, key=hour_counts.get) if encounters else None,
+        "peak_day": day_names[max(day_counts, key=day_counts.get)] if encounters else None
+    }
+
+@api_router.get("/analytics/encounters/hotspots")
+async def get_encounter_hotspots(current_user: dict = Depends(get_current_user)):
+    """Get geographic hotspots for encounters"""
+    user_id = current_user["user_id"]
+    
+    # Get encounters with location data
+    encounters = await db.encounters.find(
+        {"user_id": user_id, "latitude": {"$exists": True}, "longitude": {"$exists": True}},
+        {"_id": 0, "encounter_id": 1, "latitude": 1, "longitude": 1, "address": 1, "encounter_type": 1, "started_at": 1}
+    ).to_list(1000)
+    
+    # Group by approximate location (rounded to 2 decimal places ~1km)
+    location_groups = {}
+    for enc in encounters:
+        lat = round(enc.get("latitude", 0), 2)
+        lng = round(enc.get("longitude", 0), 2)
+        key = f"{lat},{lng}"
+        
+        if key not in location_groups:
+            location_groups[key] = {
+                "latitude": lat,
+                "longitude": lng,
+                "count": 0,
+                "addresses": [],
+                "types": []
+            }
+        
+        location_groups[key]["count"] += 1
+        addr = enc.get("address")
+        if addr and addr not in location_groups[key]["addresses"]:
+            location_groups[key]["addresses"].append(addr)
+        enc_type = enc.get("encounter_type")
+        if enc_type and enc_type not in location_groups[key]["types"]:
+            location_groups[key]["types"].append(enc_type)
+    
+    # Sort by count and return top hotspots
+    hotspots = sorted(location_groups.values(), key=lambda x: -x["count"])[:20]
+    
+    # Also return all encounter locations for map
+    all_locations = [
+        {
+            "encounter_id": enc["encounter_id"],
+            "latitude": enc["latitude"],
+            "longitude": enc["longitude"],
+            "address": enc.get("address", ""),
+            "type": enc.get("encounter_type", "unknown")
+        }
+        for enc in encounters
+    ]
+    
+    return {
+        "hotspots": hotspots,
+        "all_locations": all_locations,
+        "total_mapped": len(all_locations)
+    }
+
+@api_router.get("/analytics/encounters/trends")
+async def get_encounter_trends(
+    days: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get encounter trends over time"""
+    user_id = current_user["user_id"]
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Get encounters in date range
+    encounters = await db.encounters.find(
+        {"user_id": user_id, "started_at": {"$gte": cutoff.isoformat()}},
+        {"_id": 0, "encounter_id": 1, "started_at": 1}
+    ).to_list(1000)
+    
+    encounter_ids = [e["encounter_id"] for e in encounters]
+    
+    # Daily encounter counts
+    daily_counts = {}
+    for enc in encounters:
+        started_at = enc.get("started_at", "")
+        if started_at:
+            date_str = started_at[:10]  # YYYY-MM-DD
+            daily_counts[date_str] = daily_counts.get(date_str, 0) + 1
+    
+    # Aggression trends per day
+    aggression_pipeline = [
+        {"$match": {"encounter_id": {"$in": encounter_ids}, "officer_demeanor.aggression_level": {"$exists": True}}},
+        {"$group": {
+            "_id": {"$substr": ["$created_at", 0, 10]},
+            "avg_aggression": {"$avg": "$officer_demeanor.aggression_level"},
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id": 1}}
+    ]
+    aggression_trends = await db.transcriptions.aggregate(aggression_pipeline).to_list(100)
+    
+    # Fill in missing dates
+    all_dates = []
+    current = cutoff
+    while current <= datetime.now(timezone.utc):
+        date_str = current.strftime("%Y-%m-%d")
+        agg_data = next((a for a in aggression_trends if a["_id"] == date_str), None)
+        all_dates.append({
+            "date": date_str,
+            "encounters": daily_counts.get(date_str, 0),
+            "avg_aggression": round((agg_data.get("avg_aggression", 0) or 0) * 100, 1) if agg_data else 0
+        })
+        current += timedelta(days=1)
+    
+    return {
+        "period_days": days,
+        "total_encounters": len(encounters),
+        "daily_data": all_dates,
+        "avg_encounters_per_day": round(len(encounters) / days, 2) if days > 0 else 0
+    }
+
 # ============== KNOW YOUR RIGHTS ==============
 
 @api_router.get("/rights")
