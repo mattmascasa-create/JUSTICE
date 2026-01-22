@@ -83,14 +83,17 @@ class TestLiveTranscription:
             ATTORNEY_USER["email"], ATTORNEY_USER["password"]
         )
         
-        # Initiate call from test user to attorney
-        response = self.session.post(
+        # Remove Content-Type header for form data
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        
+        # Initiate call from test user to attorney using multipart form
+        response = requests.post(
             f"{BASE_URL}/api/calls/initiate",
             data={
                 "recipient_id": self.attorney_user_id,
                 "call_type": "video"
             },
-            headers={"Authorization": f"Bearer {self.test_token}"}
+            headers=headers
         )
         
         # Accept 200, 201, or 409 (already in call)
@@ -176,11 +179,12 @@ class TestLiveTranscription:
         """Test that live note endpoint exists"""
         self.test_token, _ = self.login_user(TEST_USER["email"], TEST_USER["password"])
         
-        response = self.session.post(
+        # Use requests directly without Content-Type header for form data
+        response = requests.post(
             f"{BASE_URL}/api/calls/fake_call_123/live-note",
             data={
                 "content": "Test note",
-                "timestamp": 0,
+                "timestamp": "0",
                 "note_type": "general"
             },
             headers={"Authorization": f"Bearer {self.test_token}"}
@@ -213,10 +217,11 @@ class TestLiveTranscription:
             'audio_chunk': ('chunk.webm', io.BytesIO(audio_data), 'audio/webm')
         }
         
-        response = self.session.post(
+        # Use requests directly without Content-Type header for multipart
+        response = requests.post(
             f"{BASE_URL}/api/calls/fake_call_123/live-transcribe",
             files=files,
-            data={"chunk_index": 0},
+            data={"chunk_index": "0"},
             headers={"Authorization": f"Bearer {self.test_token}"}
         )
         
