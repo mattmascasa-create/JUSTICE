@@ -355,6 +355,32 @@ export default function EncounterPage() {
     }
   };
 
+  const shareStreamLink = async () => {
+    if (!encounter) return;
+    
+    try {
+      const response = await encounterAPI.getStreamToken(encounter.encounter_id);
+      const fullUrl = `${window.location.origin}${response.data.share_url}`;
+      
+      // Try to share via native share API if available
+      if (navigator.share) {
+        await navigator.share({
+          title: 'JUSTICE - Live Encounter Recording',
+          text: 'I\'m being pulled over. Watch my live recording.',
+          url: fullUrl
+        });
+        toast.success('Shared successfully!');
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(fullUrl);
+        toast.success('Link copied to clipboard! Share with your contacts.');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error('Failed to generate share link');
+    }
+  };
+
   // Not recording yet - show setup screen
   if (!isRecording) {
     return (
