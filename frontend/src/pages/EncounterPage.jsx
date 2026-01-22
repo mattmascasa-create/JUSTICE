@@ -1096,6 +1096,88 @@ export default function EncounterPage() {
           </CardContent>
         </Card>
 
+        {/* Real-time Sharing Status & Guidance */}
+        <Card className={`border-2 ${shareActive ? 'border-blue-500/50 bg-blue-500/5' : 'border-gray-500/30'}`}>
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${shareActive ? 'bg-blue-500' : 'bg-gray-500'}`}>
+                  <Share2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold flex items-center gap-2">
+                    Live Share
+                    {shareActive && (
+                      <Badge className="bg-blue-500">
+                        <Eye className="h-3 w-3 mr-1" />
+                        {viewerCount} watching
+                      </Badge>
+                    )}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {shareActive 
+                      ? 'Contacts can watch and send guidance' 
+                      : 'Share not active'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {shareActive && shareLink && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareLink);
+                      toast.success('Link copied!');
+                    }}
+                    data-testid="copy-share-link"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button 
+                  variant={shareActive ? "destructive" : "default"}
+                  size="sm"
+                  onClick={shareActive ? revokeShareLink : shareStreamLink}
+                  data-testid="toggle-share-btn"
+                >
+                  {shareActive ? 'Stop Sharing' : 'Share Now'}
+                </Button>
+              </div>
+            </div>
+            
+            {/* Incoming Guidance Messages */}
+            {guidanceMessages.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-blue-400 flex items-center gap-1">
+                  <MessageCircle className="h-3 w-3" />
+                  Guidance from viewers:
+                </p>
+                <ScrollArea className="h-32">
+                  <div className="space-y-2 pr-3">
+                    {guidanceMessages.slice(-5).map((msg, idx) => (
+                      <div 
+                        key={msg.message_id || idx}
+                        className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 animate-in fade-in"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-blue-400">
+                            {msg.sender_name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="text-sm">{msg.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* AI Risk Level Indicator */}
         <Card className={`border-2 ${
           riskLevel === 'critical' ? 'border-red-500 bg-red-500/10' :
