@@ -714,3 +714,236 @@ async def get_my_recordings(
                 pass
     
     return {"recordings": recordings}
+
+# ============== TRANSCRIPTION ENDPOINTS ==============
+
+@router.post("/{recording_id}/transcribe")
+async def transcribe_recording(
+    recording_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Transcribe a recording using OpenAI Whisper"""
+    user_id = current_user["user_id"]
+    
+    # Get recording
+    recording = await db.call_recordings.find_one({"recording_id": recording_id}, {"_id": 0})
+    if not recording:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    
+    if user_id not in recording.get("participants", []):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if recording.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="Recording not completed yet")
+    
+    # Check if already transcribed
+    if recording.get("transcript"):
+        return {
+            "recording_id": recording_id,
+            "status": "already_transcribed",
+            "transcript": recording["transcript"],
+            "transcribed_at": recording.get("transcribed_at")
+        }
+    
+    # Update status
+    await db.call_recordings.update_one(
+        {"recording_id": recording_id},
+        {"$set": {"transcription_status": "processing"}}
+    )
+    
+    try:
+        import tempfile
+        import httpx
+        from emergentintegrations.llm.openai import transcribe_audio
+        
+        audio_data = None
+        
+        # Download from S3 if available
+        if recording.get("s3_key") and S3_ENABLED and s3_client:
+            response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=recording["s3_key"])
+            audio_data = response['Body'].read()
+        elif recording.get("local_path"):
+            with open(recording["local_path"], 'rb') as f:
+                audio_data = f.read()
+        elif recording.get("download_url") or recording.get("s3_url"):
+            url = recording.get("download_url") or recording.get("s3_url")
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, timeout=120)
+                audio_data = resp.content
+        
+        if not audio_data:
+            raise HTTPException(status_code=400, detail="Recording file not accessible")
+        
+        # Save to temp file for Whisper
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
+            tmp.write(audio_data)
+            tmp_path = tmp.name
+        
+        try:
+            # Get API key from environment
+            api_key = os.environ.get("EMERGENT_API_KEY") or os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                raise HTTPException(status_code=500, detail="Transcription API key not configured")
+            
+            # Transcribe using Whisper
+            transcript_result = await transcribe_audio(
+                api_key=api_key,
+                audio_file_path=tmp_path,
+                response_format="verbose_json"
+            )
+            
+            # Extract transcript text
+            if isinstance(transcript_result, dict):
+                transcript_text = transcript_result.get("text", "")
+                segments = transcript_result.get("segments", [])
+            else:
+                transcript_text = str(transcript_result)
+                segments = []
+            
+            # Store transcript
+            now = datetime.now(timezone.utc)
+            await db.call_recordings.update_one(
+                {"recording_id": recording_id},
+                {"$set": {
+                    "transcript": transcript_text,
+                    "transcript_segments": segments,
+                    "transcription_status": "completed",
+                    "transcribed_at": now
+                }}
+            )
+            
+            logger.info(f"Transcription completed for recording {recording_id}")
+            
+            return {
+                "recording_id": recording_id,
+                "status": "completed",
+                "transcript": transcript_text,
+                "segments": segments,
+                "transcribed_at": now.isoformat()
+            }
+            
+        finally:
+            # Cleanup temp file
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Transcription failed for {recording_id}: {e}")
+        await db.call_recordings.update_one(
+            {"recording_id": recording_id},
+            {"$set": {"transcription_status": "failed", "transcription_error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+
+
+@router.get("/{recording_id}/transcript")
+async def get_transcript(
+    recording_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get transcript for a recording"""
+    user_id = current_user["user_id"]
+    
+    recording = await db.call_recordings.find_one({"recording_id": recording_id}, {"_id": 0})
+    if not recording:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    
+    if user_id not in recording.get("participants", []):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if not recording.get("transcript"):
+        return {
+            "recording_id": recording_id,
+            "has_transcript": False,
+            "transcription_status": recording.get("transcription_status", "not_started")
+        }
+    
+    transcribed_at = recording.get("transcribed_at")
+    if transcribed_at and hasattr(transcribed_at, 'isoformat'):
+        transcribed_at = transcribed_at.isoformat()
+    
+    return {
+        "recording_id": recording_id,
+        "has_transcript": True,
+        "transcript": recording["transcript"],
+        "segments": recording.get("transcript_segments", []),
+        "transcribed_at": transcribed_at
+    }
+
+
+@router.get("/transcripts/search")
+async def search_transcripts(
+    query: str,
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    """Search across all transcripts the user has access to"""
+    user_id = current_user["user_id"]
+    
+    # Find recordings with transcripts that match the query
+    recordings = await db.call_recordings.find(
+        {
+            "participants": user_id,
+            "transcript": {"$regex": query, "$options": "i"}
+        },
+        {"_id": 0}
+    ).limit(limit).to_list(length=limit)
+    
+    results = []
+    for rec in recordings:
+        # Get call info
+        call = await db.video_calls.find_one({"call_id": rec["call_id"]}, {"_id": 0})
+        
+        # Find matching excerpts
+        transcript = rec.get("transcript", "")
+        excerpts = []
+        
+        query_lower = query.lower()
+        transcript_lower = transcript.lower()
+        
+        # Find all occurrences
+        start = 0
+        while True:
+            idx = transcript_lower.find(query_lower, start)
+            if idx == -1:
+                break
+            
+            # Extract context around match
+            excerpt_start = max(0, idx - 50)
+            excerpt_end = min(len(transcript), idx + len(query) + 50)
+            excerpt = transcript[excerpt_start:excerpt_end]
+            
+            if excerpt_start > 0:
+                excerpt = "..." + excerpt
+            if excerpt_end < len(transcript):
+                excerpt = excerpt + "..."
+            
+            excerpts.append({
+                "position": idx,
+                "excerpt": excerpt
+            })
+            
+            start = idx + 1
+            if len(excerpts) >= 3:  # Max 3 excerpts per recording
+                break
+        
+        results.append({
+            "recording_id": rec["recording_id"],
+            "call_id": rec["call_id"],
+            "caller_name": call.get("caller_name") if call else None,
+            "recipient_name": call.get("recipient_name") if call else None,
+            "started_at": rec.get("started_at").isoformat() if rec.get("started_at") and hasattr(rec["started_at"], 'isoformat') else rec.get("started_at"),
+            "duration_seconds": rec.get("duration_seconds"),
+            "excerpts": excerpts,
+            "match_count": len(excerpts)
+        })
+    
+    return {
+        "query": query,
+        "total_results": len(results),
+        "results": results
+    }
