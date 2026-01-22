@@ -294,12 +294,19 @@ export default function SharedEncounterView() {
       setIsLive(true);
       setIsPlaying(true);
     }
+    if (screenChunks.length > 0) {
+      setCurrentScreenChunkIndex(screenChunks.length - 1);
+    }
   };
 
   // Auto-advance to next chunk when video ends
   const handleVideoEnded = () => {
     if (currentChunkIndex < videoChunks.length - 1) {
       setCurrentChunkIndex(prev => prev + 1);
+      // Sync screen if available
+      if (currentScreenChunkIndex < screenChunks.length - 1) {
+        setCurrentScreenChunkIndex(prev => prev + 1);
+      }
     } else {
       setIsLive(true);
       setIsPlaying(false);
