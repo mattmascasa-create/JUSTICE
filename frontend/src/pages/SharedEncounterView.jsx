@@ -66,6 +66,11 @@ export default function SharedEncounterView() {
   const [hasScreenRecording, setHasScreenRecording] = useState(false);
   const [showPiP, setShowPiP] = useState(true); // Picture-in-picture camera overlay
   
+  // AI Evidence Highlights state
+  const [highlights, setHighlights] = useState([]);
+  const [highlightFilter, setHighlightFilter] = useState('all');
+  const [showHighlights, setShowHighlights] = useState(true);
+  
   const wsRef = useRef(null);
   const transcriptEndRef = useRef(null);
   const messagesEndRef = useRef(null);
