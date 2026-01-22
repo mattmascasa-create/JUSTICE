@@ -164,8 +164,47 @@ export default function RecordingsPage() {
     setSelectedRecording(null);
     setIsPlaying(false);
     setTranscript(null);
+    setSummary(null);
     if (videoRef.current) {
       videoRef.current.pause();
+    }
+  };
+
+  const fetchSummary = async (recordingId) => {
+    try {
+      const res = await callsAPI.getSummary(recordingId);
+      if (res.data.has_summary) {
+        setSummary(res.data);
+      } else {
+        setSummary({ has_summary: false });
+      }
+    } catch (error) {
+      console.error('Error fetching summary:', error);
+      setSummary({ has_summary: false });
+    }
+  };
+
+  const handleGenerateSummary = async () => {
+    if (!selectedRecording) return;
+    
+    setSummarizing(true);
+    try {
+      toast.info('Generating AI summary... This may take a minute.');
+      const res = await callsAPI.generateSummary(selectedRecording.recording_id);
+      
+      if (res.data.status === 'completed' || res.data.status === 'already_summarized') {
+        toast.success('Summary generated!');
+        setSummary({
+          has_summary: true,
+          summary: res.data.summary,
+          summarized_at: res.data.summarized_at
+        });
+      }
+    } catch (error) {
+      console.error('Summary generation error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to generate summary');
+    } finally {
+      setSummarizing(false);
     }
   };
 
