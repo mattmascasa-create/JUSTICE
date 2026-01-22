@@ -458,3 +458,91 @@ class IncidentLocation(BaseModel):
     status: str
     incident_date: datetime
     department: Optional[str] = None
+
+
+
+# ============== ATTORNEY COLLABORATION MODELS ==============
+
+class AttorneyProfile(BaseModel):
+    """Extended profile for attorney users"""
+    bar_number: Optional[str] = None
+    firm_name: Optional[str] = None
+    specialization: Optional[str] = None
+    verified: bool = False
+    verification_date: Optional[datetime] = None
+
+class AttorneyInvite(BaseModel):
+    """Invitation to an attorney"""
+    email: EmailStr
+    encounter_id: str
+    message: Optional[str] = None
+
+class AttorneyInviteResponse(BaseModel):
+    invite_id: str
+    invite_token: str
+    email: str
+    encounter_id: str
+    expires_at: datetime
+    status: str
+
+class AttorneyAcceptInvite(BaseModel):
+    """Accept invitation - basic registration"""
+    invite_token: str
+    name: str
+    password: str
+
+class AttorneyVerification(BaseModel):
+    """Additional verification for attorneys"""
+    bar_number: str
+    firm_name: Optional[str] = None
+    specialization: Optional[str] = None
+
+class CaseNote(BaseModel):
+    """Attorney case notes"""
+    encounter_id: str
+    content: str
+    note_type: str = "general"  # general, legal_analysis, strategy, evidence_review
+
+class CaseNoteResponse(BaseModel):
+    note_id: str
+    encounter_id: str
+    attorney_id: str
+    content: str
+    note_type: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+class AttorneyMessage(BaseModel):
+    """Message between client and attorney"""
+    recipient_id: str
+    encounter_id: Optional[str] = None
+    content: str
+    message_type: str = "text"  # text, file, highlight_reference
+
+class MessageResponse(BaseModel):
+    message_id: str
+    sender_id: str
+    sender_name: str
+    recipient_id: str
+    encounter_id: Optional[str] = None
+    content: str
+    message_type: str
+    read: bool = False
+    created_at: datetime
+
+class AttorneyClientResponse(BaseModel):
+    """Client info for attorney dashboard"""
+    client_id: str
+    client_name: str
+    client_email: str
+    encounter_count: int
+    last_activity: Optional[datetime] = None
+    access_granted_at: datetime
+
+class AttorneyDashboardStats(BaseModel):
+    """Stats for attorney dashboard"""
+    total_clients: int
+    total_encounters: int
+    pending_reviews: int
+    unread_messages: int
+    recent_highlights: int
