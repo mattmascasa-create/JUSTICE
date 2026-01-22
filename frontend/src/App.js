@@ -34,6 +34,8 @@ import SharedEncounterView from "./pages/SharedEncounterView";
 import AttorneyDashboardPage from "./pages/AttorneyDashboardPage";
 import AttorneyAcceptInvitePage from "./pages/AttorneyAcceptInvitePage";
 import AttorneyEncounterWorkspacePage from "./pages/AttorneyEncounterWorkspacePage";
+import VideoCallPage from "./pages/VideoCallPage";
+import IncomingCallModal from "./components/IncomingCallModal";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
