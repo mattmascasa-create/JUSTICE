@@ -40,6 +40,25 @@ PINATA_JWT = os.environ.get('PINATA_JWT', '')
 PINATA_API_URL = "https://api.pinata.cloud"
 IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs"
 
+# AWS S3 Configuration (for backup)
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', '')
+S3_ENABLED = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and S3_BUCKET_NAME)
+
+# Initialize S3 client if credentials are available
+s3_client = None
+if S3_ENABLED:
+    import boto3
+    from botocore.exceptions import ClientError as S3ClientError
+    s3_client = boto3.client(
+        's3',
+        region_name=AWS_REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+
 # JWT Settings
 JWT_SECRET = os.environ.get('JWT_SECRET', 'justice-platform-secret-key-change-in-production')
 JWT_ALGORITHM = "HS256"
@@ -52,7 +71,7 @@ MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
 ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mp3', '.wav', '.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx'}
 
 # Create the main app
-app = FastAPI(title="JUSTICE Platform API", version="4.0.0")
+app = FastAPI(title="JUSTICE Platform API", version="5.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
