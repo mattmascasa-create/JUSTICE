@@ -11,6 +11,7 @@ from app.core.config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
 from app.db.database import db
 
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt"""
