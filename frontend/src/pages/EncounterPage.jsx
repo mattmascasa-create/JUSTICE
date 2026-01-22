@@ -1046,6 +1046,45 @@ export default function EncounterPage() {
             </CardContent>
           </Card>
 
+          {/* Screen Recording Option */}
+          {screenRecordingSupported && (
+            <Card className="border-purple-500/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Video className="h-5 w-5 text-purple-500" />
+                  Screen Recording
+                  <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
+                    Beta
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="screen-recording">Record screen during encounter</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Capture texts, apps, and on-screen evidence
+                    </p>
+                  </div>
+                  <Switch
+                    id="screen-recording"
+                    checked={enableScreenRecording}
+                    onCheckedChange={setEnableScreenRecording}
+                    data-testid="screen-recording-toggle"
+                  />
+                </div>
+                {enableScreenRecording && (
+                  <Alert className="bg-purple-500/10 border-purple-500/30">
+                    <AlertCircle className="h-4 w-4 text-purple-400" />
+                    <AlertDescription className="text-purple-300 text-xs">
+                      You'll be asked to select which screen to share when recording starts
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Start Button */}
           <Button 
             size="lg" 
