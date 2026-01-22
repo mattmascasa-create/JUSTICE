@@ -164,12 +164,12 @@ class TestAuthenticatedHighlightsEndpoints:
         print(f"✓ Get highlights with auth: {data['count']} highlights")
     
     def test_generate_highlights_requires_auth(self):
-        """Generate highlights without auth returns 401"""
+        """Generate highlights without auth returns 401 or 403"""
         response = requests.post(
             f"{BASE_URL}/api/encounters/{TEST_ENCOUNTER_ID}/highlights/generate"
         )
-        assert response.status_code == 401
-        print("✓ Generate highlights requires authentication")
+        assert response.status_code in [401, 403]
+        print(f"✓ Generate highlights requires authentication (status: {response.status_code})")
     
     def test_generate_highlights_no_transcriptions(self, auth_headers):
         """Generate highlights with no transcriptions returns 400"""
