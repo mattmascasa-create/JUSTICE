@@ -175,6 +175,11 @@ export default function SharedEncounterView() {
                 setCurrentScreenChunkIndex(data.chunk_index);
               }
               break;
+            case 'highlights_updated':
+              // AI evidence highlights updated
+              setHighlights(data.highlights || []);
+              toast.info(`🎯 ${data.count} evidence highlights identified`);
+              break;
             default:
               console.log('Unknown message type:', data.type);
           }
