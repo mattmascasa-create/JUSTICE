@@ -161,7 +161,9 @@ class TestVoiceCommands:
         response = self.session.get(f"{BASE_URL}/api/encounters/{encounter_id}")
         assert response.status_code == 200
         
-        encounter = response.json()
+        data = response.json()
+        # API returns nested structure with "encounter" key
+        encounter = data.get("encounter", data)
         manual_marks = encounter.get("manual_marks", [])
         
         assert len(manual_marks) >= 3, f"Expected at least 3 marks, got {len(manual_marks)}"
