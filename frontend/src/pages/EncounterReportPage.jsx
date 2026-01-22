@@ -533,10 +533,77 @@ export default function EncounterReportPage() {
             <Download className="h-4 w-4 mr-2" />
             Download Full Report
           </Button>
-          <Button variant="outline" className="flex-1">
-            <Users className="h-4 w-4 mr-2" />
-            Share with Attorney
-          </Button>
+          
+          {/* Share Dialog */}
+          <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex-1">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share with Attorney
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-serif flex items-center gap-2">
+                  <Share2 className="h-5 w-5" />
+                  Share Encounter Recording
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Generate a secure link that allows your attorney or emergency contacts to view this encounter recording without needing an account.
+                </p>
+                
+                {!shareLink ? (
+                  <Button 
+                    onClick={handleGenerateShareLink} 
+                    className="w-full"
+                    disabled={generatingLink}
+                  >
+                    {generatingLink ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating Link...
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Generate Secure Link
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg bg-muted border">
+                      <p className="text-xs text-muted-foreground mb-1">Share Link (expires in 24 hours)</p>
+                      <p className="text-sm font-mono break-all">{shareLink}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleCopyLink} className="flex-1">
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Link
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setShareLink('');
+                          handleGenerateShareLink();
+                        }}
+                      >
+                        Regenerate
+                      </Button>
+                    </div>
+                    <Alert className="bg-yellow-500/10 border-yellow-500/30">
+                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <AlertDescription className="text-xs">
+                        Anyone with this link can view the recording. Only share with trusted contacts.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </AppLayout>
