@@ -314,7 +314,130 @@ export default function VideoCallPage() {
     }
   };
 
+  // Recording functions
+  const startRecording = async () => {
+    try {
+      // Notify server
+      const res = await callsAPI.startRecording(callId);
+      setRecordingId(res.data.recording_id);
+      
+      // Create combined stream (local + remote audio, remote video)
+      const combinedStream = new MediaStream();
+      
+      // Add remote video and audio
+      if (remoteStream) {
+        remoteStream.getTracks().forEach(track => combinedStream.addTrack(track));
+      }
+      
+      // Add local audio (for full conversation)
+      if (localStream) {
+        const localAudio = localStream.getAudioTracks()[0];
+        if (localAudio) {
+          combinedStream.addTrack(localAudio);
+        }
+      }
+      
+      // Create MediaRecorder
+      const options = { mimeType: 'video/webm;codecs=vp9,opus' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm';
+      }
+      
+      const mediaRecorder = new MediaRecorder(combinedStream, options);
+      mediaRecorderRef.current = mediaRecorder;
+      recordedChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.start(1000); // Collect data every second
+      setIsRecording(true);
+      setRecordingDuration(0);
+      
+      // Start recording duration timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+      
+      toast.success('Recording started');
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      toast.error(error.response?.data?.detail || 'Failed to start recording');
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      // Stop MediaRecorder
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      
+      // Stop timer
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+      
+      // Notify server
+      await callsAPI.stopRecording(callId);
+      
+      setIsRecording(false);
+      toast.success('Recording stopped');
+      
+      // Upload the recording
+      if (recordedChunksRef.current.length > 0 && recordingId) {
+        await uploadRecording();
+      }
+    } catch (error) {
+      console.error('Failed to stop recording:', error);
+      toast.error('Failed to stop recording');
+      setIsRecording(false);
+    }
+  };
+
+  const uploadRecording = async () => {
+    if (recordedChunksRef.current.length === 0 || !recordingId) return;
+    
+    setIsUploading(true);
+    toast.info('Uploading recording...');
+    
+    try {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const res = await callsAPI.uploadRecording(callId, recordingId, blob);
+      
+      toast.success('Recording saved to cloud!');
+      
+      // Clear chunks
+      recordedChunksRef.current = [];
+      setRecordingId(null);
+    } catch (error) {
+      console.error('Failed to upload recording:', error);
+      toast.error('Failed to upload recording');
+      
+      // Offer to download locally
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `call_recording_${callId}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast.info('Recording downloaded locally instead');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const endCall = async () => {
+    // Stop recording if active
+    if (isRecording) {
+      await stopRecording();
+    }
+    
     try {
       await callsAPI.endCall(callId);
     } catch (error) {
@@ -332,15 +455,23 @@ export default function VideoCallPage() {
     remoteStream?.getTracks().forEach(track => track.stop());
     screenStreamRef.current?.getTracks().forEach(track => track.stop());
     
+    // Stop recording if active
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    
     // Close peer connection
     peerConnectionRef.current?.close();
     
     // Close WebSocket
     wsRef.current?.close();
     
-    // Clear interval
+    // Clear intervals
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
+    }
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
     }
   };
 
