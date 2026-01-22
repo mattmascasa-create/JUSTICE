@@ -641,3 +641,284 @@ async def add_officer_info(
     )
     
     return {"success": True, "officer": officer_doc}
+
+
+
+# ============== REAL-TIME SHARING ==============
+
+@router.post("/{encounter_id}/share")
+async def create_share_link(
+    encounter_id: str,
+    auto_notify: bool = False,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Generate a shareable link for real-time encounter viewing.
+    Viewers can watch live and send guidance messages.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Generate unique share token
+    share_token = uuid.uuid4().hex[:16]
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(hours=24)
+    
+    # Update encounter with share info
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$set": {
+            "share_token": share_token,
+            "share_created_at": now.isoformat(),
+            "share_expires_at": expires_at.isoformat(),
+            "share_active": True,
+            "share_viewer_count": 0
+        }}
+    )
+    
+    share_url = f"/shared/{encounter_id}?token={share_token}"
+    
+    # Auto-notify emergency contacts if requested
+    notified_contacts = []
+    if auto_notify:
+        contacts = await db.emergency_contacts.find(
+            {"user_id": current_user["user_id"]},
+            {"_id": 0}
+        ).to_list(10)
+        
+        for contact in contacts:
+            contact_id = contact.get("contact_user_id")
+            if contact_id:
+                await manager.send_to_user(contact_id, {
+                    "type": "encounter_share",
+                    "encounter_id": encounter_id,
+                    "share_url": share_url,
+                    "share_token": share_token,
+                    "user_name": current_user.get("name"),
+                    "message": f"{current_user.get('name')} is sharing a live police encounter with you",
+                    "location": {
+                        "latitude": encounter.get("latitude"),
+                        "longitude": encounter.get("longitude"),
+                        "address": encounter.get("address")
+                    }
+                })
+                notified_contacts.append(contact.get("name") or contact.get("email"))
+    
+    return {
+        "success": True,
+        "share_token": share_token,
+        "share_url": share_url,
+        "full_url": f"{share_url}",
+        "expires_at": expires_at.isoformat(),
+        "notified_contacts": notified_contacts
+    }
+
+
+@router.delete("/{encounter_id}/share")
+async def revoke_share_link(encounter_id: str, current_user: dict = Depends(get_current_user)):
+    """Revoke active share link for encounter"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$set": {"share_active": False, "share_token": None}}
+    )
+    
+    # Notify all viewers that share was revoked
+    await manager.broadcast_to_share_viewers(encounter_id, {
+        "type": "share_revoked",
+        "message": "The encounter owner has ended the share session"
+    })
+    
+    return {"success": True, "message": "Share link revoked"}
+
+
+@router.get("/shared/{encounter_id}")
+async def get_shared_encounter(encounter_id: str, token: str):
+    """
+    Public endpoint - Get shared encounter data for viewers.
+    No authentication required, only valid share token.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Validate share token
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    # Check expiration
+    expires_at = encounter.get("share_expires_at")
+    if expires_at:
+        from datetime import datetime
+        exp_time = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        if datetime.now(timezone.utc) > exp_time:
+            raise HTTPException(status_code=403, detail="Share link has expired")
+    
+    # Get owner info (limited)
+    owner = await db.users.find_one(
+        {"user_id": encounter.get("user_id")},
+        {"_id": 0, "name": 1}
+    )
+    
+    # Get recent transcriptions
+    transcriptions = await db.transcriptions.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("start_time", -1).limit(50).to_list(50)
+    transcriptions.reverse()  # Oldest first
+    
+    # Get guidance messages
+    messages = await db.encounter_messages.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(100)
+    
+    return {
+        "encounter_id": encounter_id,
+        "owner_name": owner.get("name") if owner else "Unknown",
+        "status": encounter.get("status"),
+        "encounter_type": encounter.get("encounter_type"),
+        "location": {
+            "latitude": encounter.get("latitude"),
+            "longitude": encounter.get("longitude"),
+            "address": encounter.get("address")
+        },
+        "started_at": encounter.get("started_at"),
+        "duration_seconds": encounter.get("duration_seconds", 0),
+        "transcriptions": transcriptions,
+        "violations": encounter.get("violations", []),
+        "ai_analysis": encounter.get("ai_analysis", []),
+        "manual_marks": encounter.get("manual_marks", []),
+        "guidance_messages": messages,
+        "share_active": True
+    }
+
+
+@router.post("/shared/{encounter_id}/message")
+async def send_guidance_message(
+    encounter_id: str,
+    token: str,
+    message: str,
+    sender_name: str = "Anonymous Viewer"
+):
+    """
+    Public endpoint - Send a guidance message to the encounter user.
+    Limited to 200 characters for safety.
+    """
+    if len(message) > 200:
+        raise HTTPException(status_code=400, detail="Message too long (max 200 characters)")
+    
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Validate share token
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    # Check if encounter is still active
+    if encounter.get("status") != "active":
+        raise HTTPException(status_code=400, detail="Encounter has ended")
+    
+    now = datetime.now(timezone.utc)
+    message_id = f"msg_{uuid.uuid4().hex[:12]}"
+    
+    message_doc = {
+        "message_id": message_id,
+        "encounter_id": encounter_id,
+        "sender_name": sender_name[:50],  # Limit name length
+        "message": message,
+        "created_at": now.isoformat()
+    }
+    
+    await db.encounter_messages.insert_one(message_doc)
+    
+    # Send real-time notification to encounter owner
+    await manager.send_to_user(encounter.get("user_id"), {
+        "type": "guidance_message",
+        "encounter_id": encounter_id,
+        "message_id": message_id,
+        "sender_name": sender_name[:50],
+        "message": message,
+        "timestamp": now.isoformat()
+    })
+    
+    # Broadcast to all share viewers
+    await manager.broadcast_to_share_viewers(encounter_id, {
+        "type": "new_message",
+        "message_id": message_id,
+        "sender_name": sender_name[:50],
+        "message": message,
+        "timestamp": now.isoformat()
+    })
+    
+    return {
+        "success": True,
+        "message_id": message_id,
+        "timestamp": now.isoformat()
+    }
+
+
+@router.get("/shared/{encounter_id}/updates")
+async def get_shared_updates(encounter_id: str, token: str, since: str = None):
+    """
+    Polling endpoint for shared encounter updates.
+    Returns new transcriptions and messages since the given timestamp.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    query = {"encounter_id": encounter_id}
+    if since:
+        query["created_at"] = {"$gt": since}
+    
+    # Get new transcriptions
+    transcriptions = await db.transcriptions.find(
+        query,
+        {"_id": 0}
+    ).sort("start_time", 1).to_list(50)
+    
+    # Get new messages
+    messages = await db.encounter_messages.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(50)
+    
+    return {
+        "status": encounter.get("status"),
+        "duration_seconds": encounter.get("duration_seconds", 0),
+        "transcriptions": transcriptions,
+        "messages": messages,
+        "violations": encounter.get("violations", []),
+        "manual_marks": encounter.get("manual_marks", []),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
