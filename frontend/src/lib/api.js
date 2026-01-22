@@ -412,6 +412,11 @@ export const callsAPI = {
   },
   getCallRecordings: (callId) => api.get(`/calls/${callId}/recordings`),
   getMyRecordings: (limit = 20) => api.get('/calls/recordings/my', { params: { limit } }),
+  
+  // Transcription
+  transcribeRecording: (recordingId) => api.post(`/calls/${recordingId}/transcribe`, null, { timeout: 300000 }), // 5 min timeout
+  getTranscript: (recordingId) => api.get(`/calls/${recordingId}/transcript`),
+  searchTranscripts: (query, limit = 20) => api.get('/calls/transcripts/search', { params: { query, limit } }),
 };
 
 // Policy Impact Dashboard API
