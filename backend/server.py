@@ -4288,6 +4288,204 @@ async def generate_evidence_report(
     
     return report
 
+@api_router.get("/evidence/batch-export/{case_id}")
+async def batch_export_evidence(
+    case_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Export all evidence for a case as a ZIP file containing:
+    - All evidence files
+    - Verification manifest (JSON)
+    - Summary report (TXT)
+    """
+    # Get the case
+    case = await db.cases.find_one({"case_id": case_id})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    # Check access
+    if case["user_id"] != current_user["user_id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get all evidence for this case
+    evidence_list = await db.evidence.find({"case_id": case_id}, {"_id": 0}).to_list(length=100)
+    
+    if not evidence_list:
+        raise HTTPException(status_code=404, detail="No evidence found for this case")
+    
+    # Create ZIP in memory
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        manifest_data = {
+            "export_id": f"exp_{uuid.uuid4().hex[:12]}",
+            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_by": current_user["user_id"],
+            "case": {
+                "case_id": case["case_id"],
+                "title": case.get("title"),
+                "status": case.get("status"),
+                "violation_type": case.get("violation_type"),
+                "location": case.get("location")
+            },
+            "evidence_count": len(evidence_list),
+            "ipfs_enabled": bool(PINATA_JWT),
+            "evidence_items": []
+        }
+        
+        # Process each evidence file
+        for ev in evidence_list:
+            evidence_id = ev["evidence_id"]
+            file_name = ev.get("file_name", f"{evidence_id}.bin")
+            
+            # Get hash record
+            hash_record = await db.evidence_hashes.find_one(
+                {"evidence_id": evidence_id},
+                {"_id": 0}
+            )
+            
+            # Get chain of custody
+            custody = await db.chain_of_custody.find(
+                {"evidence_id": evidence_id},
+                {"_id": 0}
+            ).sort("timestamp", 1).to_list(length=100)
+            
+            # Build manifest entry
+            manifest_entry = {
+                "evidence_id": evidence_id,
+                "file_name": file_name,
+                "file_type": ev.get("file_type", "unknown"),
+                "file_size": ev.get("file_size"),
+                "uploaded_at": ev.get("uploaded_at").isoformat() if ev.get("uploaded_at") else None,
+                "description": ev.get("description"),
+                "verification": {
+                    "file_hash": hash_record.get("file_hash") if hash_record else None,
+                    "metadata_hash": hash_record.get("metadata_hash") if hash_record else None,
+                    "combined_hash": hash_record.get("combined_hash") if hash_record else None,
+                    "hash_id": hash_record.get("hash_id") if hash_record else None
+                },
+                "ipfs": {
+                    "cid": ev.get("ipfs_cid"),
+                    "gateway_url": f"{IPFS_GATEWAY}/{ev['ipfs_cid']}" if ev.get("ipfs_cid") else None,
+                    "pinned": ev.get("ipfs_pinned", False)
+                },
+                "chain_of_custody_entries": len(custody),
+                "chain_of_custody": [
+                    {
+                        "action": c.get("action"),
+                        "timestamp": c.get("timestamp").isoformat() if c.get("timestamp") else None,
+                        "actor_type": c.get("actor_type"),
+                        "signature": c.get("signature")
+                    }
+                    for c in custody
+                ]
+            }
+            manifest_data["evidence_items"].append(manifest_entry)
+            
+            # Try to add the actual file to the ZIP
+            file_path = UPLOAD_DIR / file_name
+            if file_path.exists():
+                zip_file.write(file_path, f"evidence/{file_name}")
+            else:
+                # File not found locally, add a placeholder
+                placeholder = f"File not found locally.\nIPFS CID: {ev.get('ipfs_cid', 'N/A')}\nGateway URL: {manifest_entry['ipfs']['gateway_url'] or 'N/A'}"
+                zip_file.writestr(f"evidence/{evidence_id}_MISSING.txt", placeholder)
+        
+        # Add manifest JSON
+        manifest_json = json.dumps(manifest_data, indent=2)
+        zip_file.writestr("VERIFICATION_MANIFEST.json", manifest_json)
+        
+        # Create summary text file
+        summary_lines = [
+            "=" * 60,
+            "JUSTICE PLATFORM - EVIDENCE EXPORT SUMMARY",
+            "=" * 60,
+            "",
+            f"Export ID: {manifest_data['export_id']}",
+            f"Exported: {manifest_data['exported_at']}",
+            "",
+            "CASE INFORMATION",
+            "-" * 40,
+            f"Case ID: {case['case_id']}",
+            f"Title: {case.get('title', 'N/A')}",
+            f"Status: {case.get('status', 'N/A')}",
+            f"Violation Type: {case.get('violation_type', 'N/A')}",
+            f"Location: {case.get('location', 'N/A')}",
+            "",
+            "EVIDENCE SUMMARY",
+            "-" * 40,
+            f"Total Evidence Files: {len(evidence_list)}",
+            f"Files with IPFS Storage: {sum(1 for e in evidence_list if e.get('ipfs_cid'))}",
+            f"Files with Blockchain Hash: {sum(1 for e in manifest_data['evidence_items'] if e['verification']['file_hash'])}",
+            "",
+            "EVIDENCE FILES",
+            "-" * 40,
+        ]
+        
+        for i, ev in enumerate(manifest_data["evidence_items"], 1):
+            summary_lines.extend([
+                f"",
+                f"[{i}] {ev['file_name']}",
+                f"    Evidence ID: {ev['evidence_id']}",
+                f"    Type: {ev['file_type']}",
+                f"    SHA-256 Hash: {ev['verification']['file_hash'] or 'N/A'}",
+                f"    IPFS CID: {ev['ipfs']['cid'] or 'N/A'}",
+                f"    Chain of Custody: {ev['chain_of_custody_entries']} entries",
+            ])
+        
+        summary_lines.extend([
+            "",
+            "=" * 60,
+            "VERIFICATION INSTRUCTIONS",
+            "=" * 60,
+            "",
+            "1. HASH VERIFICATION:",
+            "   To verify file integrity, compute the SHA-256 hash of any",
+            "   evidence file and compare it to the hash in this manifest.",
+            "",
+            "   Command: sha256sum <filename>",
+            "",
+            "2. IPFS VERIFICATION:",
+            "   Files stored on IPFS can be retrieved from any IPFS gateway",
+            "   using the Content Identifier (CID). The content is immutable.",
+            "",
+            "   URL: https://gateway.pinata.cloud/ipfs/<CID>",
+            "",
+            "3. CHAIN OF CUSTODY:",
+            "   Each action on evidence is logged with a digital signature.",
+            "   See VERIFICATION_MANIFEST.json for complete custody records.",
+            "",
+            "=" * 60,
+            "LEGAL NOTICE",
+            "=" * 60,
+            "",
+            "This export contains cryptographically verified evidence suitable",
+            "for legal proceedings. All hash values and IPFS Content Identifiers",
+            "(CIDs) can be independently verified by any party.",
+            "",
+            f"Generated by JUSTICE Platform on {manifest_data['exported_at']}",
+            ""
+        ])
+        
+        summary_text = "\n".join(summary_lines)
+        zip_file.writestr("EXPORT_SUMMARY.txt", summary_text)
+    
+    # Prepare response
+    zip_buffer.seek(0)
+    
+    # Generate filename
+    case_title_safe = "".join(c if c.isalnum() or c in " -_" else "_" for c in case.get("title", "case")[:30])
+    filename = f"JUSTICE_Evidence_{case_title_safe}_{case_id}.zip"
+    
+    logger.info(f"Batch export created for case {case_id}: {len(evidence_list)} files")
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
 # ============== POLICY IMPACT DASHBOARD ==============
 
 @api_router.get("/policy/reports")
