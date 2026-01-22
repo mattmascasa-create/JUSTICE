@@ -297,6 +297,143 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* S3 Cloud Backup */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-serif flex items-center gap-2">
+              <Cloud className="h-5 w-5" />
+              Cloud Backup (AWS S3)
+            </CardTitle>
+            <CardDescription>Automated disaster recovery for your evidence</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* S3 Connection Status */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded ${backupStatus?.s3_enabled ? 'bg-green-500/10' : 'bg-gray-500/10'}`}>
+                  {backupStatus?.s3_enabled ? (
+                    <Cloud className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <CloudOff className="h-5 w-5 text-gray-500" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">AWS S3 Backup</p>
+                  <p className="text-sm text-muted-foreground">
+                    {backupStatus?.s3_enabled 
+                      ? `Connected to ${backupStatus.s3_bucket} (${backupStatus.s3_region})`
+                      : 'Not configured - add AWS credentials to enable'}
+                  </p>
+                </div>
+              </div>
+              {backupStatus?.s3_enabled ? (
+                <Badge className="bg-green-500/10 text-green-500">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Connected
+                </Badge>
+              ) : (
+                <Badge className="bg-gray-500/10 text-gray-500">
+                  <CloudOff className="h-3 w-3 mr-1" />
+                  Disabled
+                </Badge>
+              )}
+            </div>
+
+            {/* Backup Statistics */}
+            {backupStatus?.s3_enabled && backupStatus?.statistics && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{backupStatus.statistics.backed_up_files}</p>
+                  <p className="text-xs text-muted-foreground">Files Backed Up</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{backupStatus.statistics.total_evidence_files}</p>
+                  <p className="text-xs text-muted-foreground">Total Evidence</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{backupStatus.statistics.backup_coverage_percent}%</p>
+                  <p className="text-xs text-muted-foreground">Coverage</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{backupStatus.statistics.successful_backups}</p>
+                  <p className="text-xs text-muted-foreground">Total Backups</p>
+                </div>
+              </div>
+            )}
+
+            {/* Last Backup Info */}
+            {backupStatus?.last_backup && (
+              <div className="p-3 rounded-lg border border-dashed">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    Last Backup
+                  </p>
+                  <Badge variant={backupStatus.last_backup.status === 'completed' ? 'default' : 'secondary'}>
+                    {backupStatus.last_backup.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {backupStatus.last_backup.started_at 
+                    ? new Date(backupStatus.last_backup.started_at).toLocaleString()
+                    : 'N/A'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {backupStatus.last_backup.files_backed_up} / {backupStatus.last_backup.files_total} files
+                </p>
+              </div>
+            )}
+
+            {/* Trigger Backup Button */}
+            {backupStatus?.s3_enabled && (
+              <Button 
+                onClick={handleTriggerBackup} 
+                disabled={backupLoading}
+                className="w-full"
+                data-testid="trigger-backup-btn"
+              >
+                {backupLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Running Backup...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Backup All Evidence Now
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Setup Instructions */}
+            {!backupStatus?.s3_enabled && backupStatus?.setup_instructions && (
+              <div className="p-3 rounded-lg border border-dashed border-blue-500/50 bg-blue-500/5">
+                <p className="text-sm font-medium text-blue-600 mb-2">Enable S3 Backup for Disaster Recovery</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  S3 backup provides an additional layer of protection by automatically syncing your evidence to AWS cloud storage.
+                </p>
+                <p className="text-xs font-medium mb-1">Required environment variables:</p>
+                <ul className="text-xs text-muted-foreground list-disc list-inside mb-2">
+                  {backupStatus.setup_instructions.required_env_vars.map((v, i) => (
+                    <li key={i} className="font-mono">{v}</li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  <a 
+                    href={backupStatus.setup_instructions.how_to_get_credentials} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-primary hover:underline"
+                  >
+                    How to get AWS credentials →
+                  </a>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Appearance Section */}
         <Card>
           <CardHeader>
