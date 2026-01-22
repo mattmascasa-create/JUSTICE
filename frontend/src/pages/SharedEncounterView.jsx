@@ -1,0 +1,529 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { 
+  Shield, AlertTriangle, MapPin, Clock, Send, Users, Eye, 
+  Radio, MessageCircle, AlertCircle, CheckCircle, XCircle,
+  Volume2, Mic, User, ChevronDown
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Tone colors for transcript display
+const toneColors = {
+  professional: 'border-green-500/30 bg-green-500/10',
+  calm: 'border-green-500/30 bg-green-500/10',
+  assertive: 'border-blue-500/30 bg-blue-500/10',
+  anxious: 'border-yellow-500/30 bg-yellow-500/10',
+  defensive: 'border-yellow-500/30 bg-yellow-500/10',
+  compliant: 'border-green-500/30 bg-green-500/10',
+  aggressive: 'border-red-500/30 bg-red-500/10',
+  intimidating: 'border-orange-500/30 bg-orange-500/10',
+  hostile: 'border-red-500/30 bg-red-500/10 animate-pulse',
+  neutral: 'border-gray-500/30 bg-gray-500/10'
+};
+
+const speakerColors = {
+  officer: 'text-blue-400',
+  citizen: 'text-green-400',
+  unknown: 'text-gray-400'
+};
+
+export default function SharedEncounterView() {
+  const { encounterId } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [encounter, setEncounter] = useState(null);
+  const [transcriptions, setTranscriptions] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [senderName, setSenderName] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [viewerCount, setViewerCount] = useState(1);
+  
+  const wsRef = useRef(null);
+  const transcriptEndRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
+
+  // Fetch initial encounter data
+  const fetchEncounter = useCallback(async () => {
+    if (!token) {
+      setError('No share token provided');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/encounters/shared/${encounterId}?token=${token}`);
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to load shared encounter');
+      }
+      
+      const data = await response.json();
+      setEncounter(data);
+      setTranscriptions(data.transcriptions || []);
+      setMessages(data.guidance_messages || []);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }, [encounterId, token]);
+
+  // Connect to WebSocket for real-time updates
+  const connectWebSocket = useCallback(() => {
+    if (!token || wsRef.current?.readyState === WebSocket.OPEN) return;
+
+    const wsUrl = `${API_URL.replace('https://', 'wss://').replace('http://', 'ws://')}/api/ws/shared/${encounterId}?token=${token}`;
+    
+    try {
+      wsRef.current = new WebSocket(wsUrl);
+      
+      wsRef.current.onopen = () => {
+        console.log('WebSocket connected');
+        setConnected(true);
+        toast.success('Connected to live feed');
+      };
+      
+      wsRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          switch (data.type) {
+            case 'transcription':
+              setTranscriptions(prev => [...prev, data]);
+              break;
+            case 'new_message':
+              setMessages(prev => [...prev, data]);
+              break;
+            case 'share_revoked':
+              setError('The encounter owner has ended the share session');
+              wsRef.current?.close();
+              break;
+            case 'encounter_ended':
+              setEncounter(prev => ({ ...prev, status: 'completed' }));
+              toast.info('The encounter has ended');
+              break;
+            case 'viewer_count':
+              setViewerCount(data.count);
+              break;
+            default:
+              console.log('Unknown message type:', data.type);
+          }
+        } catch (e) {
+          console.error('Error parsing WebSocket message:', e);
+        }
+      };
+      
+      wsRef.current.onclose = () => {
+        console.log('WebSocket disconnected');
+        setConnected(false);
+        // Attempt to reconnect after 5 seconds
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+      };
+      
+      wsRef.current.onerror = (err) => {
+        console.error('WebSocket error:', err);
+      };
+    } catch (err) {
+      console.error('Failed to connect WebSocket:', err);
+    }
+  }, [encounterId, token]);
+
+  // Send guidance message
+  const sendGuidanceMessage = async () => {
+    if (!newMessage.trim() || sendingMessage) return;
+    
+    const name = senderName.trim() || 'Anonymous';
+    
+    setSendingMessage(true);
+    try {
+      // Try WebSocket first
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+          type: 'guidance',
+          sender_name: name,
+          message: newMessage.trim()
+        }));
+        setNewMessage('');
+      } else {
+        // Fall back to HTTP
+        const response = await fetch(
+          `${API_URL}/api/encounters/shared/${encounterId}/message?token=${token}&message=${encodeURIComponent(newMessage.trim())}&sender_name=${encodeURIComponent(name)}`,
+          { method: 'POST' }
+        );
+        
+        if (response.ok) {
+          setNewMessage('');
+        } else {
+          const data = await response.json();
+          toast.error(data.detail || 'Failed to send message');
+        }
+      }
+    } catch (err) {
+      toast.error('Failed to send message');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // Scroll to bottom of transcript
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [transcriptions]);
+
+  // Scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Initial load and WebSocket connection
+  useEffect(() => {
+    fetchEncounter();
+    connectWebSocket();
+    
+    // Polling fallback for updates
+    const pollInterval = setInterval(async () => {
+      if (!connected && token) {
+        try {
+          const response = await fetch(`${API_URL}/api/encounters/shared/${encounterId}/updates?token=${token}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.transcriptions?.length > 0) {
+              setTranscriptions(prev => {
+                const newItems = data.transcriptions.filter(
+                  t => !prev.some(p => p.segment_id === t.segment_id)
+                );
+                return [...prev, ...newItems];
+              });
+            }
+            if (data.messages?.length > 0) {
+              setMessages(prev => {
+                const newItems = data.messages.filter(
+                  m => !prev.some(p => p.message_id === m.message_id)
+                );
+                return [...prev, ...newItems];
+              });
+            }
+            if (data.status) {
+              setEncounter(prev => prev ? { ...prev, status: data.status } : prev);
+            }
+          }
+        } catch (e) {
+          console.error('Polling error:', e);
+        }
+      }
+    }, 5000);
+    
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(reconnectTimeoutRef.current);
+      wsRef.current?.close();
+    };
+  }, [fetchEncounter, connectWebSocket, connected, encounterId, token]);
+
+  // Format duration
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Format timestamp
+  const formatTime = (isoString) => {
+    if (!isoString) return '';
+    return new Date(isoString).toLocaleTimeString();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <Radio className="h-12 w-12 text-blue-400 animate-pulse mx-auto mb-4" />
+          <p className="text-white text-lg">Loading shared encounter...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full bg-slate-800 border-red-500/30">
+          <CardContent className="pt-6 text-center">
+            <XCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">Access Denied</h2>
+            <p className="text-gray-400">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 p-4" data-testid="shared-encounter-view">
+      {/* Header */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8 text-blue-400" />
+            <div>
+              <h1 className="text-xl font-bold text-white">Live Encounter</h1>
+              <p className="text-sm text-gray-400">
+                Shared by {encounter?.owner_name || 'Unknown'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Connection Status */}
+            <Badge 
+              variant="outline" 
+              className={connected ? 'border-green-500 text-green-400' : 'border-yellow-500 text-yellow-400'}
+              data-testid="connection-status"
+            >
+              <div className={`w-2 h-2 rounded-full mr-2 ${connected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
+              {connected ? 'Live' : 'Reconnecting...'}
+            </Badge>
+            
+            {/* Encounter Status */}
+            <Badge 
+              variant="outline"
+              className={encounter?.status === 'active' ? 'border-red-500 text-red-400' : 'border-gray-500 text-gray-400'}
+            >
+              <Radio className={`h-3 w-3 mr-2 ${encounter?.status === 'active' ? 'animate-pulse' : ''}`} />
+              {encounter?.status === 'active' ? 'Recording' : 'Ended'}
+            </Badge>
+            
+            {/* Viewer Count */}
+            <Badge variant="outline" className="border-blue-500/30 text-blue-400">
+              <Eye className="h-3 w-3 mr-2" />
+              {viewerCount} viewing
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Transcript */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Location & Info */}
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-2 text-gray-300">
+                  <MapPin className="h-4 w-4 text-red-400" />
+                  <span className="text-sm">{encounter?.location?.address || 'Location not available'}</span>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{formatDuration(encounter?.duration_seconds || 0)}</span>
+                  </div>
+                  <span>Started {formatTime(encounter?.started_at)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Live Transcript */}
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Mic className="h-5 w-5 text-blue-400" />
+                Live Transcript
+                {encounter?.status === 'active' && (
+                  <span className="ml-2 flex items-center gap-1 text-sm font-normal text-green-400">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    Listening...
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] pr-4" data-testid="transcript-scroll">
+                {transcriptions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <Volume2 className="h-12 w-12 mb-3 opacity-50" />
+                    <p>Waiting for audio...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {transcriptions.map((t, idx) => (
+                      <div 
+                        key={t.segment_id || idx}
+                        className={`p-3 rounded-lg border ${toneColors[t.tone] || toneColors.neutral}`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <User className={`h-4 w-4 ${speakerColors[t.speaker] || speakerColors.unknown}`} />
+                          <span className={`text-sm font-medium ${speakerColors[t.speaker] || speakerColors.unknown}`}>
+                            {t.speaker === 'officer' ? '👮 Officer' : t.speaker === 'citizen' ? '🙋 Citizen' : 'Unknown'}
+                          </span>
+                          {t.tone && t.tone !== 'neutral' && (
+                            <Badge variant="outline" className="text-xs">
+                              {t.tone}
+                            </Badge>
+                          )}
+                          {t.violations_detected?.length > 0 && (
+                            <Badge variant="destructive" className="text-xs">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Violation
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-gray-200">{t.labeled_text || t.text}</p>
+                      </div>
+                    ))}
+                    <div ref={transcriptEndRef} />
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Violations Alert */}
+          {encounter?.violations?.length > 0 && (
+            <Alert className="bg-red-500/10 border-red-500/30">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-300">
+                <strong>{encounter.violations.length}</strong> potential violation(s) detected during this encounter
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        {/* Sidebar - Guidance Messages */}
+        <div className="space-y-4">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <MessageCircle className="h-5 w-5 text-green-400" />
+                Live Guidance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Messages List */}
+              <ScrollArea className="h-[300px] pr-4 mb-4" data-testid="messages-scroll">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <MessageCircle className="h-10 w-10 mb-2 opacity-50" />
+                    <p className="text-sm">No messages yet</p>
+                    <p className="text-xs text-gray-600">Send guidance to help the user</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {messages.map((m, idx) => (
+                      <div 
+                        key={m.message_id || idx}
+                        className="p-3 rounded-lg bg-slate-700/50 border border-slate-600"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-blue-400">
+                            {m.sender_name || 'Anonymous'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {formatTime(m.timestamp || m.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-200">{m.message}</p>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </ScrollArea>
+
+              {/* Send Message Form */}
+              {encounter?.status === 'active' && (
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Your name (optional)"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    maxLength={50}
+                    data-testid="sender-name-input"
+                  />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Send guidance message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendGuidanceMessage()}
+                      className="bg-slate-700 border-slate-600 text-white"
+                      maxLength={200}
+                      data-testid="message-input"
+                    />
+                    <Button 
+                      onClick={sendGuidanceMessage}
+                      disabled={!newMessage.trim() || sendingMessage}
+                      className="bg-green-600 hover:bg-green-700"
+                      data-testid="send-message-btn"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    Max 200 characters. Be concise and helpful.
+                  </p>
+                </div>
+              )}
+
+              {encounter?.status !== 'active' && (
+                <Alert className="bg-slate-700">
+                  <CheckCircle className="h-4 w-4 text-gray-400" />
+                  <AlertDescription className="text-gray-400">
+                    This encounter has ended. Messaging is disabled.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Guidance Tips */}
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-400">Quick Tips to Send</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {[
+                "Stay calm, you're doing great",
+                "Ask: Am I free to go?",
+                "Don't consent to searches",
+                "You can remain silent",
+                "Ask for badge number"
+              ].map((tip, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-left justify-start text-xs border-slate-600 hover:bg-slate-700"
+                  onClick={() => {
+                    setNewMessage(tip);
+                  }}
+                  disabled={encounter?.status !== 'active'}
+                  data-testid={`quick-tip-${idx}`}
+                >
+                  {tip}
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
