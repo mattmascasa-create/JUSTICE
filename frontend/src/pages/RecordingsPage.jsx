@@ -680,7 +680,70 @@ export default function RecordingsPage() {
                   </div>
                 </div>
               </div>
-            </div>
+                </div>
+              </TabsContent>
+
+              {/* Transcript Tab */}
+              <TabsContent value="transcript" className="m-0 bg-gray-900">
+                <div className="p-4 min-h-[400px] max-h-[60vh] overflow-auto">
+                  {transcript?.has_transcript ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-green-400">
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="text-sm">Transcribed {transcript.transcribed_at ? formatDate(transcript.transcribed_at) : ''}</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-white border-white/30 hover:bg-white/10"
+                          onClick={copyTranscript}
+                        >
+                          <Copy className="h-4 w-4 mr-1" />
+                          Copy
+                        </Button>
+                      </div>
+                      <ScrollArea className="h-[400px]">
+                        <p className="text-white/90 whitespace-pre-wrap leading-relaxed">
+                          {transcript.transcript}
+                        </p>
+                      </ScrollArea>
+                    </div>
+                  ) : transcript?.transcription_status === 'processing' ? (
+                    <div className="flex flex-col items-center justify-center h-full text-white/70">
+                      <Loader2 className="h-12 w-12 animate-spin mb-4" />
+                      <p>Transcription in progress...</p>
+                      <p className="text-sm">This may take a few minutes</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-white/70">
+                      <FileText className="h-12 w-12 mb-4 opacity-50" />
+                      <p className="mb-4">No transcript available</p>
+                      <Button
+                        onClick={() => handleTranscribe(selectedRecording)}
+                        disabled={transcribing[selectedRecording?.recording_id]}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {transcribing[selectedRecording?.recording_id] ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Transcribing...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Transcribe Recording
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-sm mt-2 text-white/50">
+                        Uses AI to convert speech to text
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
