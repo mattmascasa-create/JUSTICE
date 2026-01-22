@@ -275,6 +275,15 @@ async def upload_video_chunk(
     if encounter.get("broadcast_mode") in ["share_contacts", "livestream", "all"]:
         await manager.broadcast_to_viewers(encounter_id, content)
     
+    # Notify share viewers about new video chunk
+    if encounter.get("share_active"):
+        await manager.broadcast_to_share_viewers(encounter_id, {
+            "type": "video_chunk",
+            "chunk_index": chunk_index,
+            "filename": chunk_filename,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+    
     return {
         "success": True,
         "chunk_index": chunk_index,
