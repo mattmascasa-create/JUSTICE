@@ -421,6 +421,12 @@ export default function RecordingsPage() {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <FileVideo className="h-4 w-4" />
                       <span>{formatFileSize(recording.file_size_bytes)}</span>
+                      {recording.transcript && (
+                        <Badge variant="secondary" className="ml-auto text-xs bg-blue-100 text-blue-800">
+                          <FileText className="h-3 w-3 mr-1" />
+                          Transcribed
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Actions */}
@@ -467,31 +473,118 @@ export default function RecordingsPage() {
           </Card>
         )}
 
+        {/* Transcript Search Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Search Transcripts
+            </CardTitle>
+            <CardDescription>
+              Search across all transcribed call recordings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search in transcripts..."
+                  value={transcriptSearchQuery}
+                  onChange={(e) => setTranscriptSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchTranscripts()}
+                  className="pl-10"
+                  data-testid="search-transcripts"
+                />
+              </div>
+              <Button 
+                onClick={handleSearchTranscripts}
+                disabled={searchingTranscripts || !transcriptSearchQuery.trim()}
+              >
+                {searchingTranscripts ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              </Button>
+            </div>
+
+            {/* Search Results */}
+            {transcriptSearchResults.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Found {transcriptSearchResults.length} recording(s) matching "{transcriptSearchQuery}"
+                </p>
+                {transcriptSearchResults.map((result, index) => (
+                  <Card key={result.recording_id} className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">
+                          {result.caller_name} ↔ {result.recipient_name}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {formatDate(result.started_at)}
+                        </span>
+                      </div>
+                      {result.excerpts.map((excerpt, i) => (
+                        <p key={i} className="text-sm text-muted-foreground bg-background p-2 rounded mt-2">
+                          {excerpt.excerpt}
+                        </p>
+                      ))}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                        onClick={() => {
+                          const rec = recordings.find(r => r.recording_id === result.recording_id);
+                          if (rec) openPlayer(rec);
+                        }}
+                      >
+                        <Play className="h-3 w-3 mr-1" />
+                        View Recording
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Video Player Dialog */}
         <Dialog open={!!selectedRecording} onOpenChange={() => closePlayer()}>
-          <DialogContent className="max-w-4xl p-0 bg-black overflow-hidden">
-            <div className="relative">
-              {/* Close Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 z-10 text-white hover:bg-white/20"
-                onClick={closePlayer}
-              >
-                <X className="h-5 w-5" />
-              </Button>
+          <DialogContent className="max-w-4xl p-0 bg-black overflow-hidden max-h-[90vh]">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+              <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
+                <TabsList className="bg-gray-800">
+                  <TabsTrigger value="video" className="data-[state=active]:bg-gray-700">
+                    <Video className="h-4 w-4 mr-2" />
+                    Video
+                  </TabsTrigger>
+                  <TabsTrigger value="transcript" className="data-[state=active]:bg-gray-700">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Transcript
+                  </TabsTrigger>
+                </TabsList>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={closePlayer}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
 
-              {/* Video */}
-              <video
-                ref={videoRef}
-                src={selectedRecording?.download_url || selectedRecording?.s3_url}
-                className="w-full aspect-video bg-black"
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onEnded={() => setIsPlaying(false)}
-                onClick={togglePlay}
-                data-testid="video-player"
-              />
+              <TabsContent value="video" className="m-0">
+                <div className="relative">
+                  {/* Video */}
+                  <video
+                    ref={videoRef}
+                    src={selectedRecording?.download_url || selectedRecording?.s3_url}
+                    className="w-full aspect-video bg-black"
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onEnded={() => setIsPlaying(false)}
+                    onClick={togglePlay}
+                    data-testid="video-player"
+                  />
 
               {/* Controls Overlay */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
