@@ -150,13 +150,86 @@ export default function RecordingsPage() {
     setSelectedRecording(recording);
     setIsPlaying(false);
     setCurrentTime(0);
+    setActiveTab('video');
   };
 
   const closePlayer = () => {
     setSelectedRecording(null);
     setIsPlaying(false);
+    setTranscript(null);
     if (videoRef.current) {
       videoRef.current.pause();
+    }
+  };
+
+  const fetchTranscript = async (recordingId) => {
+    try {
+      const res = await callsAPI.getTranscript(recordingId);
+      if (res.data.has_transcript) {
+        setTranscript(res.data);
+      } else {
+        setTranscript({ has_transcript: false, transcription_status: res.data.transcription_status });
+      }
+    } catch (error) {
+      console.error('Error fetching transcript:', error);
+      setTranscript({ has_transcript: false, transcription_status: 'error' });
+    }
+  };
+
+  const handleTranscribe = async (recording) => {
+    const recordingId = recording.recording_id;
+    setTranscribing(prev => ({ ...prev, [recordingId]: true }));
+    
+    try {
+      toast.info('Starting transcription... This may take a few minutes.');
+      const res = await callsAPI.transcribeRecording(recordingId);
+      
+      if (res.data.status === 'completed' || res.data.status === 'already_transcribed') {
+        toast.success('Transcription complete!');
+        setTranscript({
+          has_transcript: true,
+          transcript: res.data.transcript,
+          segments: res.data.segments,
+          transcribed_at: res.data.transcribed_at
+        });
+        
+        // Update recording in list
+        setRecordings(prev => prev.map(r => 
+          r.recording_id === recordingId 
+            ? { ...r, transcript: res.data.transcript, transcribed_at: res.data.transcribed_at }
+            : r
+        ));
+      }
+    } catch (error) {
+      console.error('Transcription error:', error);
+      toast.error(error.response?.data?.detail || 'Transcription failed');
+    } finally {
+      setTranscribing(prev => ({ ...prev, [recordingId]: false }));
+    }
+  };
+
+  const handleSearchTranscripts = async () => {
+    if (!transcriptSearchQuery.trim()) return;
+    
+    setSearchingTranscripts(true);
+    try {
+      const res = await callsAPI.searchTranscripts(transcriptSearchQuery);
+      setTranscriptSearchResults(res.data.results || []);
+      if (res.data.results?.length === 0) {
+        toast.info('No matches found in transcripts');
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Search failed');
+    } finally {
+      setSearchingTranscripts(false);
+    }
+  };
+
+  const copyTranscript = () => {
+    if (transcript?.transcript) {
+      navigator.clipboard.writeText(transcript.transcript);
+      toast.success('Transcript copied to clipboard');
     }
   };
 
