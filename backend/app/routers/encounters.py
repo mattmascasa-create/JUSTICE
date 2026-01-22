@@ -5,7 +5,7 @@ Includes: start/end encounter, audio/video upload, transcription, AI analysis, r
 import uuid
 import json
 import aiofiles
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
