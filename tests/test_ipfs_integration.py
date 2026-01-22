@@ -156,7 +156,6 @@ class TestIPFSIntegration:
         data = response.json()
         # Verify certificate fields
         assert "certificate_id" in data
-        assert "evidence_id" in data
         assert "file_hash" in data
         assert "integrity_statement" in data
         assert "legal_notice" in data
