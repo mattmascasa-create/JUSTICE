@@ -58,11 +58,19 @@ export default function EncounterPage() {
   const [currentRightsIndex, setCurrentRightsIndex] = useState(0);
   const [officerInfo, setOfficerInfo] = useState({ name: '', badge: '', department: '' });
   const [showOfficerForm, setShowOfficerForm] = useState(false);
+  const [enableVideo, setEnableVideo] = useState(true);
+  const [videoChunkCount, setVideoChunkCount] = useState(0);
+  const [uploadingChunk, setUploadingChunk] = useState(false);
   
   const mediaRecorderRef = useRef(null);
+  const audioRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const videoChunksRef = useRef([]);
   const streamRef = useRef(null);
+  const audioStreamRef = useRef(null);
+  const videoPreviewRef = useRef(null);
   const chunkIndexRef = useRef(0);
+  const videoChunkIndexRef = useRef(0);
   const timerRef = useRef(null);
 
   // Get user location on mount
