@@ -496,29 +496,47 @@ export default function SharedEncounterView() {
               <CardTitle className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-2">
                   <Video className="h-5 w-5 text-red-400" />
-                  Live Video Feed
+                  {hasScreenRecording && screenChunks.length > 0 ? 'Screen Recording' : 'Live Video Feed'}
+                  {hasScreenRecording && screenChunks.length > 0 && (
+                    <Badge variant="outline" className="text-xs border-purple-500/50 text-purple-400">
+                      + Camera PiP
+                    </Badge>
+                  )}
                   {videoChunks.length > 0 && (
                     <Badge variant="outline" className="text-xs border-gray-600">
                       {videoChunks.length} chunks
                     </Badge>
                   )}
                 </div>
-                {!isLive && videoChunks.length > 0 && (
-                  <Button 
-                    size="sm" 
-                    variant="destructive"
-                    onClick={goLive}
-                    className="text-xs"
-                    data-testid="go-live-btn"
-                  >
-                    <Radio className="h-3 w-3 mr-1 animate-pulse" />
-                    Go Live
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {hasScreenRecording && screenChunks.length > 0 && videoChunks.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowPiP(!showPiP)}
+                      className="text-xs"
+                      data-testid="toggle-pip-btn"
+                    >
+                      {showPiP ? 'Hide Camera' : 'Show Camera'}
+                    </Button>
+                  )}
+                  {!isLive && videoChunks.length > 0 && (
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={goLive}
+                      className="text-xs"
+                      data-testid="go-live-btn"
+                    >
+                      <Radio className="h-3 w-3 mr-1 animate-pulse" />
+                      Go Live
+                    </Button>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {videoChunks.length === 0 ? (
+              {videoChunks.length === 0 && screenChunks.length === 0 ? (
                 <div className="aspect-video bg-slate-900 flex flex-col items-center justify-center">
                   <VideoOff className="h-16 w-16 text-gray-600 mb-4" />
                   <p className="text-gray-500">Waiting for video...</p>
@@ -526,20 +544,55 @@ export default function SharedEncounterView() {
                 </div>
               ) : (
                 <>
-                  {/* Video element */}
+                  {/* Video element - Show screen if available, else camera */}
                   <div className="relative aspect-video bg-black">
-                    <video
-                      ref={videoRef}
-                      className="w-full h-full object-contain"
-                      src={videoChunks[currentChunkIndex] ? getVideoChunkUrl(videoChunks[currentChunkIndex].filename) : ''}
-                      autoPlay={isPlaying}
-                      onEnded={handleVideoEnded}
-                      onError={() => setVideoError(true)}
-                      onLoadStart={() => setVideoError(false)}
-                      controls={false}
-                      playsInline
-                      data-testid="video-player"
-                    />
+                    {/* Main video (screen recording if available, else camera) */}
+                    {hasScreenRecording && screenChunks.length > 0 ? (
+                      <video
+                        ref={screenVideoRef}
+                        className="w-full h-full object-contain"
+                        src={screenChunks[currentScreenChunkIndex] ? getScreenChunkUrl(screenChunks[currentScreenChunkIndex].filename) : ''}
+                        autoPlay={isPlaying}
+                        onEnded={handleVideoEnded}
+                        controls={false}
+                        playsInline
+                        data-testid="screen-player"
+                      />
+                    ) : (
+                      <video
+                        ref={videoRef}
+                        className="w-full h-full object-contain"
+                        src={videoChunks[currentChunkIndex] ? getVideoChunkUrl(videoChunks[currentChunkIndex].filename) : ''}
+                        autoPlay={isPlaying}
+                        onEnded={handleVideoEnded}
+                        onError={() => setVideoError(true)}
+                        onLoadStart={() => setVideoError(false)}
+                        controls={false}
+                        playsInline
+                        data-testid="video-player"
+                      />
+                    )}
+                    
+                    {/* Picture-in-Picture Camera overlay (when screen recording is main) */}
+                    {hasScreenRecording && screenChunks.length > 0 && showPiP && videoChunks.length > 0 && (
+                      <div className="absolute bottom-3 right-3 w-1/4 aspect-video rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
+                        <video
+                          ref={videoRef}
+                          className="w-full h-full object-cover"
+                          src={videoChunks[currentChunkIndex] ? getVideoChunkUrl(videoChunks[currentChunkIndex].filename) : ''}
+                          autoPlay={isPlaying}
+                          controls={false}
+                          playsInline
+                          muted
+                          data-testid="pip-video-player"
+                        />
+                        <div className="absolute bottom-1 left-1">
+                          <Badge className="bg-blue-500/80 text-white text-xs px-1 py-0">
+                            Camera
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Live indicator */}
                     {isLive && encounter?.status === 'active' && (
@@ -551,10 +604,20 @@ export default function SharedEncounterView() {
                       </div>
                     )}
                     
+                    {/* Screen recording indicator */}
+                    {hasScreenRecording && screenChunks.length > 0 && (
+                      <div className="absolute top-3 left-20">
+                        <Badge className="bg-purple-500/80 text-white">
+                          <Video className="h-3 w-3 mr-1" />
+                          Screen
+                        </Badge>
+                      </div>
+                    )}
+                    
                     {/* Chunk info */}
                     <div className="absolute top-3 right-3">
                       <Badge variant="secondary" className="bg-black/60 text-white">
-                        {formatChunkTime(currentChunkIndex)} / {formatChunkTime(videoChunks.length - 1)}
+                        {formatChunkTime(currentChunkIndex)} / {formatChunkTime(Math.max(videoChunks.length, screenChunks.length) - 1)}
                       </Badge>
                     </div>
                     
