@@ -944,3 +944,89 @@ async def get_shared_updates(encounter_id: str, token: str, since: str = None):
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
+
+
+@router.get("/shared/{encounter_id}/video/chunks")
+async def get_shared_video_chunks(encounter_id: str, token: str):
+    """
+    Public endpoint - Get list of available video chunks for shared encounter.
+    Returns chunk metadata for video timeline/scrubbing.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Validate share token
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    # Get video files from media_files list
+    media_files = encounter.get("media_files", [])
+    video_chunks = [f for f in media_files if f.startswith("video_chunk_")]
+    
+    # Parse chunk info and sort by index
+    chunks = []
+    for filename in video_chunks:
+        try:
+            # Extract chunk index from filename (video_chunk_0.webm -> 0)
+            index = int(filename.replace("video_chunk_", "").replace(".webm", ""))
+            chunks.append({
+                "index": index,
+                "filename": filename,
+                "timestamp_seconds": index * 15  # Each chunk is ~15 seconds
+            })
+        except ValueError:
+            continue
+    
+    chunks.sort(key=lambda x: x["index"])
+    
+    return {
+        "encounter_id": encounter_id,
+        "total_chunks": len(chunks),
+        "chunk_duration_seconds": 15,
+        "chunks": chunks,
+        "status": encounter.get("status"),
+        "started_at": encounter.get("started_at")
+    }
+
+
+@router.get("/shared/{encounter_id}/video/{filename}")
+async def get_shared_video_chunk(encounter_id: str, filename: str, token: str):
+    """
+    Public endpoint - Stream a specific video chunk for shared encounter viewers.
+    Validates share token before serving video.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Validate share token
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    # Verify filename is in the allowed media files
+    if filename not in encounter.get("media_files", []):
+        raise HTTPException(status_code=404, detail="Video chunk not found")
+    
+    file_path = ENCOUNTERS_DIR / encounter_id / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Video file not found")
+    
+    return FileResponse(
+        file_path, 
+        media_type="video/webm",
+        headers={
+            "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+            "Accept-Ranges": "bytes"
+        }
+    )
+
