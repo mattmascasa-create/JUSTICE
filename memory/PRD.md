@@ -117,9 +117,14 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 
 ## Backend APIs (v5.3)
 
-### Evidence Export (NEW)
+### Evidence Export
 - `GET /api/evidence/report/{case_id}` - Generate PDF report data
 - `GET /api/evidence/batch-export/{case_id}` - Download ZIP package with all files
+
+### S3 Cloud Backup (NEW)
+- `GET /api/backup/status` - Get backup system status and statistics
+- `POST /api/backup/trigger` - Manually trigger a backup job
+- `GET /api/backup/history` - Get backup job history
 
 ### IPFS Storage
 - `GET /api/ipfs/status` - IPFS integration status
