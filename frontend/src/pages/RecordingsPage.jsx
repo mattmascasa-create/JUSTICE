@@ -613,6 +613,10 @@ export default function RecordingsPage() {
                     <FileText className="h-4 w-4 mr-2" />
                     Transcript
                   </TabsTrigger>
+                  <TabsTrigger value="summary" className="data-[state=active]:bg-gray-700" data-testid="summary-tab">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    AI Summary
+                  </TabsTrigger>
                 </TabsList>
                 <Button
                   variant="ghost"
