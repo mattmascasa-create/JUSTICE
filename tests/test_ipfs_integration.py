@@ -156,21 +156,28 @@ class TestIPFSIntegration:
         data = response.json()
         # Verify certificate fields
         assert "certificate_id" in data
-        assert "file_hash" in data
+        assert "certificate_type" in data
         assert "integrity_statement" in data
         assert "legal_notice" in data
+        assert "cryptographic_verification" in data
+        
+        # Verify cryptographic verification contains file_hash
+        crypto = data["cryptographic_verification"]
+        assert "file_hash" in crypto
+        assert "algorithm" in crypto
+        assert crypto["algorithm"] == "SHA-256"
         
         # Check for IPFS storage info
-        if "ipfs_storage" in data and data["ipfs_storage"]:
-            ipfs_storage = data["ipfs_storage"]
-            assert ipfs_storage["stored"] == True
-            assert ipfs_storage["cid"] is not None
-            print(f"Certificate IPFS storage: cid={ipfs_storage['cid']}")
+        assert "ipfs_storage" in data, "Certificate should include IPFS storage info"
+        ipfs_storage = data["ipfs_storage"]
+        assert ipfs_storage["enabled"] == True, "IPFS should be enabled"
+        assert ipfs_storage["cid"] is not None, "IPFS CID should be present"
+        assert ipfs_storage["pinned"] == True, "Evidence should be pinned on IPFS"
+        print(f"Certificate IPFS storage: cid={ipfs_storage['cid']}, pinned={ipfs_storage['pinned']}")
         
         # Verify IPFS mentioned in legal notice
-        if data.get("ipfs_storage"):
-            assert "IPFS" in data["integrity_statement"] or "IPFS" in data["legal_notice"], \
-                "Certificate should mention IPFS storage"
+        assert "IPFS" in data["integrity_statement"], "Integrity statement should mention IPFS"
+        assert "IPFS" in data["legal_notice"], "Legal notice should mention IPFS"
         
         print(f"Certificate generated: {data['certificate_id']}")
     
