@@ -142,6 +142,7 @@ const highlightText = (text) => {
 
 export default function EncounterPage() {
   const navigate = useNavigate();
+  const { notifications } = useWebSocket();
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [encounter, setEncounter] = useState(null);
