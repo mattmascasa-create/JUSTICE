@@ -138,6 +138,9 @@ export const encounterAPI = {
   end: (encounterId) => api.post(`/encounters/${encounterId}/end`),
   get: (encounterId) => api.get(`/encounters/${encounterId}`),
   getReport: (encounterId) => api.get(`/encounters/${encounterId}/report`),
+  getMediaUrl: (encounterId, filename) => `${API_URL}/encounters/${encounterId}/media/${filename}`,
+  getStreamToken: (encounterId) => api.get(`/encounters/${encounterId}/stream-token`),
+  verifyStreamAccess: (encounterId, token) => api.get(`/live/${encounterId}/verify`, { params: { token } }),
   list: (status) => api.get('/encounters', { params: { status } }),
   uploadAudio: (encounterId, audioBlob, chunkIndex) => {
     const formData = new FormData();
@@ -162,6 +165,11 @@ export const encounterAPI = {
     if (officerInfo.department) formData.append('department', officerInfo.department);
     return api.post(`/encounters/${encounterId}/officer`, formData);
   }
+};
+
+// Helper to get the API URL for direct media access
+export const getMediaStreamUrl = (encounterId, filename, token) => {
+  return `${API_URL}/live/${encounterId}/media/${filename}?token=${token}`;
 };
 
 // Document Analysis API
