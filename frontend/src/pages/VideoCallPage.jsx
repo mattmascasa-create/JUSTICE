@@ -603,6 +603,19 @@ export default function VideoCallPage() {
             {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
           </Button>
 
+          {/* Recording Button */}
+          <Button
+            variant="outline"
+            size="lg"
+            className={`rounded-full h-14 w-14 ${isRecording ? 'bg-red-500 border-red-500 text-white animate-pulse' : 'border-white/20 text-white'}`}
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={callStatus !== 'active' || isUploading}
+            data-testid="toggle-recording-btn"
+            title={isRecording ? 'Stop Recording' : 'Start Recording'}
+          >
+            {isRecording ? <Square className="h-6 w-6" /> : <Circle className="h-6 w-6" />}
+          </Button>
+
           <Button
             variant="destructive"
             size="lg"
