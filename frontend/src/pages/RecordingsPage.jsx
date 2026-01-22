@@ -227,8 +227,14 @@ export default function RecordingsPage() {
   };
 
   const copyTranscript = () => {
-    if (transcript?.transcript) {
-      navigator.clipboard.writeText(transcript.transcript);
+    // Prefer speaker transcript if available
+    const textToCopy = transcript?.speaker_transcript || transcript?.transcript;
+    if (textToCopy) {
+      // Clean up markdown formatting for clipboard
+      const cleanText = textToCopy
+        .replace(/\*\*/g, '')
+        .replace(/<[^>]+>/g, '');
+      navigator.clipboard.writeText(cleanText);
       toast.success('Transcript copied to clipboard');
     }
   };
