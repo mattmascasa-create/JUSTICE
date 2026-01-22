@@ -549,6 +549,18 @@ export default function VideoCallPage() {
               {formatDuration(duration)}
             </Badge>
           )}
+          {isRecording && (
+            <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">
+              <Circle className="h-3 w-3 mr-1 fill-red-500" />
+              REC {formatDuration(recordingDuration)}
+            </Badge>
+          )}
+          {isUploading && (
+            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+              <Download className="h-3 w-3 mr-1 animate-bounce" />
+              Uploading...
+            </Badge>
+          )}
           {isScreenSharing && (
             <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
               <Monitor className="h-3 w-3 mr-1" />
