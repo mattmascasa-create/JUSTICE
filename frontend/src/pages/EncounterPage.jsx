@@ -14,8 +14,9 @@ import {
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
-  Eye, AlertCircle, Scale, CheckCircle, Camera
+  Eye, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX
 } from 'lucide-react';
+import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
 
 const encounterTypes = [
