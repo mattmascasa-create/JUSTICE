@@ -296,7 +296,12 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Transcript search across all recordings
   - Search results with context excerpts
   - "Transcribed" badge on transcribed recordings
-- **Version**: 5.10.0
+- **Speaker Identification**: AI labels who said what in conversations
+  - GPT-powered speaker diarization
+  - Color-coded speaker segments (Attorney: blue, Client: purple)
+  - Speaker labels with participant names
+  - Formatted output for legal documentation
+- **Version**: 5.11.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
