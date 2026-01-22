@@ -116,14 +116,16 @@ class TestVoiceCommands:
         """Test manual violation mark (not voice command)"""
         encounter_id = self.test_create_encounter_for_voice_commands()
         
+        headers = {"Authorization": f"Bearer {self.token}"}
         mark_data = {
-            "timestamp": 120.0,
+            "timestamp": "120.0",
             "note": "Manual mark - officer raised voice"
         }
         
-        response = self.session.post(
+        response = requests.post(
             f"{BASE_URL}/api/encounters/{encounter_id}/mark-violation",
-            data=mark_data
+            data=mark_data,
+            headers=headers
         )
         
         assert response.status_code == 200, f"Manual mark failed: {response.text}"
