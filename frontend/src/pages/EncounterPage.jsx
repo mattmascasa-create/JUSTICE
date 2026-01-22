@@ -789,14 +789,21 @@ export default function EncounterPage() {
       // Stop all recorders
       mediaRecorderRef.current.stop();
       if (audioRecorderRef.current) audioRecorderRef.current.stop();
+      if (screenRecorderRef.current) {
+        screenRecorderRef.current.stop();
+        screenRecorderRef.current = null;
+      }
       
       // Stop all tracks
       streamRef.current?.getTracks().forEach(track => track.stop());
+      screenStreamRef.current?.getTracks().forEach(track => track.stop());
       
       // Clear video preview
       if (videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = null;
       }
+      
+      setScreenRecordingActive(false);
       
       try {
         toast.info('Processing recording and generating report...');
