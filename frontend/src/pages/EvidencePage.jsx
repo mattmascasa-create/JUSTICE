@@ -215,66 +215,137 @@ export default function EvidencePage() {
               <DialogTrigger asChild>
                 <Button variant="outline" data-testid="generate-report-btn">
                   <FileDown className="h-4 w-4 mr-2" />
-                  Evidence Report
+                  Export
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-lg">
                 <DialogHeader>
                   <DialogTitle className="font-serif flex items-center gap-2">
                     <FileDown className="h-5 w-5 text-primary" />
-                    Generate Evidence Report
+                    Export Evidence
                   </DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Generate a comprehensive PDF report with all evidence for a case, including:
-                  </p>
-                  <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                    <li>SHA-256 cryptographic hashes</li>
-                    <li>IPFS Content Identifiers (CIDs)</li>
-                    <li>Chain of custody audit trail</li>
-                    <li>Verification URLs for court use</li>
-                  </ul>
-                  <div className="space-y-2">
-                    <Label>Select Case *</Label>
-                    <Select 
-                      value={selectedReportCase} 
-                      onValueChange={setSelectedReportCase}
+                
+                <Tabs defaultValue="pdf" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="pdf" className="flex items-center gap-2">
+                      <FileIcon className="h-4 w-4" />
+                      PDF Report
+                    </TabsTrigger>
+                    <TabsTrigger value="zip" className="flex items-center gap-2">
+                      <FolderArchive className="h-4 w-4" />
+                      Full Package
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="pdf" className="space-y-4 mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Generate a PDF report with verification details:
+                    </p>
+                    <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                      <li>SHA-256 cryptographic hashes</li>
+                      <li>IPFS CIDs with QR codes</li>
+                      <li>Chain of custody audit trail</li>
+                      <li>Legal verification instructions</li>
+                    </ul>
+                    <div className="space-y-2">
+                      <Label>Select Case *</Label>
+                      <Select 
+                        value={selectedReportCase} 
+                        onValueChange={setSelectedReportCase}
+                      >
+                        <SelectTrigger data-testid="report-case-select">
+                          <SelectValue placeholder="Select a case" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cases.map((c) => {
+                            const evidenceCount = evidence.filter(e => e.case_id === c.case_id).length;
+                            return (
+                              <SelectItem key={c.case_id} value={c.case_id}>
+                                {c.title} {evidenceCount > 0 ? `(${evidenceCount} files)` : ''}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleGenerateReport}
+                      disabled={generatingReport || !selectedReportCase}
+                      data-testid="download-report-btn"
                     >
-                      <SelectTrigger data-testid="report-case-select">
-                        <SelectValue placeholder="Select a case" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cases.map((c) => {
-                          const evidenceCount = evidence.filter(e => e.case_id === c.case_id).length;
-                          return (
-                            <SelectItem key={c.case_id} value={c.case_id}>
-                              {c.title} {evidenceCount > 0 ? `(${evidenceCount} files)` : ''}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={handleGenerateReport}
-                    disabled={generatingReport || !selectedReportCase}
-                    data-testid="download-report-btn"
-                  >
-                    {generatingReport ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <FileDown className="h-4 w-4 mr-2" />
-                        Download PDF Report
-                      </>
-                    )}
-                  </Button>
-                </div>
+                      {generatingReport ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Download PDF Report
+                        </>
+                      )}
+                    </Button>
+                  </TabsContent>
+                  
+                  <TabsContent value="zip" className="space-y-4 mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Download a complete evidence package (ZIP) containing:
+                    </p>
+                    <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                      <li><strong>All evidence files</strong> (original quality)</li>
+                      <li><strong>Verification manifest</strong> (JSON with all hashes)</li>
+                      <li><strong>Summary report</strong> (human-readable TXT)</li>
+                      <li>Chain of custody for each file</li>
+                    </ul>
+                    <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        <strong>Perfect for attorneys:</strong> Share the entire package with legal counsel. 
+                        They can independently verify every file using the included hashes and IPFS CIDs.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Select Case *</Label>
+                      <Select 
+                        value={selectedReportCase} 
+                        onValueChange={setSelectedReportCase}
+                      >
+                        <SelectTrigger data-testid="batch-case-select">
+                          <SelectValue placeholder="Select a case" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cases.map((c) => {
+                            const evidenceCount = evidence.filter(e => e.case_id === c.case_id).length;
+                            return (
+                              <SelectItem key={c.case_id} value={c.case_id}>
+                                {c.title} {evidenceCount > 0 ? `(${evidenceCount} files)` : ''}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleBatchExport}
+                      disabled={generatingReport || !selectedReportCase}
+                      data-testid="download-batch-btn"
+                    >
+                      {generatingReport ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Packaging...
+                        </>
+                      ) : (
+                        <>
+                          <FolderArchive className="h-4 w-4 mr-2" />
+                          Download ZIP Package
+                        </>
+                      )}
+                    </Button>
+                  </TabsContent>
+                </Tabs>
               </DialogContent>
             </Dialog>
             
