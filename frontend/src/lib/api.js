@@ -397,6 +397,21 @@ export const callsAPI = {
   getCallHistory: (limit = 20, contactId = null) => api.get('/calls/history', {
     params: { limit, contact_id: contactId }
   }),
+  
+  // Recording management
+  startRecording: (callId) => api.post(`/calls/${callId}/recording/start`),
+  stopRecording: (callId) => api.post(`/calls/${callId}/recording/stop`),
+  uploadRecording: (callId, recordingId, blob) => {
+    const formData = new FormData();
+    formData.append('recording_id', recordingId);
+    formData.append('file', blob, 'recording.webm');
+    return api.post(`/calls/${callId}/recording/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000 // 2 min timeout for large files
+    });
+  },
+  getCallRecordings: (callId) => api.get(`/calls/${callId}/recordings`),
+  getMyRecordings: (limit = 20) => api.get('/calls/recordings/my', { params: { limit } }),
 };
 
 // Policy Impact Dashboard API
