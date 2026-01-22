@@ -433,6 +433,8 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 ### P0 - COMPLETED
 - [x] ✅ Enable IPFS with user's Pinata JWT - DONE Jan 22, 2026
 - [x] ✅ Attorney Collaboration Mode - DONE Jan 22, 2026
+- [x] ✅ AWS S3 Backup Activation - DONE Jan 22, 2026
+- [x] ✅ Video Call Integration - DONE Jan 22, 2026
 
 ### P1 (Ready)
 - [ ] Real blockchain anchoring (Ethereum/Polygon)
