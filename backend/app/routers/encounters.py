@@ -291,6 +291,58 @@ async def upload_video_chunk(
     }
 
 
+@router.post("/{encounter_id}/screen")
+async def upload_screen_chunk(
+    encounter_id: str,
+    chunk_index: int = Form(...),
+    screen: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a screen recording chunk"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Create encounter directory if not exists
+    enc_dir = ENCOUNTERS_DIR / encounter_id
+    enc_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save screen recording chunk
+    chunk_filename = f"screen_chunk_{chunk_index}.webm"
+    chunk_path = enc_dir / chunk_filename
+    
+    async with aiofiles.open(chunk_path, 'wb') as f:
+        content = await screen.read()
+        await f.write(content)
+    
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {
+            "$push": {"media_files": chunk_filename},
+            "$set": {"has_screen_recording": True}
+        }
+    )
+    
+    # Notify share viewers about new screen chunk
+    if encounter.get("share_active"):
+        await manager.broadcast_to_share_viewers(encounter_id, {
+            "type": "screen_chunk",
+            "chunk_index": chunk_index,
+            "filename": chunk_filename,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return {
+        "success": True,
+        "chunk_index": chunk_index,
+        "filename": chunk_filename
+    }
+
+
 @router.post("/{encounter_id}/analyze")
 async def analyze_encounter_realtime(
     encounter_id: str,
