@@ -25,6 +25,7 @@ from app.routers.community import router as community_router
 from app.routers.rights import router as rights_router
 from app.routers.attorney import router as attorney_collab_router
 from app.routers.backup import router as backup_router
+from app.routers.calls import router as calls_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
