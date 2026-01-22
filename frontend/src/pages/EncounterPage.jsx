@@ -1185,9 +1185,10 @@ export default function EncounterPage() {
                           Segment {i + 1}
                         </span>
                       </div>
-                      <p className="text-sm leading-relaxed">
-                        {t.text || 'Processing...'}
-                      </p>
+                      <p 
+                        className="text-sm leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: highlightText(t.text) || 'Processing...' }}
+                      />
                       {t.violations_detected?.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-red-500/20">
                           <p className="text-xs text-red-400">
