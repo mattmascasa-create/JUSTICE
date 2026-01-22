@@ -22,7 +22,7 @@
         "issue": "URL mismatch between frontend config and actual backend URL",
         "impact": "Frontend trying to access wrong backend URL causing request failures",
         "fix_priority": "CRITICAL",
-        "technical_details": "Frontend REACT_APP_BACKEND_URL points to https://caseguardian.preview.emergentagent.com but requests going to https://caseguardian.preview.emergentagent.com"
+        "technical_details": "Frontend REACT_APP_BACKEND_URL points to https://justice-shield-2.preview.emergentagent.com but requests going to https://justice-shield-2.preview.emergentagent.com"
       }
     ],
     "design_issues": []
