@@ -2697,6 +2697,65 @@ async def analyze_transcription_for_violations(text: str, encounter_id: str) -> 
     
     return list(set(violations))  # Remove duplicates
 
+async def identify_speaker(text: str, context: str = "") -> dict:
+    """Use AI to identify the speaker and label transcript segments"""
+    if not EMERGENT_LLM_KEY or len(text) < 10:
+        return {"speaker": "unknown", "confidence": 0.0, "labeled_text": text}
+    
+    try:
+        llm = create_llm_chat(f"speaker_id_{uuid.uuid4().hex[:8]}", """You are an expert at analyzing police encounter transcripts and identifying speakers.
+Your task is to:
+1. Identify who is speaking (Officer, Citizen, or Unknown)
+2. Add speaker labels to the transcript
+3. Provide confidence level
+
+Speaker identification clues:
+- Officers typically: ask for license/registration, give commands, cite laws, use formal/authoritative language
+- Citizens typically: respond to questions, express rights, show confusion/fear, use informal language
+- Questions about "why was I pulled over" = Citizen
+- Commands like "step out" or "show me your hands" = Officer""")
+        
+        prompt = f"""Analyze this police encounter transcript segment and identify the speaker(s).
+
+TRANSCRIPT:
+"{text}"
+
+{f'CONTEXT FROM PREVIOUS SEGMENTS: {context}' if context else ''}
+
+Return a JSON object with:
+{{
+    "speaker": "Officer" or "Citizen" or "Unknown",
+    "confidence": 0.0 to 1.0,
+    "labeled_text": "Speaker: text with speaker label at start",
+    "speaker_changes": [
+        {{"position": 0, "speaker": "Officer", "text": "portion of text"}}
+    ],
+    "reasoning": "brief explanation of why you identified this speaker"
+}}
+
+If multiple speakers are detected, split the text and label each part.
+Return ONLY valid JSON, no markdown."""
+
+        response = await llm.send_message(UserMessage(text=prompt))
+        
+        if response:
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("```")[1]
+                if cleaned.startswith("json"):
+                    cleaned = cleaned[4:]
+            cleaned = cleaned.strip()
+            
+            try:
+                result = json.loads(cleaned)
+                return result
+            except json.JSONDecodeError:
+                pass
+    except Exception as e:
+        logger.error(f"Speaker identification error: {e}")
+    
+    return {"speaker": "unknown", "confidence": 0.0, "labeled_text": text}
+
 async def perform_deep_ai_analysis(text: str, encounter_id: str, analysis_type: str = "full") -> dict:
     """Perform comprehensive AI analysis of encounter audio/transcript for violations, bias, and procedural issues"""
     
