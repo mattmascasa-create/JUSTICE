@@ -163,6 +163,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ### Encounter Mode (NEW - AI Real-Time Analysis)
 - `POST /api/encounters/{id}/analyze` - Analyze transcript for violations, bias, procedural issues
 - `GET /api/encounters/{id}/violations` - Get all detected violations for an encounter
+- `POST /api/encounters/{id}/mark-violation` - Mark a moment as violation (voice command or manual)
 
 ### All Other Endpoints
 - Community Vault: `/api/community/*`
