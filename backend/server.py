@@ -4367,7 +4367,7 @@ async def batch_export_evidence(
                 "file_name": file_name,
                 "file_type": ev.get("file_type", "unknown"),
                 "file_size": ev.get("file_size"),
-                "uploaded_at": ev.get("uploaded_at").isoformat() if ev.get("uploaded_at") else None,
+                "uploaded_at": safe_isoformat(ev.get("uploaded_at")),
                 "description": ev.get("description"),
                 "verification": {
                     "file_hash": hash_record.get("file_hash") if hash_record else None,
@@ -4384,7 +4384,7 @@ async def batch_export_evidence(
                 "chain_of_custody": [
                     {
                         "action": c.get("action"),
-                        "timestamp": c.get("timestamp").isoformat() if c.get("timestamp") else None,
+                        "timestamp": safe_isoformat(c.get("timestamp")),
                         "actor_type": c.get("actor_type"),
                         "signature": c.get("signature")
                     }
