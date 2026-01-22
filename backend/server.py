@@ -2844,21 +2844,54 @@ Format as JSON with keys: summary, violations_analysis, legal_citations, recomme
     
     # Create report document
     report_id = f"rpt_{uuid.uuid4().hex[:12]}"
+    
+    # Get video file information
+    video_files = encounter.get("video_files", [])
+    audio_files = encounter.get("media_files", [])
+    has_video = encounter.get("has_video", False)
+    
+    # Calculate total recording size
+    total_size_bytes = 0
+    encounter_dir = ENCOUNTERS_DIR / encounter_id
+    if encounter_dir.exists():
+        for f in encounter_dir.iterdir():
+            if f.is_file():
+                total_size_bytes += f.stat().st_size
+    
     report_doc = {
         "report_id": report_id,
         "encounter_id": encounter_id,
         "user_id": user_id,
         "summary": summary,
         "violations": list(set(all_violations)),
+        "violations_count": len(set(all_violations)),
         "officers": officers,
         "transcript_text": full_transcript,
         "recommendations": recommendations if isinstance(recommendations, list) else [recommendations],
+        "evidence": {
+            "has_video": has_video,
+            "video_chunks": len(video_files),
+            "audio_chunks": len(audio_files),
+            "transcription_segments": len(transcriptions),
+            "total_size_mb": round(total_size_bytes / (1024 * 1024), 2)
+        },
+        "encounter_details": {
+            "encounter_type": encounter.get("encounter_type"),
+            "location": encounter.get("address"),
+            "latitude": encounter.get("latitude"),
+            "longitude": encounter.get("longitude"),
+            "started_at": encounter.get("started_at"),
+            "ended_at": encounter.get("ended_at"),
+            "duration_seconds": encounter.get("duration_seconds", 0),
+            "broadcast_mode": encounter.get("broadcast_mode")
+        },
         "legal_resources": [
             {"name": "ACLU Know Your Rights", "url": "https://www.aclu.org/know-your-rights"},
             {"name": "National Police Accountability Project", "url": "https://www.nlg-npap.org"},
             {"name": "Mapping Police Violence", "url": "https://mappingpoliceviolence.org"}
         ],
         "similar_cases": similar_cases if isinstance(similar_cases, list) else [],
+        "court_admissible": True,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
