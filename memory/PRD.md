@@ -46,7 +46,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - Chain of custody tracking
 - Court-admissible certificates
 
-### Phase 8 (IPFS Integration) ✅ - NEW
+### Phase 8 (IPFS Integration) ✅ - Jan 22, 2026
 - **Decentralized Storage**: Files uploaded to IPFS network
 - **Content Identifiers (CID)**: Permanent, tamper-proof URLs
 - **Dual Storage**: Local + IPFS for redundancy
@@ -54,7 +54,14 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Pinata Integration**: Professional IPFS pinning service
 - **Graceful Degradation**: Works without IPFS, upgrades when configured
 
-### Settings Enhancements ✅ - NEW
+### Phase 9 (Evidence Report) ✅ - Jan 22, 2026
+- **Comprehensive PDF Reports**: Generate downloadable evidence reports
+- **IPFS Verification Links**: Gateway URLs for independent verification
+- **SHA-256 Hash Records**: All cryptographic hashes included
+- **Chain of Custody**: Complete audit trail with signatures
+- **Legal Notice**: Court-ready documentation
+
+### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
 - **IPFS Setup Guide**: Instructions to enable decentralized storage
@@ -82,6 +89,11 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
    ├── Content stored on decentralized network
    ├── CID = cryptographic hash of content
    └── Cannot be deleted or modified by anyone
+
+5. EVIDENCE REPORT (NEW)
+   ├── Generate comprehensive PDF for any case
+   ├── Include all evidence with hashes & IPFS CIDs
+   └── Full chain of custody for court submission
 ```
 
 ### Court Certificate Includes
@@ -92,9 +104,12 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - Legal integrity statement
 - Blockchain block number (simulated)
 
-## Backend APIs (v5.1)
+## Backend APIs (v5.2)
 
-### IPFS Storage (NEW)
+### Evidence Reports (NEW)
+- `GET /api/evidence/report/{case_id}` - Comprehensive evidence report
+
+### IPFS Storage
 - `GET /api/ipfs/status` - IPFS integration status
 
 ### Blockchain Evidence
