@@ -456,6 +456,27 @@ export default function EncounterPage() {
     }
   }, [isRecording, isPaused]);
 
+  // Listen for guidance messages and viewer count from WebSocket
+  useEffect(() => {
+    if (!encounter || notifications.length === 0) return;
+    
+    const latestNotifications = notifications.filter(n => 
+      n.encounter_id === encounter.encounter_id
+    );
+    
+    for (const notif of latestNotifications) {
+      if (notif.type === 'guidance_message') {
+        setGuidanceMessages(prev => {
+          // Avoid duplicates
+          if (prev.some(m => m.message_id === notif.message_id)) return prev;
+          return [...prev, notif];
+        });
+      } else if (notif.type === 'viewer_joined' || notif.type === 'viewer_left') {
+        setViewerCount(notif.viewer_count || 0);
+      }
+    }
+  }, [notifications, encounter]);
+
   const formatDuration = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
