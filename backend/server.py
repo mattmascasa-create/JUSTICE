@@ -2694,39 +2694,251 @@ async def analyze_transcription_for_violations(text: str, encounter_id: str) -> 
                 violations.append(violation_type)
                 break
     
-    # AI-powered deep analysis if LLM service available
-    if EMERGENT_LLM_KEY and len(text) > 50:
-        try:
-            llm = create_llm_chat(f"violation_analysis_{encounter_id}", "You are a civil rights legal expert analyzing police encounters for violations.")
-            analysis_prompt = f"""Analyze this police encounter transcript for potential civil rights violations.
-            
-Transcript: "{text}"
-
-Identify any of these violations if present:
-- 4th Amendment (unlawful search/seizure)
-- 5th Amendment (self-incrimination, Miranda)
-- 6th Amendment (right to counsel)
-- 8th Amendment (excessive force)
-- 14th Amendment (equal protection)
-- Racial profiling
-- Intimidation/coercion
-- Unlawful detention
-
-Return ONLY a JSON array of violation types found, or empty array if none.
-Example: ["4th_amendment_violation", "intimidation"]"""
-
-            response = await llm.chat(analysis_prompt)
-            if response:
-                try:
-                    ai_violations = json.loads(response)
-                    if isinstance(ai_violations, list):
-                        violations.extend(ai_violations)
-                except:
-                    pass
-        except Exception as e:
-            logger.error(f"AI violation analysis error: {e}")
-    
     return list(set(violations))  # Remove duplicates
+
+async def perform_deep_ai_analysis(text: str, encounter_id: str, analysis_type: str = "full") -> dict:
+    """Perform comprehensive AI analysis of encounter audio/transcript for violations, bias, and procedural issues"""
+    
+    if not EMERGENT_LLM_KEY or len(text) < 30:
+        return {"violations": [], "bias_indicators": [], "procedural_issues": [], "risk_level": "low"}
+    
+    try:
+        llm = create_llm_chat(f"deep_analysis_{encounter_id}", """You are an expert civil rights attorney and former law enforcement trainer specializing in police misconduct cases. 
+Your role is to analyze police encounter transcripts in real-time to identify:
+1. Constitutional violations (4th, 5th, 6th, 8th, 14th Amendments)
+2. Officer bias or discriminatory language
+3. Procedural violations and improper police conduct
+4. Statements that could be used as evidence in court
+5. Intimidation tactics and coercion
+
+Be thorough but only flag genuine concerns - not routine police procedures.""")
+        
+        analysis_prompt = f"""URGENT: Analyze this real-time police encounter transcript for civil rights violations and abuse of power.
+
+TRANSCRIPT:
+"{text}"
+
+Perform a comprehensive analysis and return a JSON object with EXACTLY this structure:
+{{
+    "violations": [
+        {{
+            "type": "violation_type",
+            "severity": "critical/high/medium/low",
+            "amendment": "4th/5th/6th/8th/14th or null",
+            "description": "Brief description of the violation",
+            "quote": "Exact quote from transcript that shows violation",
+            "legal_citation": "Relevant case law or statute",
+            "defense_strategy": "How this helps the defendant's case"
+        }}
+    ],
+    "bias_indicators": [
+        {{
+            "type": "racial/gender/age/socioeconomic",
+            "evidence": "Quote or behavior indicating bias",
+            "severity": "high/medium/low"
+        }}
+    ],
+    "procedural_issues": [
+        {{
+            "issue": "Description of procedural problem",
+            "proper_procedure": "What should have been done",
+            "impact": "How this affects the case"
+        }}
+    ],
+    "tone_analysis": {{
+        "officer_tone": "aggressive/intimidating/neutral/professional",
+        "escalation_detected": true/false,
+        "power_abuse_indicators": ["list of concerning behaviors"]
+    }},
+    "evidence_value": {{
+        "strong_evidence_quotes": ["Quotes that would help in court"],
+        "case_strength": "strong/moderate/weak",
+        "recommended_actions": ["What the person should do"]
+    }},
+    "risk_level": "critical/high/medium/low",
+    "immediate_alert": "Message to show user if urgent" or null
+}}
+
+IMPORTANT: Only include actual violations found. Return empty arrays if nothing detected.
+Focus on things that would actually help win a case in court."""
+
+        response = await llm.chat(analysis_prompt)
+        
+        if response:
+            # Clean up the response - remove markdown code blocks if present
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("```")[1]
+                if cleaned.startswith("json"):
+                    cleaned = cleaned[4:]
+            cleaned = cleaned.strip()
+            
+            try:
+                analysis = json.loads(cleaned)
+                return analysis
+            except json.JSONDecodeError:
+                logger.warning(f"Failed to parse AI analysis response: {response[:200]}")
+                return {"violations": [], "bias_indicators": [], "procedural_issues": [], "risk_level": "low"}
+    except Exception as e:
+        logger.error(f"Deep AI analysis error: {e}")
+    
+    return {"violations": [], "bias_indicators": [], "procedural_issues": [], "risk_level": "low"}
+
+# Civil Rights Knowledge Base
+CIVIL_RIGHTS_DATABASE = {
+    "4th_amendment": {
+        "name": "Fourth Amendment - Search & Seizure",
+        "text": "The right of the people to be secure in their persons, houses, papers, and effects, against unreasonable searches and seizures, shall not be violated.",
+        "key_cases": [
+            {"case": "Terry v. Ohio (1968)", "holding": "Officers may briefly detain and pat down for weapons with reasonable suspicion"},
+            {"case": "Mapp v. Ohio (1961)", "holding": "Evidence obtained through illegal search is inadmissible"},
+            {"case": "Arizona v. Gant (2009)", "holding": "Vehicle search limited after arrest unless safety/evidence concerns"},
+            {"case": "Rodriguez v. United States (2015)", "holding": "Traffic stop cannot be extended for drug dog without reasonable suspicion"}
+        ],
+        "your_rights": [
+            "You can refuse consent to search",
+            "Ask: 'Am I free to go?'",
+            "Say: 'I do not consent to searches'",
+            "Officer needs warrant, consent, or probable cause"
+        ]
+    },
+    "5th_amendment": {
+        "name": "Fifth Amendment - Self-Incrimination",
+        "text": "No person shall be compelled in any criminal case to be a witness against himself.",
+        "key_cases": [
+            {"case": "Miranda v. Arizona (1966)", "holding": "Must be informed of rights before custodial interrogation"},
+            {"case": "Berghuis v. Thompkins (2010)", "holding": "Must explicitly invoke right to remain silent"}
+        ],
+        "your_rights": [
+            "You have the right to remain silent",
+            "Say: 'I invoke my right to remain silent'",
+            "You don't have to answer questions",
+            "Silence cannot be used against you if invoked"
+        ]
+    },
+    "6th_amendment": {
+        "name": "Sixth Amendment - Right to Counsel",
+        "text": "In all criminal prosecutions, the accused shall have the Assistance of Counsel for his defence.",
+        "key_cases": [
+            {"case": "Gideon v. Wainwright (1963)", "holding": "Right to attorney in criminal cases"},
+            {"case": "Edwards v. Arizona (1981)", "holding": "Once counsel requested, interrogation must stop"}
+        ],
+        "your_rights": [
+            "Say: 'I want to speak to a lawyer'",
+            "All questioning must stop once you request counsel",
+            "Don't answer questions without lawyer present"
+        ]
+    },
+    "14th_amendment": {
+        "name": "Fourteenth Amendment - Equal Protection",
+        "text": "No State shall deny to any person within its jurisdiction the equal protection of the laws.",
+        "key_cases": [
+            {"case": "Whren v. United States (1996)", "holding": "Pretextual stops allowed but racial profiling still unconstitutional"},
+            {"case": "Floyd v. City of New York (2013)", "holding": "Stop-and-frisk violated equal protection when racially targeted"}
+        ],
+        "your_rights": [
+            "You cannot be stopped based on race/ethnicity",
+            "Document any discriminatory statements",
+            "Ask for badge number and reason for stop"
+        ]
+    }
+}
+
+@api_router.post("/encounters/{encounter_id}/analyze")
+async def analyze_encounter_realtime(
+    encounter_id: str,
+    text: str = Form(...),
+    analysis_type: str = Form("full"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Perform real-time AI analysis of encounter transcript"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Perform deep AI analysis
+    analysis = await perform_deep_ai_analysis(text, encounter_id, analysis_type)
+    
+    # Store analysis result
+    analysis_record = {
+        "analysis_id": f"ana_{uuid.uuid4().hex[:12]}",
+        "encounter_id": encounter_id,
+        "timestamp": datetime.now(timezone.utc),
+        "text_analyzed": text,
+        "analysis": analysis,
+        "risk_level": analysis.get("risk_level", "low")
+    }
+    await db.encounter_analyses.insert_one(analysis_record)
+    
+    # If critical violations found, update encounter status
+    if analysis.get("risk_level") == "critical":
+        await db.encounters.update_one(
+            {"encounter_id": encounter_id},
+            {"$set": {"critical_violation_detected": True}}
+        )
+    
+    # Add relevant legal context
+    legal_context = []
+    for violation in analysis.get("violations", []):
+        amendment = violation.get("amendment")
+        if amendment and amendment.lower().replace(" ", "_") in CIVIL_RIGHTS_DATABASE:
+            legal_context.append(CIVIL_RIGHTS_DATABASE[amendment.lower().replace(" ", "_")])
+    
+    return {
+        "analysis": analysis,
+        "legal_context": legal_context,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/encounters/{encounter_id}/violations")
+async def get_encounter_violations(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all detected violations for an encounter"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Get all analyses
+    analyses = await db.encounter_analyses.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("timestamp", 1).to_list(length=100)
+    
+    # Aggregate violations
+    all_violations = []
+    all_bias_indicators = []
+    all_procedural_issues = []
+    highest_risk = "low"
+    risk_order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+    
+    for ana in analyses:
+        analysis = ana.get("analysis", {})
+        all_violations.extend(analysis.get("violations", []))
+        all_bias_indicators.extend(analysis.get("bias_indicators", []))
+        all_procedural_issues.extend(analysis.get("procedural_issues", []))
+        
+        risk = analysis.get("risk_level", "low")
+        if risk_order.get(risk, 0) > risk_order.get(highest_risk, 0):
+            highest_risk = risk
+    
+    return {
+        "encounter_id": encounter_id,
+        "total_analyses": len(analyses),
+        "violations": all_violations,
+        "violations_count": len(all_violations),
+        "bias_indicators": all_bias_indicators,
+        "procedural_issues": all_procedural_issues,
+        "overall_risk_level": highest_risk,
+        "civil_rights_reference": CIVIL_RIGHTS_DATABASE
+    }
 
 @api_router.post("/encounters/{encounter_id}/end")
 async def end_encounter(
