@@ -131,6 +131,21 @@ export default function SharedEncounterView() {
             case 'viewer_count':
               setViewerCount(data.count);
               break;
+            case 'video_chunk':
+              // New video chunk available
+              setVideoChunks(prev => {
+                if (prev.some(c => c.index === data.chunk_index)) return prev;
+                return [...prev, {
+                  index: data.chunk_index,
+                  filename: data.filename,
+                  timestamp: data.timestamp
+                }].sort((a, b) => a.index - b.index);
+              });
+              // Auto-play latest chunk if in live mode
+              if (isLive) {
+                setCurrentChunkIndex(data.chunk_index);
+              }
+              break;
             default:
               console.log('Unknown message type:', data.type);
           }
