@@ -215,6 +215,14 @@ export default function EncounterPage() {
               toast.success('📍 Violation marked at ' + formatDuration(duration));
               // Also add to violations list
               setViolations(prev => [...prev, `Manual mark at ${formatDuration(duration)}`]);
+              // Persist to backend
+              if (encounter) {
+                try {
+                  await encounterAPI.markViolation(encounter.encounter_id, duration, 'Voice command: violation marked');
+                } catch (err) {
+                  console.log('Could not persist mark:', err);
+                }
+              }
               break;
               
             case 'CALL_ATTORNEY':
