@@ -261,6 +261,31 @@ export default function VideoCallPage() {
         toast.info('Recording stopped');
         setIsRecording(false);
         break;
+
+      case 'live-transcript':
+        // Received live transcript segment from other party
+        if (message.segment) {
+          setLiveTranscript(prev => [...prev, message.segment]);
+        }
+        break;
+
+      case 'live-note':
+        // Received live note from other party
+        if (message.note) {
+          setLiveNotes(prev => [...prev, message.note]);
+          toast.info(`Note added by ${message.note.user_name}`);
+        }
+        break;
+
+      case 'transcription-started':
+        toast.info('Live transcription started');
+        setIsTranscribing(true);
+        break;
+
+      case 'transcription-stopped':
+        toast.info('Live transcription stopped');
+        setIsTranscribing(false);
+        break;
     }
   };
 
