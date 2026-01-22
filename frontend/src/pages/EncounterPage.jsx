@@ -708,9 +708,15 @@ export default function EncounterPage() {
             <Phone className="h-5 w-5 mb-1" />
             <span className="text-xs">Call Lawyer</span>
           </Button>
-          <Button variant="outline" size="sm" className="flex-col h-auto py-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-col h-auto py-3"
+            onClick={shareStreamLink}
+            data-testid="share-live-btn"
+          >
             <Share2 className="h-5 w-5 mb-1" />
-            <span className="text-xs">Share Location</span>
+            <span className="text-xs">Share Live</span>
           </Button>
           <Button variant="outline" size="sm" className="flex-col h-auto py-3">
             <Eye className="h-5 w-5 mb-1" />
