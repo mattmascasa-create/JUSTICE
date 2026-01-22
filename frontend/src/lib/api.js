@@ -417,6 +417,26 @@ export const callsAPI = {
   transcribeRecording: (recordingId) => api.post(`/calls/${recordingId}/transcribe`, null, { timeout: 300000 }), // 5 min timeout
   getTranscript: (recordingId) => api.get(`/calls/${recordingId}/transcript`),
   searchTranscripts: (query, limit = 20) => api.get('/calls/transcripts/search', { params: { query, limit } }),
+  
+  // Live Transcription
+  sendAudioChunk: (callId, audioBlob, chunkIndex) => {
+    const formData = new FormData();
+    formData.append('audio_chunk', audioBlob, 'chunk.webm');
+    formData.append('chunk_index', chunkIndex);
+    return api.post(`/calls/${callId}/live-transcribe`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000
+    });
+  },
+  getLiveTranscript: (callId) => api.get(`/calls/${callId}/live-transcript`),
+  addLiveNote: (callId, content, timestamp, noteType = 'general') => {
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('timestamp', timestamp);
+    formData.append('note_type', noteType);
+    return api.post(`/calls/${callId}/live-note`, formData);
+  },
+  saveLiveTranscript: (callId) => api.post(`/calls/${callId}/save-live-transcript`),
 };
 
 // Policy Impact Dashboard API
