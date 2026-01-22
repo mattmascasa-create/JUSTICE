@@ -207,11 +207,14 @@ export default function EvidencePage() {
                         <SelectValue placeholder="Select a case" />
                       </SelectTrigger>
                       <SelectContent>
-                        {cases.filter(c => evidence.some(e => e.case_id === c.case_id)).map((c) => (
-                          <SelectItem key={c.case_id} value={c.case_id}>
-                            {c.title} ({evidence.filter(e => e.case_id === c.case_id).length} files)
-                          </SelectItem>
-                        ))}
+                        {cases.map((c) => {
+                          const evidenceCount = evidence.filter(e => e.case_id === c.case_id).length;
+                          return (
+                            <SelectItem key={c.case_id} value={c.case_id}>
+                              {c.title} {evidenceCount > 0 ? `(${evidenceCount} files)` : ''}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
