@@ -70,6 +70,16 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Speaker badges with emojis (👮/🙋) and confidence %
   - Speaker legend/key in transcription panel
   - Labeled text output ("Officer: ...", "Citizen: ...")
+- **Emotion/Tone Detection** ✅ (Jan 22, 2026):
+  - AI-powered tone analysis for aggressive, intimidating, hostile behavior
+  - 9 tone categories: professional, assertive, aggressive, intimidating, hostile, calm, anxious, defensive, compliant
+  - 4 severity levels: normal, elevated, concerning, critical
+  - Emotion indicators with evidence quotes and severity ratings
+  - Officer demeanor analysis: professionalism, aggression_level (0-100%), intimidation_level, conduct concerns
+  - Citizen demeanor analysis: compliance_level, stress_level, asserting_rights
+  - Escalation detection with direction tracking (escalating/de-escalating/stable)
+  - Real-time WebSocket alerts for concerning/critical tones
+  - Visual aggression progress bars and animated alerts
 
 ### Phase 5 (AI Legal Analyst) ✅
 - Document Analysis (police reports, body cam, discovery)
