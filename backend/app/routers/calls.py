@@ -809,39 +809,58 @@ async def transcribe_recording(
                 response_format="verbose_json"
             )
             
-            # Extract transcript text and segments
+            # Extract transcript text and segments with timestamps
             if isinstance(transcript_result, dict):
                 transcript_text = transcript_result.get("text", "")
-                segments = transcript_result.get("segments", [])
+                whisper_segments = transcript_result.get("segments", [])
             else:
                 transcript_text = str(transcript_result)
-                segments = []
+                whisper_segments = []
             
-            # Use GPT to identify speakers and format transcript
+            # Use GPT to identify speakers and format transcript with timestamps
             speaker_transcript = None
             speaker_segments = []
             
-            if transcript_text and len(transcript_text) > 50:
+            if transcript_text and len(transcript_text) > 50 and whisper_segments:
                 try:
-                    # Ask GPT to identify speakers and format
-                    diarization_prompt = f"""You are analyzing a transcript of a video call between two people:
+                    # Build segment info with timestamps for GPT
+                    segments_with_time = []
+                    for seg in whisper_segments:
+                        start = seg.get("start", 0)
+                        end = seg.get("end", 0)
+                        text = seg.get("text", "").strip()
+                        if text:
+                            segments_with_time.append({
+                                "start": start,
+                                "end": end,
+                                "text": text
+                            })
+                    
+                    # Create a simpler prompt that preserves timestamps
+                    segments_text = "\n".join([
+                        f"[{s['start']:.1f}s - {s['end']:.1f}s]: {s['text']}" 
+                        for s in segments_with_time
+                    ])
+                    
+                    diarization_prompt = f"""Analyze this transcript of a video call between:
 - {speaker1_label}
 - {speaker2_label}
 
-This is a legal consultation. Please identify who is speaking for each part of the conversation and format it with speaker labels.
+For each segment, identify the speaker (ATTORNEY or CLIENT) based on context:
+- Attorneys: ask legal questions, give advice, explain procedures
+- Clients: describe situations, ask for help, provide personal details
 
-Rules:
-1. Label each speaker turn with their role (Attorney or Client)
-2. Use the format "**Attorney ({caller_name if caller_role == 'attorney' else recipient_name}):** [text]" 
-3. Use the format "**Client ({recipient_name if caller_role == 'attorney' else caller_name}):** [text]"
-4. Identify speakers by context (attorneys ask legal questions, give advice; clients describe situations, ask for help)
-5. Start new speaker labels when the speaker changes
-6. If unclear, make your best guess based on the conversation flow
+Input segments with timestamps:
+{segments_text[:6000]}
 
-Original transcript:
-{transcript_text[:8000]}
+Output format - for EACH segment output exactly:
+SPEAKER|start_time|end_time|text
 
-Please output the speaker-labeled transcript:"""
+Example:
+ATTORNEY|0.0|5.2|How can I help you today?
+CLIENT|5.5|12.3|I was pulled over last week and...
+
+Now process all segments:"""
                     
                     gpt_response = await chat(
                         api_key=api_key,
@@ -850,53 +869,58 @@ Please output the speaker-labeled transcript:"""
                     )
                     
                     if gpt_response:
-                        speaker_transcript = gpt_response
-                        
-                        # Parse into segments with speaker info
-                        lines = speaker_transcript.split('\n')
-                        current_speaker = None
-                        current_text = []
-                        
+                        # Parse GPT response into timestamped segments
+                        lines = gpt_response.strip().split('\n')
                         for line in lines:
                             line = line.strip()
-                            if not line:
-                                continue
-                            
-                            # Check for speaker labels
-                            if line.startswith("**Attorney"):
-                                if current_speaker and current_text:
-                                    speaker_segments.append({
-                                        "speaker": current_speaker,
-                                        "text": ' '.join(current_text)
-                                    })
-                                current_speaker = "attorney"
-                                # Extract text after the label
-                                if ":**" in line:
-                                    text = line.split(":**", 1)[1].strip()
-                                    current_text = [text] if text else []
-                                else:
-                                    current_text = []
-                            elif line.startswith("**Client"):
-                                if current_speaker and current_text:
-                                    speaker_segments.append({
-                                        "speaker": current_speaker,
-                                        "text": ' '.join(current_text)
-                                    })
-                                current_speaker = "client"
-                                if ":**" in line:
-                                    text = line.split(":**", 1)[1].strip()
-                                    current_text = [text] if text else []
-                                else:
-                                    current_text = []
-                            elif current_speaker:
-                                current_text.append(line)
+                            if '|' in line:
+                                parts = line.split('|', 3)
+                                if len(parts) >= 4:
+                                    speaker_type = parts[0].strip().lower()
+                                    try:
+                                        start_time = float(parts[1].strip())
+                                        end_time = float(parts[2].strip())
+                                        text = parts[3].strip()
+                                        
+                                        if speaker_type in ['attorney', 'client'] and text:
+                                            speaker_segments.append({
+                                                "speaker": speaker_type,
+                                                "start": start_time,
+                                                "end": end_time,
+                                                "text": text
+                                            })
+                                    except (ValueError, IndexError):
+                                        continue
                         
-                        # Don't forget last segment
-                        if current_speaker and current_text:
-                            speaker_segments.append({
-                                "speaker": current_speaker,
-                                "text": ' '.join(current_text)
-                            })
+                        # Build formatted speaker transcript
+                        formatted_lines = []
+                        for seg in speaker_segments:
+                            speaker_name = transcript.speaker_labels.get(seg["speaker"], seg["speaker"].title()) if hasattr(transcript, 'speaker_labels') else seg["speaker"].title()
+                            mins = int(seg["start"] // 60)
+                            secs = int(seg["start"] % 60)
+                            formatted_lines.append(f"[{mins}:{secs:02d}] **{seg['speaker'].title()}:** {seg['text']}")
+                        
+                        speaker_transcript = "\n\n".join(formatted_lines)
+                        
+                except Exception as e:
+                    logger.warning(f"Speaker identification with timestamps failed: {e}")
+                    # Fall back to segments without speaker ID but with timestamps
+                    for seg in whisper_segments:
+                        speaker_segments.append({
+                            "speaker": "unknown",
+                            "start": seg.get("start", 0),
+                            "end": seg.get("end", 0),
+                            "text": seg.get("text", "").strip()
+                        })
+            elif whisper_segments:
+                # No GPT processing, just use Whisper segments with timestamps
+                for seg in whisper_segments:
+                    speaker_segments.append({
+                        "speaker": "unknown",
+                        "start": seg.get("start", 0),
+                        "end": seg.get("end", 0),
+                        "text": seg.get("text", "").strip()
+                    })
                             
                 except Exception as e:
                     logger.warning(f"Speaker identification failed: {e}")
