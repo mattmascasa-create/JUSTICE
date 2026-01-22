@@ -277,6 +277,7 @@ export default function SharedEncounterView() {
   // Initial load and WebSocket connection
   useEffect(() => {
     fetchEncounter();
+    fetchVideoChunks();
     connectWebSocket();
     
     // Polling fallback for updates
@@ -312,12 +313,16 @@ export default function SharedEncounterView() {
       }
     }, 5000);
     
+    // Poll for video chunks
+    const videoInterval = setInterval(fetchVideoChunks, 10000);
+    
     return () => {
       clearInterval(pollInterval);
+      clearInterval(videoInterval);
       clearTimeout(reconnectTimeoutRef.current);
       wsRef.current?.close();
     };
-  }, [fetchEncounter, connectWebSocket, connected, encounterId, token]);
+  }, [fetchEncounter, fetchVideoChunks, connectWebSocket, connected, encounterId, token]);
 
   // Format duration
   const formatDuration = (seconds) => {
