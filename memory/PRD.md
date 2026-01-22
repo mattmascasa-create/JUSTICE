@@ -289,6 +289,13 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Sort by newest/oldest
   - Built-in video player with controls (play/pause, seek, skip, volume, fullscreen)
   - Direct download option
+- **AI Transcription**: OpenAI Whisper-powered speech-to-text for recordings
+  - One-click transcription from recording player
+  - Transcript tab in video player dialog
+  - Copy transcript to clipboard
+  - Transcript search across all recordings
+  - Search results with context excerpts
+  - "Transcribed" badge on transcribed recordings
 - **Version**: 5.10.0
 
 ### Settings Enhancements ✅
