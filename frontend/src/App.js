@@ -87,6 +87,7 @@ function AppRouter() {
       <Route path="/incident-map" element={<IncidentMapPage />} />
       <Route path="/live/:encounterId" element={<LiveStreamPage />} />
       <Route path="/shared/:encounterId" element={<SharedEncounterView />} />
+      <Route path="/attorney/accept-invite" element={<AttorneyAcceptInvitePage />} />
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
