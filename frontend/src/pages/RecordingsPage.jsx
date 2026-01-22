@@ -890,6 +890,139 @@ export default function RecordingsPage() {
                   )}
                 </div>
               </TabsContent>
+
+              {/* AI Summary Tab */}
+              <TabsContent value="summary" className="m-0 bg-gray-900">
+                <div className="p-4 min-h-[400px] max-h-[60vh] overflow-auto" data-testid="summary-content">
+                  {summary?.has_summary ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-purple-400">
+                          <Sparkles className="h-4 w-4" />
+                          <span className="text-sm">AI Summary generated {summary.summarized_at ? formatDate(summary.summarized_at) : ''}</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-white border-white/30 hover:bg-white/10"
+                          onClick={() => {
+                            navigator.clipboard.writeText(summary.summary.replace(/\*\*/g, ''));
+                            toast.success('Summary copied to clipboard');
+                          }}
+                        >
+                          <Copy className="h-4 w-4 mr-1" />
+                          Copy
+                        </Button>
+                      </div>
+                      
+                      <ScrollArea className="h-[400px]">
+                        <div className="space-y-4 text-white/90">
+                          {/* Parse and render markdown-style summary */}
+                          {summary.summary.split('\n').map((line, index) => {
+                            // Section headers
+                            if (line.startsWith('**') && line.endsWith('**')) {
+                              const sectionName = line.replace(/\*\*/g, '').toUpperCase();
+                              const getIcon = () => {
+                                if (sectionName.includes('ACTION')) return <ListChecks className="h-5 w-5 text-green-400" />;
+                                if (sectionName.includes('LEGAL') || sectionName.includes('CONCERN')) return <AlertTriangle className="h-5 w-5 text-red-400" />;
+                                if (sectionName.includes('RECOMMEND')) return <Lightbulb className="h-5 w-5 text-yellow-400" />;
+                                if (sectionName.includes('KEY')) return <FileText className="h-5 w-5 text-blue-400" />;
+                                return <Sparkles className="h-5 w-5 text-purple-400" />;
+                              };
+                              return (
+                                <div key={index} className="flex items-center gap-2 mt-4 mb-2 border-b border-white/10 pb-2">
+                                  {getIcon()}
+                                  <h3 className="font-semibold text-lg">{line.replace(/\*\*/g, '')}</h3>
+                                </div>
+                              );
+                            }
+                            // Numbered sections (like "1. **OVERVIEW**")
+                            if (line.match(/^\d+\.\s*\*\*/)) {
+                              const cleanLine = line.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '');
+                              const sectionName = cleanLine.toUpperCase();
+                              const getIcon = () => {
+                                if (sectionName.includes('ACTION')) return <ListChecks className="h-5 w-5 text-green-400" />;
+                                if (sectionName.includes('LEGAL') || sectionName.includes('CONCERN')) return <AlertTriangle className="h-5 w-5 text-red-400" />;
+                                if (sectionName.includes('RECOMMEND')) return <Lightbulb className="h-5 w-5 text-yellow-400" />;
+                                if (sectionName.includes('KEY')) return <FileText className="h-5 w-5 text-blue-400" />;
+                                if (sectionName.includes('OVERVIEW')) return <Sparkles className="h-5 w-5 text-purple-400" />;
+                                return <FileText className="h-5 w-5 text-gray-400" />;
+                              };
+                              return (
+                                <div key={index} className="flex items-center gap-2 mt-4 mb-2 border-b border-white/10 pb-2">
+                                  {getIcon()}
+                                  <h3 className="font-semibold text-lg">{cleanLine}</h3>
+                                </div>
+                              );
+                            }
+                            // Bullet points
+                            if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+                              return (
+                                <div key={index} className="flex items-start gap-2 ml-4 py-1">
+                                  <span className="text-purple-400 mt-1">•</span>
+                                  <span>{line.replace(/^[-•]\s*/, '').replace(/\*\*/g, '')}</span>
+                                </div>
+                              );
+                            }
+                            // Empty lines
+                            if (!line.trim()) {
+                              return <div key={index} className="h-2" />;
+                            }
+                            // Regular text
+                            return (
+                              <p key={index} className="ml-2">
+                                {line.replace(/\*\*/g, '')}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  ) : !transcript?.has_transcript ? (
+                    <div className="flex flex-col items-center justify-center h-full text-white/70">
+                      <FileText className="h-12 w-12 mb-4 opacity-50" />
+                      <p className="mb-2">Transcript required</p>
+                      <p className="text-sm text-white/50 mb-4">Please transcribe the recording first</p>
+                      <Button
+                        onClick={() => {
+                          setActiveTab('transcript');
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Go to Transcript
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-white/70">
+                      <Sparkles className="h-12 w-12 mb-4 opacity-50" />
+                      <p className="mb-4">No AI summary yet</p>
+                      <Button
+                        onClick={handleGenerateSummary}
+                        disabled={summarizing}
+                        className="bg-purple-600 hover:bg-purple-700"
+                        data-testid="generate-summary-btn"
+                      >
+                        {summarizing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating Summary...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Generate AI Summary
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-sm mt-2 text-white/50 text-center max-w-md">
+                        AI analyzes the call transcript to extract key points,<br/>
+                        action items, and legal considerations
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
             </Tabs>
           </DialogContent>
         </Dialog>
