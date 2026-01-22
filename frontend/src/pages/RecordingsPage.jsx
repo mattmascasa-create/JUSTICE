@@ -6,6 +6,8 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { callsAPI } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -13,7 +15,8 @@ import {
   Video, Download, Play, Pause, Search,
   Clock, Calendar, User, Users, FileVideo,
   Filter, SortAsc, SortDesc, X, Volume2,
-  VolumeX, Maximize2, SkipBack, SkipForward
+  VolumeX, Maximize2, SkipBack, SkipForward,
+  FileText, Loader2, Copy, CheckCircle
 } from 'lucide-react';
 
 export default function RecordingsPage() {
@@ -25,6 +28,11 @@ export default function RecordingsPage() {
   const [sortOrder, setSortOrder] = useState('newest');
   const [filterStatus, setFilterStatus] = useState('all');
   
+  // Transcript search
+  const [transcriptSearchQuery, setTranscriptSearchQuery] = useState('');
+  const [transcriptSearchResults, setTranscriptSearchResults] = useState([]);
+  const [searchingTranscripts, setSearchingTranscripts] = useState(false);
+  
   // Video player state
   const [selectedRecording, setSelectedRecording] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,6 +40,12 @@ export default function RecordingsPage() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [activeTab, setActiveTab] = useState('video');
+  
+  // Transcript state
+  const [transcript, setTranscript] = useState(null);
+  const [transcribing, setTranscribing] = useState({});
+  
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -41,6 +55,15 @@ export default function RecordingsPage() {
   useEffect(() => {
     filterAndSortRecordings();
   }, [recordings, searchQuery, sortOrder, filterStatus]);
+
+  // Fetch transcript when recording is selected
+  useEffect(() => {
+    if (selectedRecording) {
+      fetchTranscript(selectedRecording.recording_id);
+    } else {
+      setTranscript(null);
+    }
+  }, [selectedRecording]);
 
   const fetchRecordings = async () => {
     try {
