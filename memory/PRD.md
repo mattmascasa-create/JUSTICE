@@ -207,6 +207,18 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **WebSocket + HTTP Polling**: Real-time updates via WebSocket with HTTP polling fallback
 - **Version**: 5.3.0
 
+### Phase 12 (Video Streaming for Shared Views) ✅ - Jan 22, 2026
+- **Live Video Feed**: Viewers can watch the live video stream from the user's camera
+- **Chunked Streaming**: 15-second video chunks for efficient delivery (~5-10 sec latency)
+- **Video Scrubbing**: Timeline slider allows viewers to replay past video chunks
+- **Playback Controls**: Play/pause, skip forward/back, fullscreen buttons
+- **Go Live Button**: One-click return to live feed when scrubbing
+- **Chunk Navigation**: Click on timeline markers to jump to specific chunks
+- **LIVE Badge**: Visual indicator when viewing latest chunk
+- **Graceful Fallback**: "Waiting for video" placeholder when no video available
+- **Security**: Video chunks only accessible with valid share token
+- **Version**: 5.4.0
+
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
