@@ -373,6 +373,21 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - `GET /api/attorney/my-attorneys` - Client gets their attorneys
 - `DELETE /api/attorney/access/{encounter_id}` - Revoke attorney access
 
+### Video Call API (NEW - v5.9.0)
+- `POST /api/calls/initiate` - Start a video/audio call
+- `POST /api/calls/{call_id}/answer` - Answer incoming call
+- `POST /api/calls/{call_id}/reject` - Reject incoming call
+- `POST /api/calls/{call_id}/end` - End active call
+- `GET /api/calls/active` - Get user's current active call
+- `GET /api/calls/incoming` - Get incoming calls
+- `GET /api/calls/history` - Get call history
+- `WS /api/calls/signal/{call_id}` - WebSocket for WebRTC signaling
+
+### Backup API (NEW - v5.9.0)
+- `GET /api/backup/status` - Get S3 backup status
+- `POST /api/backup/trigger` - Trigger manual backup
+- `GET /api/backup/history` - Get backup history
+
 ## Configuration
 
 ### Environment Variables (backend/.env)
