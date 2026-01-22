@@ -177,7 +177,16 @@ export const encounterAPI = {
     if (officerInfo.badge) formData.append('badge_number', officerInfo.badge);
     if (officerInfo.department) formData.append('department', officerInfo.department);
     return api.post(`/encounters/${encounterId}/officer`, formData);
-  }
+  },
+  // Real-time sharing
+  createShare: (encounterId, autoNotify = false) => 
+    api.post(`/encounters/${encounterId}/share?auto_notify=${autoNotify}`),
+  revokeShare: (encounterId) => 
+    api.delete(`/encounters/${encounterId}/share`),
+  getShared: (encounterId, token) => 
+    api.get(`/encounters/shared/${encounterId}?token=${token}`),
+  sendGuidance: (encounterId, token, message, senderName) =>
+    api.post(`/encounters/shared/${encounterId}/message?token=${token}&message=${encodeURIComponent(message)}&sender_name=${encodeURIComponent(senderName)}`)
 };
 
 // Helper to get the API URL for direct media access
