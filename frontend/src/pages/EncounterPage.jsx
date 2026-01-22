@@ -703,7 +703,154 @@ export default function EncounterPage() {
           </AlertDescription>
         </Alert>
 
-        {/* Violations Alert */}
+        {/* AI Risk Level Indicator */}
+        <Card className={`border-2 ${
+          riskLevel === 'critical' ? 'border-red-500 bg-red-500/10' :
+          riskLevel === 'high' ? 'border-orange-500 bg-orange-500/10' :
+          riskLevel === 'medium' ? 'border-yellow-500 bg-yellow-500/10' :
+          'border-green-500/30 bg-green-500/5'
+        }`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${riskLevelColors[riskLevel]}`}>
+                  <Scale className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold">AI Rights Monitor</p>
+                  <p className="text-sm text-muted-foreground">
+                    {detectedViolations.length > 0 
+                      ? `${detectedViolations.length} potential violation(s) detected`
+                      : 'Monitoring for violations...'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={riskLevelColors[riskLevel]}>
+                  {riskLevelLabels[riskLevel]}
+                </Badge>
+                {detectedViolations.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowViolationsPanel(!showViolationsPanel)}
+                  >
+                    {showViolationsPanel ? 'Hide' : 'View'} Details
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Immediate Alert */}
+        {immediateAlert && (
+          <Alert className="border-red-500 bg-red-500/20 animate-pulse">
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <AlertDescription className="text-red-100 font-bold">
+              {immediateAlert}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Detailed Violations Panel */}
+        {showViolationsPanel && detectedViolations.length > 0 && (
+          <Card className="border-red-500/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2 text-red-500">
+                <AlertTriangle className="h-5 w-5" />
+                Detected Violations & Evidence
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {detectedViolations.map((violation, index) => (
+                <div key={index} className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Badge variant={violation.severity === 'critical' ? 'destructive' : 'secondary'}>
+                      {violation.severity?.toUpperCase() || 'ALERT'}
+                    </Badge>
+                    {violation.amendment && (
+                      <Badge variant="outline">{violation.amendment} Amendment</Badge>
+                    )}
+                  </div>
+                  <p className="font-medium">{violation.type?.replace(/_/g, ' ').toUpperCase()}</p>
+                  <p className="text-sm text-muted-foreground">{violation.description}</p>
+                  {violation.quote && (
+                    <div className="p-2 rounded bg-black/20 border-l-2 border-red-500">
+                      <p className="text-sm italic">"{violation.quote}"</p>
+                    </div>
+                  )}
+                  {violation.legal_citation && (
+                    <p className="text-xs text-muted-foreground">
+                      <Scale className="h-3 w-3 inline mr-1" />
+                      {violation.legal_citation}
+                    </p>
+                  )}
+                  {violation.defense_strategy && (
+                    <p className="text-xs text-green-500">
+                      <CheckCircle className="h-3 w-3 inline mr-1" />
+                      Defense: {violation.defense_strategy}
+                    </p>
+                  )}
+                </div>
+              ))}
+
+              {/* Bias Indicators */}
+              {biasIndicators.length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="font-medium text-sm mb-2 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Bias Indicators Detected
+                  </p>
+                  {biasIndicators.map((bias, index) => (
+                    <div key={index} className="p-2 rounded bg-orange-500/10 text-sm mb-1">
+                      <Badge variant="outline" className="mb-1">{bias.type}</Badge>
+                      <p className="text-muted-foreground">{bias.evidence}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Procedural Issues */}
+              {proceduralIssues.length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="font-medium text-sm mb-2 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Procedural Issues
+                  </p>
+                  {proceduralIssues.map((issue, index) => (
+                    <div key={index} className="p-2 rounded bg-yellow-500/10 text-sm mb-1">
+                      <p className="font-medium">{issue.issue}</p>
+                      <p className="text-xs text-muted-foreground">Should be: {issue.proper_procedure}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Evidence Summary */}
+              {aiAnalysis?.evidence_value && (
+                <div className="pt-2 border-t">
+                  <p className="font-medium text-sm mb-2 flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-green-500" />
+                    Case Strength: {aiAnalysis.evidence_value.case_strength?.toUpperCase()}
+                  </p>
+                  {aiAnalysis.evidence_value.recommended_actions?.length > 0 && (
+                    <div className="space-y-1">
+                      {aiAnalysis.evidence_value.recommended_actions.map((action, i) => (
+                        <p key={i} className="text-xs flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-500" />
+                          {action}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Violations Alert (Simple) */}
         {violations.length > 0 && (
           <Alert className="border-orange-500/50 bg-orange-500/10">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
