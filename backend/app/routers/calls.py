@@ -722,7 +722,7 @@ async def transcribe_recording(
     recording_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Transcribe a recording using OpenAI Whisper"""
+    """Transcribe a recording using OpenAI Whisper with speaker identification"""
     user_id = current_user["user_id"]
     
     # Get recording
@@ -742,8 +742,25 @@ async def transcribe_recording(
             "recording_id": recording_id,
             "status": "already_transcribed",
             "transcript": recording["transcript"],
+            "speaker_transcript": recording.get("speaker_transcript"),
             "transcribed_at": recording.get("transcribed_at")
         }
+    
+    # Get call info for participant names
+    call = await db.video_calls.find_one({"call_id": recording["call_id"]}, {"_id": 0})
+    caller_name = call.get("caller_name", "Speaker 1") if call else "Speaker 1"
+    recipient_name = call.get("recipient_name", "Speaker 2") if call else "Speaker 2"
+    
+    # Determine roles (attorney vs client)
+    caller_user = await db.users.find_one({"user_id": call.get("caller_id")}, {"_id": 0, "role": 1}) if call else None
+    caller_role = caller_user.get("role", "citizen") if caller_user else "citizen"
+    
+    if caller_role == "attorney":
+        speaker1_label = f"Attorney ({caller_name})"
+        speaker2_label = f"Client ({recipient_name})"
+    else:
+        speaker1_label = f"Client ({caller_name})"
+        speaker2_label = f"Attorney ({recipient_name})"
     
     # Update status
     await db.call_recordings.update_one(
@@ -754,7 +771,7 @@ async def transcribe_recording(
     try:
         import tempfile
         import httpx
-        from emergentintegrations.llm.openai import transcribe_audio
+        from emergentintegrations.llm.openai import transcribe_audio, chat
         
         audio_data = None
         
@@ -792,7 +809,7 @@ async def transcribe_recording(
                 response_format="verbose_json"
             )
             
-            # Extract transcript text
+            # Extract transcript text and segments
             if isinstance(transcript_result, dict):
                 transcript_text = transcript_result.get("text", "")
                 segments = transcript_result.get("segments", [])
@@ -800,24 +817,118 @@ async def transcribe_recording(
                 transcript_text = str(transcript_result)
                 segments = []
             
+            # Use GPT to identify speakers and format transcript
+            speaker_transcript = None
+            speaker_segments = []
+            
+            if transcript_text and len(transcript_text) > 50:
+                try:
+                    # Ask GPT to identify speakers and format
+                    diarization_prompt = f"""You are analyzing a transcript of a video call between two people:
+- {speaker1_label}
+- {speaker2_label}
+
+This is a legal consultation. Please identify who is speaking for each part of the conversation and format it with speaker labels.
+
+Rules:
+1. Label each speaker turn with their role (Attorney or Client)
+2. Use the format "**Attorney ({caller_name if caller_role == 'attorney' else recipient_name}):** [text]" 
+3. Use the format "**Client ({recipient_name if caller_role == 'attorney' else caller_name}):** [text]"
+4. Identify speakers by context (attorneys ask legal questions, give advice; clients describe situations, ask for help)
+5. Start new speaker labels when the speaker changes
+6. If unclear, make your best guess based on the conversation flow
+
+Original transcript:
+{transcript_text[:8000]}
+
+Please output the speaker-labeled transcript:"""
+                    
+                    gpt_response = await chat(
+                        api_key=api_key,
+                        prompt=diarization_prompt,
+                        model="gpt-4o-mini"
+                    )
+                    
+                    if gpt_response:
+                        speaker_transcript = gpt_response
+                        
+                        # Parse into segments with speaker info
+                        lines = speaker_transcript.split('\n')
+                        current_speaker = None
+                        current_text = []
+                        
+                        for line in lines:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            
+                            # Check for speaker labels
+                            if line.startswith("**Attorney"):
+                                if current_speaker and current_text:
+                                    speaker_segments.append({
+                                        "speaker": current_speaker,
+                                        "text": ' '.join(current_text)
+                                    })
+                                current_speaker = "attorney"
+                                # Extract text after the label
+                                if ":**" in line:
+                                    text = line.split(":**", 1)[1].strip()
+                                    current_text = [text] if text else []
+                                else:
+                                    current_text = []
+                            elif line.startswith("**Client"):
+                                if current_speaker and current_text:
+                                    speaker_segments.append({
+                                        "speaker": current_speaker,
+                                        "text": ' '.join(current_text)
+                                    })
+                                current_speaker = "client"
+                                if ":**" in line:
+                                    text = line.split(":**", 1)[1].strip()
+                                    current_text = [text] if text else []
+                                else:
+                                    current_text = []
+                            elif current_speaker:
+                                current_text.append(line)
+                        
+                        # Don't forget last segment
+                        if current_speaker and current_text:
+                            speaker_segments.append({
+                                "speaker": current_speaker,
+                                "text": ' '.join(current_text)
+                            })
+                            
+                except Exception as e:
+                    logger.warning(f"Speaker identification failed: {e}")
+                    # Fall back to plain transcript
+                    speaker_transcript = transcript_text
+            
             # Store transcript
             now = datetime.now(timezone.utc)
             await db.call_recordings.update_one(
                 {"recording_id": recording_id},
                 {"$set": {
                     "transcript": transcript_text,
+                    "speaker_transcript": speaker_transcript or transcript_text,
+                    "speaker_segments": speaker_segments,
                     "transcript_segments": segments,
                     "transcription_status": "completed",
-                    "transcribed_at": now
+                    "transcribed_at": now,
+                    "speaker_labels": {
+                        "attorney": caller_name if caller_role == "attorney" else recipient_name,
+                        "client": recipient_name if caller_role == "attorney" else caller_name
+                    }
                 }}
             )
             
-            logger.info(f"Transcription completed for recording {recording_id}")
+            logger.info(f"Transcription with speaker ID completed for recording {recording_id}")
             
             return {
                 "recording_id": recording_id,
                 "status": "completed",
                 "transcript": transcript_text,
+                "speaker_transcript": speaker_transcript or transcript_text,
+                "speaker_segments": speaker_segments,
                 "segments": segments,
                 "transcribed_at": now.isoformat()
             }
