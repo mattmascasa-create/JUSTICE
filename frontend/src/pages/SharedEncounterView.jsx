@@ -1035,18 +1035,48 @@ export default function SharedEncounterView() {
                       {filteredHighlights.length}
                     </Badge>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowHighlights(!showHighlights)}
-                    className="text-xs"
-                  >
-                    {showHighlights ? 'Hide' : 'Show'}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowHighlights(!showHighlights)}
+                      className="text-xs"
+                    >
+                      {showHighlights ? 'Hide' : 'Show'}
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               {showHighlights && (
                 <CardContent className="space-y-3">
+                  {/* Export Report Options */}
+                  <div className="flex items-center gap-2">
+                    <Select value={exportStyle} onValueChange={setExportStyle}>
+                      <SelectTrigger className="flex-1 bg-slate-700 border-slate-600">
+                        <FileText className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Report style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="formal">Formal (Court-Ready)</SelectItem>
+                        <SelectItem value="simple">Simple Summary</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                      onClick={() => {
+                        const url = encounterAPI.exportSharedReport(encounterId, token, exportStyle);
+                        window.open(url, '_blank');
+                        toast.success('Downloading report...');
+                      }}
+                      data-testid="export-report-btn"
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Export PDF
+                    </Button>
+                  </div>
+
                   {/* Filter */}
                   <Select value={highlightFilter} onValueChange={setHighlightFilter}>
                     <SelectTrigger className="w-full bg-slate-700 border-slate-600">
