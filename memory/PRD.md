@@ -340,7 +340,27 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - Policy Impact: `/api/policy/*`
 - Encounter Mode: `/api/encounters/*`
 - Document Analysis: `/api/analyze/*`
+- Attorney Collaboration: `/api/attorney/*`
 - Authentication, Cases, Evidence, Messaging, Transparency
+
+### Attorney Collaboration API (NEW - v5.8.0)
+- `POST /api/attorney/invite` - Invite attorney to collaborate on encounter
+- `GET /api/attorney/invite/{token}/details` - Public endpoint for invite details
+- `POST /api/attorney/accept-invite` - Accept invite (new user)
+- `POST /api/attorney/accept-invite/existing` - Accept invite (existing user)
+- `POST /api/attorney/verify` - Submit attorney verification
+- `GET /api/attorney/dashboard` - Attorney dashboard with stats
+- `GET /api/attorney/clients` - List attorney's clients
+- `GET /api/attorney/encounters` - List shared encounters
+- `POST /api/attorney/notes` - Create case note
+- `GET /api/attorney/notes/{encounter_id}` - Get notes for encounter
+- `PUT /api/attorney/notes/{note_id}` - Update note
+- `DELETE /api/attorney/notes/{note_id}` - Delete note
+- `POST /api/attorney/messages` - Send message
+- `GET /api/attorney/messages` - Get messages with contact
+- `GET /api/attorney/messages/inbox` - Get message inbox
+- `GET /api/attorney/my-attorneys` - Client gets their attorneys
+- `DELETE /api/attorney/access/{encounter_id}` - Revoke attorney access
 
 ## Configuration
 
