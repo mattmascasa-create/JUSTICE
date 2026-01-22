@@ -75,6 +75,7 @@ app.include_router(ai_chat_router, prefix="/api")
 app.include_router(encounters_router, prefix="/api")
 app.include_router(community_router, prefix="/api")
 app.include_router(rights_router, prefix="/api")
+app.include_router(attorney_collab_router, prefix="/api")
 
 
 # Root endpoint
