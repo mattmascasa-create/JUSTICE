@@ -26,12 +26,14 @@ import {
   Brain,
   Radio,
   Database,
-  Megaphone
+  Megaphone,
+  BarChart3
 } from 'lucide-react';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: Radio, label: 'Encounter Mode', path: '/encounter', highlight: true },
+  { icon: BarChart3, label: 'Encounter Analytics', path: '/analytics', highlight: true },
   { icon: FolderOpen, label: 'My Cases', path: '/cases' },
   { icon: FileBox, label: 'Evidence', path: '/evidence' },
   { icon: Brain, label: 'Document Analysis', path: '/analyze' },
