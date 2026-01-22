@@ -860,6 +860,54 @@ export default function EncounterPage() {
           </AlertDescription>
         </Alert>
 
+        {/* Voice Commands Panel */}
+        <Card className={`border-2 ${voiceCommandsEnabled ? 'border-purple-500/50 bg-purple-500/5' : 'border-gray-500/30'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${voiceCommandsEnabled ? 'bg-purple-500 animate-pulse' : 'bg-gray-500'}`}>
+                  {voiceCommandsEnabled ? <Volume2 className="h-5 w-5 text-white" /> : <VolumeX className="h-5 w-5 text-white" />}
+                </div>
+                <div>
+                  <p className="font-bold flex items-center gap-2">
+                    Voice Commands
+                    <Badge variant={voiceCommandsEnabled ? 'default' : 'secondary'} className={voiceCommandsEnabled ? 'bg-purple-500' : ''}>
+                      {voiceCommandsEnabled ? 'LISTENING' : 'OFF'}
+                    </Badge>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {voiceCommandFeedback || 'Say "mark violation", "SOS", "call attorney", "end recording"'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={voiceCommandsEnabled}
+                  onCheckedChange={setVoiceCommandsEnabled}
+                  data-testid="voice-commands-toggle"
+                />
+              </div>
+            </div>
+            {voiceCommandFeedback && (
+              <div className="mt-3 p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 animate-pulse">
+                <p className="text-sm font-medium text-purple-300 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  {voiceCommandFeedback}
+                </p>
+              </div>
+            )}
+            {manualViolationMarks.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {manualViolationMarks.map((mark, idx) => (
+                  <Badge key={idx} variant="outline" className="border-red-500/50 text-red-400">
+                    📍 {formatDuration(mark.timestamp)}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* AI Risk Level Indicator */}
         <Card className={`border-2 ${
           riskLevel === 'critical' ? 'border-red-500 bg-red-500/10' :
