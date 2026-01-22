@@ -1231,7 +1231,7 @@ export default function EncounterPage() {
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center flex-wrap gap-2">
                           <Badge variant="outline" className="text-xs font-mono">
                             {formatDuration(t.chunk_index ? t.chunk_index * 10 : i * 10)}
                           </Badge>
@@ -1253,6 +1253,26 @@ export default function EncounterPage() {
                               )}
                             </Badge>
                           )}
+                          {/* Tone Badge */}
+                          {t.tone && t.tone !== 'neutral' && (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${toneColors[t.tone] || toneColors.neutral}`}
+                            >
+                              {toneIcons[t.tone] || '•'} {t.tone}
+                              {t.tone_confidence > 0 && (
+                                <span className="ml-1 opacity-70">
+                                  {Math.round(t.tone_confidence * 100)}%
+                                </span>
+                              )}
+                            </Badge>
+                          )}
+                          {/* Escalation Alert */}
+                          {t.escalation_detected && (
+                            <Badge variant="destructive" className="text-xs animate-pulse">
+                              📈 {t.escalation_direction === 'escalating' ? 'ESCALATING' : 'TENSION'}
+                            </Badge>
+                          )}
                           {t.violations_detected?.length > 0 && (
                             <Badge variant="destructive" className="text-xs">
                               <AlertTriangle className="h-3 w-3 mr-1" />
@@ -1271,6 +1291,50 @@ export default function EncounterPage() {
                           __html: highlightText(t.labeled_text || t.text) || 'Processing...' 
                         }}
                       />
+                      {/* Emotion Indicators */}
+                      {t.emotion_indicators?.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-border/30">
+                          <div className="flex flex-wrap gap-1">
+                            {t.emotion_indicators.map((ei, idx) => (
+                              <Badge 
+                                key={idx}
+                                variant="outline"
+                                className={`text-xs ${
+                                  ei.severity === 'critical' ? 'bg-red-500/30 text-red-300 border-red-500/50 animate-pulse' :
+                                  ei.severity === 'high' ? 'bg-orange-500/30 text-orange-300 border-orange-500/50' :
+                                  ei.severity === 'medium' ? 'bg-yellow-500/30 text-yellow-300 border-yellow-500/50' :
+                                  'bg-gray-500/30 text-gray-300 border-gray-500/50'
+                                }`}
+                              >
+                                {ei.type}: "{ei.evidence?.slice(0, 30)}..."
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Officer Demeanor Concerns */}
+                      {t.officer_demeanor?.concerns?.length > 0 && (
+                        <div className="mt-2 p-2 rounded bg-red-500/10 border border-red-500/20">
+                          <p className="text-xs text-red-400 font-medium mb-1">⚠️ Officer Conduct Concerns:</p>
+                          <ul className="text-xs text-red-300 space-y-0.5">
+                            {t.officer_demeanor.concerns.map((c, idx) => (
+                              <li key={idx}>• {c}</li>
+                            ))}
+                          </ul>
+                          {t.officer_demeanor.aggression_level > 0.5 && (
+                            <div className="mt-1 flex items-center gap-2">
+                              <span className="text-xs text-red-400">Aggression:</span>
+                              <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-red-500 transition-all"
+                                  style={{width: `${t.officer_demeanor.aggression_level * 100}%`}}
+                                />
+                              </div>
+                              <span className="text-xs text-red-400">{Math.round(t.officer_demeanor.aggression_level * 100)}%</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {/* Show speaker changes if multiple speakers detected */}
                       {t.speaker_changes?.length > 1 && (
                         <div className="mt-2 pt-2 border-t border-border/30">
@@ -1287,6 +1351,7 @@ export default function EncounterPage() {
                                   }`}
                                 >
                                   {change.speaker}
+                                  {change.tone && <span className="ml-1 opacity-70">({change.tone})</span>}
                                 </Badge>
                                 <span className="text-muted-foreground">{change.text}</span>
                               </div>
