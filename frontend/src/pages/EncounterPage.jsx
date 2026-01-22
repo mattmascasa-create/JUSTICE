@@ -117,6 +117,8 @@ export default function EncounterPage() {
   const analysisQueueRef = useRef([]);
   const lastAnalysisRef = useRef(0);
   const voiceRecognitionRef = useRef(null);
+  const stopRecordingRef = useRef(null);
+  const shareStreamLinkRef = useRef(null);
 
   // Perform real-time AI analysis on transcriptions
   const performAIAnalysis = async (text) => {
