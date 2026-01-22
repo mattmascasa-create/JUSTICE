@@ -77,6 +77,43 @@ export default function EvidencePage() {
     }
   };
 
+  const handleBatchExport = async () => {
+    if (!selectedReportCase) {
+      toast.error('Please select a case');
+      return;
+    }
+    
+    setGeneratingReport(true);
+    try {
+      const response = await blockchainAPI.batchExport(selectedReportCase);
+      
+      // Create download link for the ZIP file
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get case title for filename
+      const selectedCase = cases.find(c => c.case_id === selectedReportCase);
+      const caseTitle = selectedCase?.title?.replace(/[^a-zA-Z0-9 -_]/g, '_').slice(0, 30) || 'case';
+      link.download = `JUSTICE_Evidence_${caseTitle}_${selectedReportCase}.zip`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Evidence package downloaded successfully!');
+      setReportDialogOpen(false);
+      setSelectedReportCase('');
+    } catch (error) {
+      console.error('Batch export error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to export evidence package');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
