@@ -72,6 +72,9 @@ export default function Sidebar({ isMobileSheet = false }) {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  
+  // Get nav items based on user role
+  const navItems = getNavItems(user?.role);
 
   // If rendered inside a Sheet (mobile), show simplified content
   if (isMobileSheet) {
