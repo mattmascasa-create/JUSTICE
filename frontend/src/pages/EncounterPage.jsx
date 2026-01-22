@@ -69,6 +69,40 @@ const riskLevelLabels = {
   critical: 'CRITICAL'
 };
 
+// Keywords to highlight in transcription
+const highlightKeywords = {
+  danger: ['search', 'arrest', 'detain', 'weapon', 'gun', 'resist', 'jail', 'prison'],
+  rights: ['silent', 'attorney', 'lawyer', 'rights', 'consent', 'free to go', 'detained'],
+  command: ['license', 'registration', 'step out', 'hands up', 'don\'t move', 'stop']
+};
+
+// Helper to highlight keywords in text
+const highlightText = (text) => {
+  if (!text) return text;
+  
+  let result = text;
+  
+  // Mark danger words
+  highlightKeywords.danger.forEach(word => {
+    const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+    result = result.replace(regex, '<span class="text-red-400 font-medium">$1</span>');
+  });
+  
+  // Mark rights words  
+  highlightKeywords.rights.forEach(word => {
+    const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+    result = result.replace(regex, '<span class="text-green-400 font-medium">$1</span>');
+  });
+  
+  // Mark command words
+  highlightKeywords.command.forEach(word => {
+    const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+    result = result.replace(regex, '<span class="text-yellow-400 font-medium">$1</span>');
+  });
+  
+  return result;
+};
+
 export default function EncounterPage() {
   const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
