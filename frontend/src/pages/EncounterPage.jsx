@@ -44,6 +44,17 @@ const rightsReminders = [
   "Everything is being recorded for your protection."
 ];
 
+// Voice commands configuration
+const voiceCommands = [
+  { phrases: ['mark violation', 'flag violation', 'violation'], action: 'MARK_VIOLATION', feedback: 'Violation marked!' },
+  { phrases: ['call attorney', 'contact attorney', 'lawyer'], action: 'CALL_ATTORNEY', feedback: 'Contacting attorney...' },
+  { phrases: ['emergency', 'sos', 'help me', 'send help'], action: 'SOS', feedback: 'Sending SOS alert!' },
+  { phrases: ['end recording', 'stop recording', 'stop'], action: 'END_RECORDING', feedback: 'Ending recording...' },
+  { phrases: ['pause recording', 'pause'], action: 'PAUSE', feedback: 'Recording paused' },
+  { phrases: ['resume recording', 'resume', 'continue'], action: 'RESUME', feedback: 'Recording resumed' },
+  { phrases: ['share link', 'share stream', 'share'], action: 'SHARE', feedback: 'Sharing stream link...' },
+];
+
 const riskLevelColors = {
   low: 'bg-green-500',
   medium: 'bg-yellow-500',
