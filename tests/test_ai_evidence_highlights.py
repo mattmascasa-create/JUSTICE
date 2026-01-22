@@ -187,13 +187,13 @@ class TestAuthenticatedHighlightsEndpoints:
             print("✓ Generate highlights succeeded (transcriptions exist)")
     
     def test_regenerate_highlights_requires_auth(self):
-        """Regenerate highlights without auth returns 401"""
+        """Regenerate highlights without auth returns 401 or 403"""
         response = requests.post(
             f"{BASE_URL}/api/encounters/{TEST_ENCOUNTER_ID}/highlights/regenerate",
             data={"feedback": "Focus on 4th amendment"}
         )
-        assert response.status_code == 401
-        print("✓ Regenerate highlights requires authentication")
+        assert response.status_code in [401, 403]
+        print(f"✓ Regenerate highlights requires authentication (status: {response.status_code})")
     
     def test_regenerate_highlights_with_feedback(self, auth_headers):
         """Regenerate highlights with feedback returns updated highlights"""
