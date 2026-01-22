@@ -49,6 +49,12 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Immediate alerts for critical violations
   - Legal citations and defense strategies
   - Evidence strength evaluation and recommended actions
+- **Voice Commands** ✅ (Jan 22, 2026):
+  - Hands-free operation during encounters using Web Speech API
+  - Commands: "mark violation", "call attorney", "SOS/emergency", "end recording", "pause", "resume", "share"
+  - Visual feedback when command recognized
+  - Manual violation marks persisted with timestamps
+  - Toggle switch to enable/disable voice listening
 
 ### Phase 5 (AI Legal Analyst) ✅
 - Document Analysis (police reports, body cam, discovery)
