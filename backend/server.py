@@ -2763,7 +2763,7 @@ Perform a comprehensive analysis and return a JSON object with EXACTLY this stru
 IMPORTANT: Only include actual violations found. Return empty arrays if nothing detected.
 Focus on things that would actually help win a case in court."""
 
-        response = await llm.chat(analysis_prompt)
+        response = await llm.send_message(UserMessage(text=analysis_prompt))
         
         if response:
             # Clean up the response - remove markdown code blocks if present
