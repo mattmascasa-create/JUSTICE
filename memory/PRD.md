@@ -107,10 +107,11 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - Legal integrity statement
 - Blockchain block number (simulated)
 
-## Backend APIs (v5.2)
+## Backend APIs (v5.3)
 
-### Evidence Reports (NEW)
-- `GET /api/evidence/report/{case_id}` - Comprehensive evidence report
+### Evidence Export (NEW)
+- `GET /api/evidence/report/{case_id}` - Generate PDF report data
+- `GET /api/evidence/batch-export/{case_id}` - Download ZIP package with all files
 
 ### IPFS Storage
 - `GET /api/ipfs/status` - IPFS integration status
