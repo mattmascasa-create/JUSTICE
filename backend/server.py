@@ -2627,6 +2627,51 @@ async def upload_audio_chunk(
         "transcription": transcription_result
     }
 
+@api_router.post("/encounters/{encounter_id}/video")
+async def upload_video_chunk(
+    encounter_id: str,
+    video_file: UploadFile = File(...),
+    chunk_index: int = Form(0),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload video chunk from encounter"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    if encounter["status"] != "active":
+        raise HTTPException(status_code=400, detail="Encounter is not active")
+    
+    # Save video chunk
+    chunk_filename = f"video_{chunk_index}_{uuid.uuid4().hex[:8]}.webm"
+    chunk_path = ENCOUNTERS_DIR / encounter_id / chunk_filename
+    
+    content = await video_file.read()
+    with open(chunk_path, "wb") as f:
+        f.write(content)
+    
+    # Update encounter with video file reference
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {
+            "$push": {"video_files": chunk_filename},
+            "$set": {"has_video": True},
+            "$inc": {"video_chunk_count": 1}
+        }
+    )
+    
+    logger.info(f"Video chunk {chunk_index} saved for encounter {encounter_id}: {chunk_filename}")
+    
+    return {
+        "success": True,
+        "chunk_index": chunk_index,
+        "filename": chunk_filename,
+        "size_bytes": len(content)
+    }
+
 async def analyze_transcription_for_violations(text: str, encounter_id: str) -> List[str]:
     """Analyze transcription text for potential civil rights violations"""
     violations = []
