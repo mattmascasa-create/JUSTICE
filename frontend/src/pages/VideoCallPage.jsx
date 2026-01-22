@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import {
   Video, VideoOff, Mic, MicOff, PhoneOff,
   Monitor, MonitorOff, Maximize2, Minimize2,
-  Phone, User, Clock
+  Phone, User, Clock, Circle, Square, Download
 } from 'lucide-react';
 
 // ICE servers for WebRTC (public STUN servers)
@@ -40,6 +40,12 @@ export default function VideoCallPage() {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingId, setRecordingId] = useState(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  
   // Refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -47,6 +53,9 @@ export default function VideoCallPage() {
   const wsRef = useRef(null);
   const screenStreamRef = useRef(null);
   const durationIntervalRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const recordingIntervalRef = useRef(null);
   
   const isIncoming = searchParams.get('incoming') === 'true';
 
