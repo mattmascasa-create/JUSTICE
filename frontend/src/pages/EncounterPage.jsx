@@ -478,6 +478,20 @@ export default function EncounterPage() {
 
       setEncounter(response.data);
       
+      // Auto-share if enabled
+      if (autoShare) {
+        try {
+          const shareResponse = await encounterAPI.createShare(response.data.encounter_id, true);
+          if (shareResponse.data.success) {
+            setShareLink(shareResponse.data.full_url);
+            setShareActive(true);
+            toast.success(`📤 Live share enabled! ${shareResponse.data.notified_contacts?.length || 0} contacts notified.`);
+          }
+        } catch (shareErr) {
+          console.log('Auto-share failed:', shareErr);
+        }
+      }
+      
       // Request media permissions based on settings
       const mediaConstraints = {
         audio: true,
