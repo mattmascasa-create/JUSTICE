@@ -9,7 +9,7 @@ import uuid
 import secrets
 
 from app.db.database import db
-from app.core.security import get_current_user, hash_password, verify_password, create_token
+from app.core.security import get_current_user, hash_password, verify_password, create_access_token
 from app.services.websocket import manager
 
 router = APIRouter(prefix="/attorney", tags=["Attorney"])
