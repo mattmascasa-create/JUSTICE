@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
-import { attorneyCollabAPI, encounterAPI, API_URL } from '../lib/api';
+import { attorneyCollabAPI, encounterAPI, callsAPI, API_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -19,12 +19,13 @@ import {
   AlertTriangle, Shield, Play, Pause,
   StickyNote, Send, Trash2, Edit, Plus,
   ArrowLeft, Download, Eye, Video, Mic,
-  CheckCircle, XCircle
+  CheckCircle, XCircle, Phone
 } from 'lucide-react';
 
 export default function AttorneyEncounterWorkspacePage() {
   const { encounterId } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [encounter, setEncounter] = useState(null);
   const [notes, setNotes] = useState([]);
