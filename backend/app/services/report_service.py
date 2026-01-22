@@ -7,7 +7,6 @@ import os
 import qrcode
 from datetime import datetime, timezone
 from fpdf import FPDF
-from PIL import Image
 
 class JusticeReportPDF(FPDF):
     """Custom PDF class for JUSTICE reports"""
@@ -15,28 +14,23 @@ class JusticeReportPDF(FPDF):
     def __init__(self, report_style="formal"):
         super().__init__()
         self.report_style = report_style
-        self.set_auto_page_break(auto=True, margin=15)
+        self.set_auto_page_break(auto=True, margin=20)
         
     def header(self):
+        self.set_font('Helvetica', 'B', 14)
+        self.cell(0, 8, 'JUSTICE PLATFORM - EVIDENCE REPORT', 0, 1, 'C')
         if self.report_style == "formal":
-            # Formal header
-            self.set_font('Helvetica', 'B', 14)
-            self.cell(0, 8, 'JUSTICE PLATFORM - EVIDENCE REPORT', 0, 1, 'C')
             self.set_font('Helvetica', 'I', 10)
             self.cell(0, 5, 'Civil Rights Documentation System', 0, 1, 'C')
-            self.line(10, 25, 200, 25)
-            self.ln(10)
-        else:
-            # Simple header
-            self.set_font('Helvetica', 'B', 12)
-            self.cell(0, 8, 'ENCOUNTER HIGHLIGHTS SUMMARY', 0, 1, 'C')
-            self.ln(5)
+        self.line(10, 25, 200, 25)
+        self.ln(10)
     
     def footer(self):
         self.set_y(-15)
         self.set_font('Helvetica', 'I', 8)
         self.set_text_color(128)
-        self.cell(0, 10, f'Page {self.page_no()}/{{nb}} | Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} | JUSTICE Platform', 0, 0, 'C')
+        self.cell(0, 10, f'Page {self.page_no()} | Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}', 0, 0, 'C')
+        self.set_text_color(0)
 
 
 def generate_highlights_report(
