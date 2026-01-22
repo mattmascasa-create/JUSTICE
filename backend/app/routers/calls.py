@@ -482,6 +482,9 @@ async def stop_recording(
         started_at = recording["started_at"]
         if isinstance(started_at, str):
             started_at = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+        # Ensure started_at has timezone info
+        if started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=timezone.utc)
         duration = int((now - started_at).total_seconds())
         
         await db.call_recordings.update_one(
