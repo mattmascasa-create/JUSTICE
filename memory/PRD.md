@@ -54,14 +54,15 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Pinata Integration**: Professional IPFS pinning service
 - **Graceful Degradation**: Works without IPFS, upgrades when configured
 
-### Phase 9 (Evidence Report) ✅ - Jan 22, 2026
-- **Comprehensive PDF Reports**: Generate downloadable evidence reports
-- **QR Code Verification**: Scannable QR codes for instant IPFS verification
-- **Quick Verification Grid**: Up to 8 QR codes at top of report for rapid scanning
-- **IPFS Verification Links**: Gateway URLs for independent verification
-- **SHA-256 Hash Records**: All cryptographic hashes included
+### Phase 9 (Evidence Export) ✅ - Jan 22, 2026
+- **PDF Report with QR Codes**: Scannable QR codes for instant IPFS verification
+- **Quick Verification Grid**: Up to 8 QR codes at top of PDF for rapid scanning
+- **Batch Export (ZIP)**: Download complete evidence package for court
+  - All evidence files (original quality)
+  - VERIFICATION_MANIFEST.json (all hashes, CIDs, custody records)
+  - EXPORT_SUMMARY.txt (human-readable)
+- **Tabbed Export Dialog**: Choose between PDF Report or Full ZIP Package
 - **Chain of Custody**: Complete audit trail with signatures
-- **Legal Notice**: Court-ready documentation
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
