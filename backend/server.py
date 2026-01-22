@@ -2958,6 +2958,59 @@ async def get_encounter(
         "officers": officers
     }
 
+@api_router.get("/encounters/{encounter_id}/report")
+async def get_encounter_report(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the detailed incident report for an encounter"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Get the report
+    report = await db.encounter_reports.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not report:
+        # Report may still be generating
+        return {
+            "status": "generating",
+            "message": "Report is being generated. Please check back in a moment.",
+            "encounter_id": encounter_id
+        }
+    
+    # Get transcriptions
+    transcriptions = await db.transcriptions.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("start_time", 1).to_list(length=1000)
+    
+    # Get video/audio files
+    encounter_dir = ENCOUNTERS_DIR / encounter_id
+    media_files = []
+    if encounter_dir.exists():
+        for f in encounter_dir.iterdir():
+            if f.is_file():
+                media_files.append({
+                    "filename": f.name,
+                    "size_bytes": f.stat().st_size,
+                    "type": "video" if f.name.startswith("video_") else "audio"
+                })
+    
+    return {
+        "status": "ready",
+        "report": report,
+        "transcriptions": transcriptions,
+        "media_files": media_files,
+        "download_available": True
+    }
+
 @api_router.post("/encounters/{encounter_id}/officer")
 async def add_officer_info(
     encounter_id: str,
