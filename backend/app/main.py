@@ -6,7 +6,7 @@ It uses the organized router structure from /app/backend/app/
 
 To use this instead of server.py, update the supervisor config to point here.
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -24,8 +24,10 @@ from app.routers.encounters import router as encounters_router
 from app.routers.community import router as community_router
 from app.routers.rights import router as rights_router
 
-# Import config
+# Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
+from app.services.websocket import manager
+from app.db.database import db
 
 
 @asynccontextmanager
