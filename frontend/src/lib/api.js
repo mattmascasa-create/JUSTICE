@@ -224,7 +224,8 @@ export const blockchainAPI = {
   getCertificate: (evidenceId) => api.get(`/evidence/${evidenceId}/certificate`),
   getBlockchainStatus: () => api.get('/blockchain/status'),
   getIPFSStatus: () => api.get('/ipfs/status'),
-  getEvidenceReport: (caseId) => api.get(`/evidence/report/${caseId}`)
+  getEvidenceReport: (caseId) => api.get(`/evidence/report/${caseId}`),
+  batchExport: (caseId) => api.get(`/evidence/batch-export/${caseId}`, { responseType: 'blob' })
 };
 
 // Policy Impact Dashboard API
