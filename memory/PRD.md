@@ -219,6 +219,17 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Security**: Video chunks only accessible with valid share token
 - **Version**: 5.4.0
 
+### Phase 13 (Screen Recording Mode) ✅ - Jan 22, 2026
+- **Optional Screen Recording**: Toggle in setup to enable screen capture during encounters
+- **Browser Support Detection**: Screen recording toggle only shown on supported browsers (Desktop/Android Chrome)
+- **Picture-in-Picture View**: Viewers see screen recording as main view with camera feed as corner overlay
+- **Toggle Camera PiP**: Button to show/hide camera overlay
+- **Screen Chunk Upload**: Separate endpoint for screen recording chunks (`POST /api/encounters/{id}/screen`)
+- **Screen Chunk Streaming**: Viewers can access screen chunks via `/api/encounters/shared/{id}/screen/{filename}`
+- **Synchronized Playback**: Screen and camera recordings stay in sync during scrubbing
+- **Evidence Value**: Captures texts, app interactions, and on-screen evidence
+- **Version**: 5.5.0
+
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
