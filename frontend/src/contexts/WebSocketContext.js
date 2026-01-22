@@ -108,6 +108,33 @@ export function WebSocketProvider({ children }) {
           duration: 10000
         });
         break;
+      case 'guidance_message':
+        // Real-time guidance from viewers
+        toast.info(`💬 Guidance from ${data.sender_name}`, {
+          description: data.message,
+          duration: 15000
+        });
+        setNotifications(prev => [...prev, { ...data, type: 'guidance_message' }]);
+        break;
+      case 'viewer_joined':
+        toast.success(`👁️ Someone is watching your encounter`, {
+          description: `${data.viewer_count} viewer(s) connected`
+        });
+        setNotifications(prev => [...prev, { ...data, type: 'viewer_joined' }]);
+        break;
+      case 'viewer_left':
+        setNotifications(prev => [...prev, { ...data, type: 'viewer_left' }]);
+        break;
+      case 'encounter_share':
+        toast.warning(`🚨 ${data.user_name} is in a police encounter!`, {
+          description: data.message,
+          duration: 30000,
+          action: {
+            label: 'Watch',
+            onClick: () => window.open(data.share_url, '_blank')
+          }
+        });
+        break;
       case 'typing':
         // Handle typing indicator
         break;
