@@ -1,14 +1,17 @@
 """
-Video Call Router - WebRTC signaling and call management
+Video Call Router - WebRTC signaling and call management with recording
 """
 import uuid
 import logging
+import os
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, Form, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Depends, Form, WebSocket, WebSocketDisconnect, UploadFile, File
 
 from app.db.database import db
 from app.core.security import get_current_user
+from app.core.config import S3_ENABLED, S3_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, UPLOADS_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +20,23 @@ router = APIRouter(prefix="/calls", tags=["Video Calls"])
 # In-memory store for active calls and WebSocket connections
 active_calls = {}  # call_id -> call_info
 call_connections = {}  # call_id -> {user_id: websocket}
+
+# Initialize S3 client for recordings
+s3_client = None
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+
+if S3_ENABLED:
+    try:
+        import boto3
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            region_name=AWS_REGION
+        )
+        logger.info("S3 client initialized for call recordings")
+    except Exception as e:
+        logger.error(f"Failed to initialize S3 client for recordings: {e}")
 
 
 @router.post("/initiate")
