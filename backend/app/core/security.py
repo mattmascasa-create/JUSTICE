@@ -62,3 +62,26 @@ async def get_optional_user(credentials: HTTPAuthorizationCredentials = Depends(
         return await get_current_user(credentials)
     except:
         return None
+
+async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security_optional)):
+    """Get current user if authenticated, otherwise return None"""
+    if not credentials:
+        return None
+    try:
+        return await get_current_user(credentials)
+    except:
+        return None
+
+
+async def get_current_user_ws(token: str):
+    """Get current user from WebSocket token"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            return None
+        
+        user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+        return user
+    except:
+        return None
