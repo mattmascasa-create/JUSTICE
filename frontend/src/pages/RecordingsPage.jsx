@@ -47,6 +47,10 @@ export default function RecordingsPage() {
   const [transcript, setTranscript] = useState(null);
   const [transcribing, setTranscribing] = useState({});
   
+  // AI Summary state
+  const [summary, setSummary] = useState(null);
+  const [summarizing, setSummarizing] = useState(false);
+  
   const videoRef = useRef(null);
 
   useEffect(() => {
