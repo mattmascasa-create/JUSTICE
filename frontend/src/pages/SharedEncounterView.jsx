@@ -7,15 +7,47 @@ import { Input } from '../components/ui/input';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Slider } from '../components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { 
   Shield, AlertTriangle, MapPin, Clock, Send, Users, Eye, 
   Radio, MessageCircle, AlertCircle, CheckCircle, XCircle,
   Volume2, Mic, User, ChevronDown, Video, Play, Pause,
-  SkipBack, SkipForward, Maximize2, VideoOff
+  SkipBack, SkipForward, Maximize2, VideoOff, Zap, Scale,
+  Target, Flag, Filter
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Severity colors
+const severityColors = {
+  critical: 'bg-red-500 text-white',
+  high: 'bg-orange-500 text-white',
+  medium: 'bg-yellow-500 text-black',
+  low: 'bg-blue-500 text-white'
+};
+
+// Category icons
+const categoryIcons = {
+  violation: Scale,
+  escalation: Zap,
+  threat: AlertTriangle,
+  rights_assertion: Shield,
+  cooperation: CheckCircle,
+  important_statement: MessageCircle,
+  procedural_issue: Flag
+};
+
+// Category colors
+const categoryColors = {
+  violation: 'border-red-500/50 bg-red-500/10',
+  escalation: 'border-orange-500/50 bg-orange-500/10',
+  threat: 'border-red-500/50 bg-red-500/10',
+  rights_assertion: 'border-green-500/50 bg-green-500/10',
+  cooperation: 'border-blue-500/50 bg-blue-500/10',
+  important_statement: 'border-purple-500/50 bg-purple-500/10',
+  procedural_issue: 'border-yellow-500/50 bg-yellow-500/10'
+};
 
 // Tone colors for transcript display
 const toneColors = {
