@@ -472,7 +472,130 @@ export default function VideoCallPage() {
     }
   };
 
+  // Live Transcription Functions
+  const startLiveTranscription = async () => {
+    if (!localStream) {
+      toast.error('No audio stream available');
+      return;
+    }
+
+    try {
+      // Create audio-only stream for transcription
+      const audioStream = new MediaStream();
+      const localAudio = localStream.getAudioTracks()[0];
+      if (localAudio) {
+        audioStream.addTrack(localAudio);
+      }
+
+      // Create MediaRecorder for audio chunks
+      const options = { mimeType: 'audio/webm;codecs=opus' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'audio/webm';
+      }
+
+      const recorder = new MediaRecorder(audioStream, options);
+      transcriptRecorderRef.current = recorder;
+      transcriptChunkIndexRef.current = 0;
+
+      recorder.ondataavailable = async (event) => {
+        if (event.data.size > 0 && isTranscribing) {
+          try {
+            const res = await callsAPI.sendAudioChunk(
+              callId, 
+              event.data, 
+              transcriptChunkIndexRef.current
+            );
+            
+            if (res.data.success && res.data.segment) {
+              setLiveTranscript(prev => [...prev, res.data.segment]);
+            }
+            
+            transcriptChunkIndexRef.current++;
+          } catch (error) {
+            console.error('Transcription chunk error:', error);
+          }
+        }
+      };
+
+      // Record in 5-second chunks
+      recorder.start(5000);
+      setIsTranscribing(true);
+      setShowTranscriptPanel(true);
+      
+      // Notify other party
+      wsRef.current?.send(JSON.stringify({ type: 'transcription-started' }));
+      
+      toast.success('Live transcription started');
+    } catch (error) {
+      console.error('Failed to start live transcription:', error);
+      toast.error('Failed to start transcription');
+    }
+  };
+
+  const stopLiveTranscription = async () => {
+    if (transcriptRecorderRef.current && transcriptRecorderRef.current.state !== 'inactive') {
+      transcriptRecorderRef.current.stop();
+    }
+    
+    setIsTranscribing(false);
+    
+    // Notify other party
+    wsRef.current?.send(JSON.stringify({ type: 'transcription-stopped' }));
+    
+    // Save transcript
+    if (liveTranscript.length > 0 || liveNotes.length > 0) {
+      try {
+        await callsAPI.saveLiveTranscript(callId);
+        toast.success('Live transcript saved');
+      } catch (error) {
+        console.error('Failed to save transcript:', error);
+      }
+    }
+  };
+
+  const addNote = async () => {
+    if (!noteInput.trim()) return;
+
+    try {
+      const res = await callsAPI.addLiveNote(
+        callId,
+        noteInput,
+        duration,
+        selectedNoteType
+      );
+
+      if (res.data.success) {
+        setLiveNotes(prev => [...prev, res.data.note]);
+        setNoteInput('');
+        toast.success('Note added');
+      }
+    } catch (error) {
+      console.error('Failed to add note:', error);
+      toast.error('Failed to add note');
+    }
+  };
+
+  const formatTimestamp = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getNoteTypeIcon = (type) => {
+    switch (type) {
+      case 'important': return <AlertCircle className="h-3 w-3 text-red-400" />;
+      case 'action_item': return <CheckSquare className="h-3 w-3 text-green-400" />;
+      case 'question': return <HelpCircle className="h-3 w-3 text-yellow-400" />;
+      default: return <Bookmark className="h-3 w-3 text-blue-400" />;
+    }
+  };
+
   const endCall = async () => {
+    // Stop transcription if active
+    if (isTranscribing) {
+      await stopLiveTranscription();
+    }
+    
     // Stop recording if active
     if (isRecording) {
       await stopRecording();
