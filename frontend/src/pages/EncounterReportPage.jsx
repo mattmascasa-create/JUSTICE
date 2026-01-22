@@ -415,9 +415,6 @@ export default function EncounterReportPage() {
                 </div>
               </div>
             )}
-                </p>
-              </div>
-            )}
 
             {/* Transcriptions */}
             {transcriptions?.length > 0 && (
