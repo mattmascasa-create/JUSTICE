@@ -43,7 +43,8 @@ class TestLiveTranscription:
         )
         if response.status_code == 200:
             data = response.json()
-            return data.get("token"), data.get("user", {}).get("user_id")
+            # API returns access_token, not token
+            return data.get("access_token"), data.get("user", {}).get("user_id")
         return None, None
     
     def test_01_health_check(self):
@@ -314,7 +315,8 @@ class TestLiveTranscriptionWithRealCall:
         )
         if response.status_code == 200:
             data = response.json()
-            return data.get("token"), data.get("user", {}).get("user_id")
+            # API returns access_token, not token
+            return data.get("access_token"), data.get("user", {}).get("user_id")
         return None, None
     
     def test_01_create_call_and_test_live_features(self):
