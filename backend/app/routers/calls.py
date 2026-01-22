@@ -385,3 +385,329 @@ async def call_signaling(websocket: WebSocket, call_id: str):
             del call_connections[call_id][user_id]
             if not call_connections[call_id]:
                 del call_connections[call_id]
+
+
+# ============== CALL RECORDING ENDPOINTS ==============
+
+@router.post("/{call_id}/recording/start")
+async def start_recording(
+    call_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Start recording a call - notifies both parties"""
+    user_id = current_user["user_id"]
+    
+    # Verify call exists
+    call = await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call["caller_id"], call["recipient_id"]]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    recording_id = f"rec_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    # Create recording record
+    recording = {
+        "recording_id": recording_id,
+        "call_id": call_id,
+        "started_by": user_id,
+        "started_at": now,
+        "ended_at": None,
+        "duration_seconds": 0,
+        "file_size_bytes": 0,
+        "s3_key": None,
+        "s3_url": None,
+        "local_path": None,
+        "status": "recording",  # recording, uploading, completed, failed
+        "participants": [call["caller_id"], call["recipient_id"]]
+    }
+    
+    await db.call_recordings.insert_one(dict(recording))
+    
+    # Update call with recording info
+    await db.video_calls.update_one(
+        {"call_id": call_id},
+        {"$set": {"is_recording": True, "current_recording_id": recording_id}}
+    )
+    
+    # Notify other participant via WebSocket
+    other_user_id = call["recipient_id"] if user_id == call["caller_id"] else call["caller_id"]
+    other_ws = call_connections.get(call_id, {}).get(other_user_id)
+    if other_ws:
+        try:
+            await other_ws.send_json({
+                "type": "recording-started",
+                "from": user_id,
+                "recording_id": recording_id
+            })
+        except:
+            pass
+    
+    logger.info(f"Recording {recording_id} started for call {call_id} by {user_id}")
+    
+    return {
+        "recording_id": recording_id,
+        "status": "recording",
+        "message": "Recording started. Both parties have been notified."
+    }
+
+
+@router.post("/{call_id}/recording/stop")
+async def stop_recording(
+    call_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Stop recording a call"""
+    user_id = current_user["user_id"]
+    
+    # Get call and current recording
+    call = await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call["caller_id"], call["recipient_id"]]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    recording_id = call.get("current_recording_id")
+    if not recording_id:
+        raise HTTPException(status_code=400, detail="No active recording")
+    
+    now = datetime.now(timezone.utc)
+    
+    # Update recording
+    recording = await db.call_recordings.find_one({"recording_id": recording_id})
+    if recording:
+        started_at = recording["started_at"]
+        if isinstance(started_at, str):
+            started_at = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+        duration = int((now - started_at).total_seconds())
+        
+        await db.call_recordings.update_one(
+            {"recording_id": recording_id},
+            {"$set": {
+                "ended_at": now,
+                "duration_seconds": duration,
+                "status": "awaiting_upload"
+            }}
+        )
+    
+    # Update call
+    await db.video_calls.update_one(
+        {"call_id": call_id},
+        {"$set": {"is_recording": False}}
+    )
+    
+    # Notify other participant
+    other_user_id = call["recipient_id"] if user_id == call["caller_id"] else call["caller_id"]
+    other_ws = call_connections.get(call_id, {}).get(other_user_id)
+    if other_ws:
+        try:
+            await other_ws.send_json({
+                "type": "recording-stopped",
+                "from": user_id,
+                "recording_id": recording_id
+            })
+        except:
+            pass
+    
+    logger.info(f"Recording {recording_id} stopped for call {call_id}")
+    
+    return {
+        "recording_id": recording_id,
+        "status": "awaiting_upload",
+        "message": "Recording stopped. Ready to upload."
+    }
+
+
+@router.post("/{call_id}/recording/upload")
+async def upload_recording(
+    call_id: str,
+    recording_id: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a call recording to S3"""
+    user_id = current_user["user_id"]
+    
+    # Verify recording exists and user is participant
+    recording = await db.call_recordings.find_one({"recording_id": recording_id}, {"_id": 0})
+    if not recording:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    
+    if user_id not in recording.get("participants", []):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Update status to uploading
+    await db.call_recordings.update_one(
+        {"recording_id": recording_id},
+        {"$set": {"status": "uploading"}}
+    )
+    
+    try:
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        # Generate filename
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        filename = f"call_recording_{call_id}_{timestamp}.webm"
+        
+        if S3_ENABLED and s3_client:
+            # Upload to S3
+            s3_key = f"justice-recordings/{call_id}/{filename}"
+            
+            s3_client.put_object(
+                Bucket=S3_BUCKET_NAME,
+                Key=s3_key,
+                Body=content,
+                ContentType='video/webm'
+            )
+            
+            # Generate presigned URL (valid for 7 days)
+            s3_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': S3_BUCKET_NAME, 'Key': s3_key},
+                ExpiresIn=604800  # 7 days
+            )
+            
+            # Update recording with S3 info
+            await db.call_recordings.update_one(
+                {"recording_id": recording_id},
+                {"$set": {
+                    "status": "completed",
+                    "file_size_bytes": file_size,
+                    "s3_key": s3_key,
+                    "s3_url": s3_url,
+                    "uploaded_at": datetime.now(timezone.utc)
+                }}
+            )
+            
+            logger.info(f"Recording {recording_id} uploaded to S3: {s3_key}")
+            
+            return {
+                "recording_id": recording_id,
+                "status": "completed",
+                "file_size_bytes": file_size,
+                "s3_key": s3_key,
+                "download_url": s3_url,
+                "message": "Recording uploaded to S3 successfully"
+            }
+        else:
+            # Save locally if S3 not available
+            recordings_dir = UPLOADS_DIR / "recordings"
+            recordings_dir.mkdir(exist_ok=True)
+            
+            local_path = recordings_dir / filename
+            with open(local_path, 'wb') as f:
+                f.write(content)
+            
+            await db.call_recordings.update_one(
+                {"recording_id": recording_id},
+                {"$set": {
+                    "status": "completed",
+                    "file_size_bytes": file_size,
+                    "local_path": str(local_path),
+                    "uploaded_at": datetime.now(timezone.utc)
+                }}
+            )
+            
+            logger.info(f"Recording {recording_id} saved locally: {local_path}")
+            
+            return {
+                "recording_id": recording_id,
+                "status": "completed",
+                "file_size_bytes": file_size,
+                "local_path": str(local_path),
+                "message": "Recording saved locally (S3 not configured)"
+            }
+            
+    except Exception as e:
+        logger.error(f"Recording upload failed: {e}")
+        await db.call_recordings.update_one(
+            {"recording_id": recording_id},
+            {"$set": {"status": "failed", "error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
+@router.get("/{call_id}/recordings")
+async def get_call_recordings(
+    call_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all recordings for a call"""
+    user_id = current_user["user_id"]
+    
+    # Verify user was participant
+    call = await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call["caller_id"], call["recipient_id"]]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    recordings = await db.call_recordings.find(
+        {"call_id": call_id},
+        {"_id": 0}
+    ).sort("started_at", -1).to_list(length=50)
+    
+    # Convert datetime objects and refresh S3 URLs if needed
+    for rec in recordings:
+        for field in ["started_at", "ended_at", "uploaded_at"]:
+            if rec.get(field) and hasattr(rec[field], 'isoformat'):
+                rec[field] = rec[field].isoformat()
+        
+        # Refresh S3 URL if expired or close to expiring
+        if rec.get("s3_key") and S3_ENABLED and s3_client:
+            try:
+                rec["download_url"] = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': S3_BUCKET_NAME, 'Key': rec["s3_key"]},
+                    ExpiresIn=604800
+                )
+            except:
+                pass
+    
+    return {"recordings": recordings}
+
+
+@router.get("/recordings/my")
+async def get_my_recordings(
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all recordings the user has access to"""
+    user_id = current_user["user_id"]
+    
+    recordings = await db.call_recordings.find(
+        {"participants": user_id, "status": "completed"},
+        {"_id": 0}
+    ).sort("started_at", -1).limit(limit).to_list(length=limit)
+    
+    # Enrich with call info and refresh URLs
+    for rec in recordings:
+        # Get call info
+        call = await db.video_calls.find_one({"call_id": rec["call_id"]}, {"_id": 0})
+        if call:
+            rec["caller_name"] = call.get("caller_name")
+            rec["recipient_name"] = call.get("recipient_name")
+        
+        # Convert datetime
+        for field in ["started_at", "ended_at", "uploaded_at"]:
+            if rec.get(field) and hasattr(rec[field], 'isoformat'):
+                rec[field] = rec[field].isoformat()
+        
+        # Refresh S3 URL
+        if rec.get("s3_key") and S3_ENABLED and s3_client:
+            try:
+                rec["download_url"] = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': S3_BUCKET_NAME, 'Key': rec["s3_key"]},
+                    ExpiresIn=604800
+                )
+            except:
+                pass
+    
+    return {"recordings": recordings}
