@@ -155,16 +155,18 @@ def generate_highlights_report(
         if quote:
             pdf.set_font('Helvetica', 'I', 9)
             pdf.set_text_color(80)
-            quote = quote[:200] if len(quote) > 200 else quote
-            pdf.multi_cell(0, 5, f'"{quote}"')
+            quote = quote[:150] if len(quote) > 150 else quote
+            quote = quote.replace('\n', ' ')
+            pdf.cell(0, 5, f'"{quote}"', 0, 1)
             pdf.set_text_color(0)
         
         # Description
         desc = str(h.get('description', ''))
         if desc:
             pdf.set_font('Helvetica', '', 9)
-            desc = desc[:300] if len(desc) > 300 else desc
-            pdf.multi_cell(0, 5, desc)
+            desc = desc[:200] if len(desc) > 200 else desc
+            desc = desc.replace('\n', ' ')
+            pdf.cell(0, 5, desc, 0, 1)
         
         # Legal relevance
         legal = str(h.get('legal_relevance', ''))
@@ -172,8 +174,9 @@ def generate_highlights_report(
             pdf.set_font('Helvetica', 'B', 9)
             pdf.cell(0, 5, 'Legal Note:', 0, 1)
             pdf.set_font('Helvetica', '', 9)
-            legal = legal[:300] if len(legal) > 300 else legal
-            pdf.multi_cell(0, 5, legal)
+            legal = legal[:200] if len(legal) > 200 else legal
+            legal = legal.replace('\n', ' ')
+            pdf.cell(0, 5, legal, 0, 1)
         
         pdf.ln(3)
     
