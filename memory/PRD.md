@@ -254,6 +254,19 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **QR Code Link**: Optional QR code linking to video evidence (when share URL available)
 - **Version**: 5.7.0
 
+### Phase 16 (Attorney Collaboration Mode) ✅ - Jan 22, 2026
+- **Attorney Invitation System**: Clients can invite attorneys via email with secure 48-hour token
+- **Accept Invite Flow**: Attorneys can create new account or login with existing credentials
+- **Attorney Verification**: Submit bar number, firm name, specialization for verification
+- **Attorney Dashboard**: Stats (clients, encounters, reviews, messages), client list, encounter list
+- **Case Notes**: Private attorney notes with types (general, legal_analysis, strategy, evidence_review)
+- **Secure Messaging**: Real-time messaging between attorney and client
+- **Encounter Workspace**: Review highlights, transcripts, create notes, send messages
+- **Access Management**: Clients can view their attorneys and revoke access
+- **Dynamic Sidebar**: Attorney Dashboard link appears for users with role='attorney'
+- **Role-based Access Control**: Proper 403 responses for non-attorneys
+- **Version**: 5.8.0
+
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
