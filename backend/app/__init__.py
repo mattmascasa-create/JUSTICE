@@ -1,0 +1,3 @@
+"""
+JUSTICE Application - Main package
+"""
