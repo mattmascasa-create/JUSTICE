@@ -921,11 +921,6 @@ Now process all segments:"""
                         "end": seg.get("end", 0),
                         "text": seg.get("text", "").strip()
                     })
-                            
-                except Exception as e:
-                    logger.warning(f"Speaker identification failed: {e}")
-                    # Fall back to plain transcript
-                    speaker_transcript = transcript_text
             
             # Store transcript
             now = datetime.now(timezone.utc)
@@ -935,7 +930,7 @@ Now process all segments:"""
                     "transcript": transcript_text,
                     "speaker_transcript": speaker_transcript or transcript_text,
                     "speaker_segments": speaker_segments,
-                    "transcript_segments": segments,
+                    "transcript_segments": whisper_segments,
                     "transcription_status": "completed",
                     "transcribed_at": now,
                     "speaker_labels": {
@@ -953,7 +948,7 @@ Now process all segments:"""
                 "transcript": transcript_text,
                 "speaker_transcript": speaker_transcript or transcript_text,
                 "speaker_segments": speaker_segments,
-                "segments": segments,
+                "segments": whisper_segments,
                 "transcribed_at": now.isoformat()
             }
             
