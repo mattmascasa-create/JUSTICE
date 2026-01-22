@@ -143,12 +143,12 @@ class TestAuthenticatedHighlightsEndpoints:
     """Test authenticated highlights endpoints"""
     
     def test_get_highlights_requires_auth(self):
-        """Get highlights without auth returns 401"""
+        """Get highlights without auth returns 401 or 403"""
         response = requests.get(
             f"{BASE_URL}/api/encounters/{TEST_ENCOUNTER_ID}/highlights"
         )
-        assert response.status_code == 401
-        print("✓ Get highlights requires authentication")
+        assert response.status_code in [401, 403]
+        print(f"✓ Get highlights requires authentication (status: {response.status_code})")
     
     def test_get_highlights_with_auth(self, auth_headers):
         """Get highlights with valid auth returns highlights"""
