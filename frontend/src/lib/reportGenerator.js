@@ -1,6 +1,21 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
+import QRCode from 'qrcode';
+
+// Helper to generate QR code as data URL
+async function generateQRCode(text, size = 100) {
+  try {
+    return await QRCode.toDataURL(text, {
+      width: size,
+      margin: 1,
+      color: { dark: '#000000', light: '#ffffff' }
+    });
+  } catch (err) {
+    console.error('QR code generation error:', err);
+    return null;
+  }
+}
 
 export async function generateCaseReport(reportData) {
   const { case: caseData, evidence, timeline, user, generated_at, report_id } = reportData;
