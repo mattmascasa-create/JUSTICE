@@ -364,6 +364,31 @@ export default function SharedEncounterView() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Jump to highlight timestamp
+  const jumpToHighlight = (timestamp) => {
+    // Parse timestamp (format: "00:45" or "01:23")
+    const parts = timestamp.split(':');
+    let totalSeconds = 0;
+    if (parts.length === 2) {
+      totalSeconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    } else if (parts.length === 3) {
+      totalSeconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    }
+    
+    // Calculate chunk index (15 seconds per chunk)
+    const chunkIndex = Math.floor(totalSeconds / 15);
+    
+    if (chunkIndex < videoChunks.length) {
+      goToChunk(chunkIndex);
+      toast.info(`Jumped to ${timestamp}`);
+    }
+  };
+
+  // Filter highlights
+  const filteredHighlights = highlights.filter(h => 
+    highlightFilter === 'all' || h.category === highlightFilter || h.severity === highlightFilter
+  );
+
   // Scroll to bottom of transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
