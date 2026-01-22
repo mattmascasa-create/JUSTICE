@@ -301,10 +301,12 @@ export default function EncounterPage() {
     if (mediaRecorderRef.current && isRecording) {
       if (isPaused) {
         mediaRecorderRef.current.resume();
+        if (audioRecorderRef.current) audioRecorderRef.current.resume();
         setIsPaused(false);
         toast.info('Recording resumed');
       } else {
         mediaRecorderRef.current.pause();
+        if (audioRecorderRef.current) audioRecorderRef.current.pause();
         setIsPaused(true);
         toast.info('Recording paused');
       }
@@ -313,12 +315,22 @@ export default function EncounterPage() {
 
   const stopRecording = async () => {
     if (mediaRecorderRef.current) {
+      // Stop all recorders
       mediaRecorderRef.current.stop();
+      if (audioRecorderRef.current) audioRecorderRef.current.stop();
+      
+      // Stop all tracks
       streamRef.current?.getTracks().forEach(track => track.stop());
       
+      // Clear video preview
+      if (videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = null;
+      }
+      
       try {
+        toast.info('Processing recording and generating report...');
         const response = await encounterAPI.end(encounter.encounter_id);
-        toast.success('Recording ended. Report is being generated.');
+        toast.success('Recording ended. Detailed report generated!');
         navigate(`/encounters/${encounter.encounter_id}`);
       } catch (error) {
         console.error('Error ending encounter:', error);
