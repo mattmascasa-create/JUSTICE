@@ -205,3 +205,176 @@ Key rights to remember:
 - 14th Amendment: Equal protection under the law
 
 Always cite specific rights and suggest next steps."""
+
+
+
+async def generate_evidence_highlights(
+    transcriptions: List[dict], 
+    encounter_id: str,
+    existing_violations: List[dict] = None,
+    existing_analysis: List[dict] = None
+) -> List[dict]:
+    """
+    Generate AI-powered evidence highlights from encounter transcriptions.
+    Identifies key moments: violations, escalations, important statements, cooperation attempts.
+    Returns timestamped highlights for easy navigation.
+    """
+    if not EMERGENT_LLM_KEY or not transcriptions:
+        return []
+    
+    # Build transcript text with timestamps
+    transcript_with_times = []
+    for t in transcriptions:
+        timestamp = t.get("start_time", t.get("timestamp", "00:00"))
+        speaker = t.get("speaker", "Unknown")
+        text = t.get("text", t.get("labeled_text", ""))
+        tone = t.get("tone", "neutral")
+        transcript_with_times.append(f"[{timestamp}] {speaker} ({tone}): {text}")
+    
+    full_transcript = "\n".join(transcript_with_times)
+    
+    # Include existing analysis context
+    context_parts = []
+    if existing_violations:
+        context_parts.append(f"Known violations: {json.dumps(existing_violations[:5])}")
+    if existing_analysis:
+        context_parts.append(f"Prior analysis: {json.dumps(existing_analysis[:3])}")
+    context = "\n".join(context_parts) if context_parts else ""
+    
+    try:
+        llm = create_llm_chat(
+            f"highlights_{encounter_id}_{uuid.uuid4().hex[:8]}",
+            """You are a legal evidence analyst specializing in police encounter documentation.
+Your task is to identify key moments that would be important for legal review.
+Focus on: rights violations, escalation points, important statements, and notable behaviors."""
+        )
+        
+        prompt = f"""Analyze this police encounter transcript and identify KEY EVIDENCE HIGHLIGHTS.
+Each highlight should be a significant moment that an attorney would want to review.
+
+TRANSCRIPT WITH TIMESTAMPS:
+{full_transcript}
+
+{f'CONTEXT: {context}' if context else ''}
+
+Return a JSON array of highlights. Each highlight must have:
+- timestamp: The exact timestamp from the transcript (e.g., "00:45", "01:23")
+- category: One of "violation", "escalation", "threat", "rights_assertion", "cooperation", "important_statement", "procedural_issue"
+- severity: "critical", "high", "medium", or "low"
+- title: Brief 5-10 word title
+- description: 1-2 sentence explanation of why this is significant
+- quote: The exact quote from the transcript
+- legal_relevance: Brief note on legal significance
+- speaker: "Officer" or "Citizen"
+
+Return 5-15 highlights, prioritizing the most legally significant moments.
+Return ONLY valid JSON array.
+
+Example format:
+[
+  {{
+    "timestamp": "00:45",
+    "category": "violation",
+    "severity": "critical",
+    "title": "Unlawful Search Demand",
+    "description": "Officer demanded to search vehicle without consent or probable cause.",
+    "quote": "Open your trunk right now",
+    "legal_relevance": "4th Amendment violation - requires consent or warrant",
+    "speaker": "Officer"
+  }}
+]"""
+
+        response = await llm.send_message(UserMessage(text=prompt))
+        
+        if response:
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("```")[1]
+                if cleaned.startswith("json"):
+                    cleaned = cleaned[4:]
+            
+            highlights = json.loads(cleaned.strip())
+            
+            # Add IDs and normalize
+            for i, highlight in enumerate(highlights):
+                highlight["highlight_id"] = f"hl_{encounter_id}_{i}"
+                highlight["generated_at"] = datetime.now(timezone.utc).isoformat()
+                # Ensure required fields
+                if "severity" not in highlight:
+                    highlight["severity"] = "medium"
+                if "category" not in highlight:
+                    highlight["category"] = "important_statement"
+            
+            # Sort by severity (critical first) then timestamp
+            severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+            highlights.sort(key=lambda x: (severity_order.get(x.get("severity"), 2), x.get("timestamp", "")))
+            
+            return highlights
+            
+    except Exception as e:
+        print(f"Evidence highlights generation error: {e}")
+    
+    return []
+
+
+async def regenerate_highlights_with_feedback(
+    encounter_id: str,
+    transcriptions: List[dict],
+    feedback: str,
+    previous_highlights: List[dict] = None
+) -> List[dict]:
+    """
+    Regenerate highlights with user/attorney feedback to improve relevance.
+    """
+    if not EMERGENT_LLM_KEY:
+        return previous_highlights or []
+    
+    try:
+        llm = create_llm_chat(
+            f"regen_highlights_{encounter_id}_{uuid.uuid4().hex[:8]}",
+            """You are refining evidence highlights based on feedback.
+Improve the highlights to better serve legal review needs."""
+        )
+        
+        transcript_with_times = []
+        for t in transcriptions:
+            timestamp = t.get("start_time", t.get("timestamp", "00:00"))
+            speaker = t.get("speaker", "Unknown")
+            text = t.get("text", t.get("labeled_text", ""))
+            transcript_with_times.append(f"[{timestamp}] {speaker}: {text}")
+        
+        prompt = f"""TRANSCRIPT:
+{chr(10).join(transcript_with_times)}
+
+PREVIOUS HIGHLIGHTS:
+{json.dumps(previous_highlights or [], indent=2)}
+
+FEEDBACK TO ADDRESS:
+{feedback}
+
+Generate improved highlights addressing the feedback.
+Return ONLY valid JSON array with same format as before.
+Include timestamp, category, severity, title, description, quote, legal_relevance, speaker."""
+
+        response = await llm.send_message(UserMessage(text=prompt))
+        
+        if response:
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("```")[1]
+                if cleaned.startswith("json"):
+                    cleaned = cleaned[4:]
+            
+            highlights = json.loads(cleaned.strip())
+            
+            for i, highlight in enumerate(highlights):
+                highlight["highlight_id"] = f"hl_{encounter_id}_{i}"
+                highlight["generated_at"] = datetime.now(timezone.utc).isoformat()
+                highlight["regenerated"] = True
+            
+            return highlights
+            
+    except Exception as e:
+        print(f"Highlights regeneration error: {e}")
+    
+    return previous_highlights or []
