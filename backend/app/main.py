@@ -81,10 +81,98 @@ app.include_router(rights_router, prefix="/api")
 async def root():
     return {
         "name": "JUSTICE API",
-        "version": "5.2.0",
+        "version": "5.3.0",
         "status": "operational",
         "docs": "/docs"
     }
+
+
+# WebSocket endpoint for shared encounter viewers
+@app.websocket("/api/ws/shared/{encounter_id}")
+async def shared_encounter_websocket(websocket: WebSocket, encounter_id: str, token: str):
+    """
+    WebSocket endpoint for real-time updates to shared encounter viewers.
+    Validates share token before accepting connection.
+    """
+    # Validate encounter and share token
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter or not encounter.get("share_active") or encounter.get("share_token") != token:
+        await websocket.close(code=4003, reason="Invalid or expired share link")
+        return
+    
+    await manager.add_share_viewer(encounter_id, websocket)
+    
+    # Update viewer count
+    viewer_count = manager.get_share_viewer_count(encounter_id)
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$set": {"share_viewer_count": viewer_count}}
+    )
+    
+    # Notify encounter owner of new viewer
+    await manager.send_to_user(encounter.get("user_id"), {
+        "type": "viewer_joined",
+        "encounter_id": encounter_id,
+        "viewer_count": viewer_count
+    })
+    
+    try:
+        while True:
+            data = await websocket.receive_json()
+            # Handle messages from viewers (like sending guidance)
+            if data.get("type") == "guidance":
+                from datetime import datetime, timezone
+                import uuid
+                
+                now = datetime.now(timezone.utc)
+                message_id = f"msg_{uuid.uuid4().hex[:12]}"
+                
+                message_doc = {
+                    "message_id": message_id,
+                    "encounter_id": encounter_id,
+                    "sender_name": data.get("sender_name", "Anonymous")[:50],
+                    "message": data.get("message", "")[:200],
+                    "created_at": now.isoformat()
+                }
+                
+                await db.encounter_messages.insert_one(message_doc)
+                
+                # Notify encounter owner
+                await manager.send_to_user(encounter.get("user_id"), {
+                    "type": "guidance_message",
+                    "encounter_id": encounter_id,
+                    "message_id": message_id,
+                    "sender_name": data.get("sender_name", "Anonymous")[:50],
+                    "message": data.get("message", "")[:200],
+                    "timestamp": now.isoformat()
+                })
+                
+                # Broadcast to all viewers
+                await manager.broadcast_to_share_viewers(encounter_id, {
+                    "type": "new_message",
+                    "message_id": message_id,
+                    "sender_name": data.get("sender_name", "Anonymous")[:50],
+                    "message": data.get("message", "")[:200],
+                    "timestamp": now.isoformat()
+                })
+                
+    except WebSocketDisconnect:
+        manager.remove_share_viewer(encounter_id, websocket)
+        viewer_count = manager.get_share_viewer_count(encounter_id)
+        await db.encounters.update_one(
+            {"encounter_id": encounter_id},
+            {"$set": {"share_viewer_count": viewer_count}}
+        )
+        # Notify owner
+        await manager.send_to_user(encounter.get("user_id"), {
+            "type": "viewer_left",
+            "encounter_id": encounter_id,
+            "viewer_count": viewer_count
+        })
 
 
 # For running with uvicorn directly (development)
