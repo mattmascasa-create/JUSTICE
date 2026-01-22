@@ -79,6 +79,7 @@ app.include_router(community_router, prefix="/api")
 app.include_router(rights_router, prefix="/api")
 app.include_router(attorney_collab_router, prefix="/api")
 app.include_router(backup_router, prefix="/api")
+app.include_router(calls_router, prefix="/api")
 
 
 # Root endpoint
