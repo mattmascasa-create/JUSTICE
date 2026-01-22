@@ -454,6 +454,19 @@ export default function EncounterPage() {
     }
   }, [isRecording, isPaused]);
 
+  // Check screen recording support on mount
+  useEffect(() => {
+    const checkScreenRecordingSupport = () => {
+      // Check if getDisplayMedia is available
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        setScreenRecordingSupported(true);
+      } else {
+        setScreenRecordingSupported(false);
+      }
+    };
+    checkScreenRecordingSupport();
+  }, []);
+
   // Duration timer
   useEffect(() => {
     if (isRecording && !isPaused) {
