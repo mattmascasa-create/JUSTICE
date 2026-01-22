@@ -220,13 +220,15 @@ class TestVoiceCommands:
         encounter_id = self.test_create_encounter_for_voice_commands()
         
         # Add a mark
+        headers = {"Authorization": f"Bearer {self.token}"}
         mark_data = {
-            "timestamp": 45.0,
+            "timestamp": "45.0",
             "note": "Voice command: violation marked"
         }
-        self.session.post(
+        requests.post(
             f"{BASE_URL}/api/encounters/{encounter_id}/mark-violation",
-            data=mark_data
+            data=mark_data,
+            headers=headers
         )
         
         # End the encounter
