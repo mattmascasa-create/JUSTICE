@@ -1346,3 +1346,145 @@ async def get_shared_highlights(encounter_id: str, token: str):
         "generated_at": encounter.get("highlights_generated_at")
     }
 
+
+
+# ============== EXPORT HIGHLIGHTS REPORT ==============
+
+@router.get("/{encounter_id}/highlights/export")
+async def export_highlights_report(
+    encounter_id: str,
+    style: str = "formal",
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Export encounter highlights as a professional PDF report.
+    Style options: 'formal' (court-ready) or 'simple' (quick overview)
+    """
+    from app.services.report_service import generate_highlights_report
+    from fastapi.responses import Response
+    
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    highlights = encounter.get("evidence_highlights", [])
+    
+    if not highlights:
+        raise HTTPException(status_code=400, detail="No highlights available to export. Generate highlights first.")
+    
+    # Build share URL if available
+    share_url = None
+    if encounter.get("share_active") and encounter.get("share_token"):
+        share_url = f"https://justice-platform.com/shared/{encounter_id}?token={encounter.get('share_token')}"
+    
+    # Prepare encounter data
+    encounter_data = {
+        "encounter_id": encounter_id,
+        "started_at": encounter.get("started_at"),
+        "location": {
+            "address": encounter.get("address"),
+            "latitude": encounter.get("latitude"),
+            "longitude": encounter.get("longitude")
+        },
+        "duration_seconds": encounter.get("duration_seconds", 0),
+        "encounter_type": encounter.get("encounter_type")
+    }
+    
+    # Generate PDF
+    pdf_bytes = generate_highlights_report(
+        encounter_data=encounter_data,
+        highlights=highlights,
+        report_style=style if style in ["formal", "simple"] else "formal",
+        include_qr=bool(share_url),
+        share_url=share_url
+    )
+    
+    filename = f"JUSTICE_Report_{encounter_id}_{style}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(pdf_bytes))
+        }
+    )
+
+
+@router.get("/shared/{encounter_id}/highlights/export")
+async def export_shared_highlights_report(
+    encounter_id: str,
+    token: str,
+    style: str = "formal"
+):
+    """
+    Public endpoint - Export shared encounter highlights as PDF report.
+    Allows viewers to download evidence report for their records.
+    """
+    from app.services.report_service import generate_highlights_report
+    from fastapi.responses import Response
+    
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Validate share token
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    highlights = encounter.get("evidence_highlights", [])
+    
+    if not highlights:
+        raise HTTPException(status_code=400, detail="No highlights available to export")
+    
+    # Build share URL
+    share_url = f"https://justice-platform.com/shared/{encounter_id}?token={token}"
+    
+    # Get owner name
+    owner = await db.users.find_one(
+        {"user_id": encounter.get("user_id")},
+        {"_id": 0, "name": 1}
+    )
+    
+    # Prepare encounter data
+    encounter_data = {
+        "encounter_id": encounter_id,
+        "owner_name": owner.get("name") if owner else "Unknown",
+        "started_at": encounter.get("started_at"),
+        "location": {
+            "address": encounter.get("address"),
+            "latitude": encounter.get("latitude"),
+            "longitude": encounter.get("longitude")
+        },
+        "duration_seconds": encounter.get("duration_seconds", 0),
+        "encounter_type": encounter.get("encounter_type")
+    }
+    
+    # Generate PDF
+    pdf_bytes = generate_highlights_report(
+        encounter_data=encounter_data,
+        highlights=highlights,
+        report_style=style if style in ["formal", "simple"] else "formal",
+        include_qr=True,
+        share_url=share_url
+    )
+    
+    filename = f"JUSTICE_Report_{encounter_id}_{style}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(pdf_bytes))
+        }
+    )
+
