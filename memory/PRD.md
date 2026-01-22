@@ -243,6 +243,17 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Legal Relevance Notes**: Each highlight includes legal significance explanation
 - **Version**: 5.6.0
 
+### Phase 15 (Export Highlights Report) ✅ - Jan 22, 2026
+- **Professional PDF Reports**: Generate court-ready PDF reports with all evidence highlights
+- **Two Report Styles**: Formal (court-ready with legal disclaimer) and Simple (quick summary)
+- **Both Owner & Viewers**: Encounter owner and shared viewers can download reports
+- **Report Contents**: Case info, executive summary, severity/category breakdown, detailed highlights with timestamps
+- **Legal Disclaimer**: Formal style includes professional legal disclaimer page
+- **Download Headers**: Proper Content-Disposition for automatic file download
+- **Filename Convention**: JUSTICE_Report_{encounter_id}_{style}_{date}.pdf
+- **QR Code Link**: Optional QR code linking to video evidence (when share URL available)
+- **Version**: 5.7.0
+
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
 - **Evidence Storage Status**: View blockchain and IPFS status
