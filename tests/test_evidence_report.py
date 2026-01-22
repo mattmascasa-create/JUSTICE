@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://police-encounter.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://justice-civil.preview.emergentagent.com').rstrip('/')
 
 class TestEvidenceReport:
     """Test Evidence Report API endpoint"""
