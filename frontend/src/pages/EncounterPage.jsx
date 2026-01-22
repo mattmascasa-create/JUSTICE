@@ -650,6 +650,9 @@ export default function EncounterPage() {
       toast.error('Failed to generate share link');
     }
   };
+  
+  // Assign to ref for voice commands
+  shareStreamLinkRef.current = shareStreamLink;
 
   // Not recording yet - show setup screen
   if (!isRecording) {
