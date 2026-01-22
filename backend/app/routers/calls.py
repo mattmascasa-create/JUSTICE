@@ -956,7 +956,7 @@ async def get_transcript(
     recording_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get transcript for a recording"""
+    """Get transcript for a recording with speaker identification"""
     user_id = current_user["user_id"]
     
     recording = await db.call_recordings.find_one({"recording_id": recording_id}, {"_id": 0})
@@ -981,6 +981,9 @@ async def get_transcript(
         "recording_id": recording_id,
         "has_transcript": True,
         "transcript": recording["transcript"],
+        "speaker_transcript": recording.get("speaker_transcript"),
+        "speaker_segments": recording.get("speaker_segments", []),
+        "speaker_labels": recording.get("speaker_labels", {}),
         "segments": recording.get("transcript_segments", []),
         "transcribed_at": transcribed_at
     }
