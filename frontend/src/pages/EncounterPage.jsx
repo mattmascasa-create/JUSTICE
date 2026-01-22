@@ -1166,7 +1166,11 @@ export default function EncounterPage() {
                       className={`p-3 rounded-lg border transition-all ${
                         t.violations_detected?.length > 0 
                           ? 'bg-red-500/10 border-red-500/30' 
-                          : 'bg-muted/30 border-border/50'
+                          : t.speaker === 'Officer' 
+                            ? 'bg-blue-500/5 border-blue-500/20'
+                            : t.speaker === 'Citizen'
+                              ? 'bg-green-500/5 border-green-500/20'
+                              : 'bg-muted/30 border-border/50'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1">
@@ -1174,6 +1178,24 @@ export default function EncounterPage() {
                           <Badge variant="outline" className="text-xs font-mono">
                             {formatDuration(t.chunk_index ? t.chunk_index * 10 : i * 10)}
                           </Badge>
+                          {/* Speaker Badge */}
+                          {t.speaker && t.speaker !== 'unknown' && (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                t.speaker === 'Officer' 
+                                  ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                                  : 'bg-green-500/20 border-green-500/50 text-green-400'
+                              }`}
+                            >
+                              {t.speaker === 'Officer' ? '👮' : '🙋'} {t.speaker}
+                              {t.speaker_confidence > 0 && (
+                                <span className="ml-1 opacity-70">
+                                  {Math.round(t.speaker_confidence * 100)}%
+                                </span>
+                              )}
+                            </Badge>
+                          )}
                           {t.violations_detected?.length > 0 && (
                             <Badge variant="destructive" className="text-xs">
                               <AlertTriangle className="h-3 w-3 mr-1" />
@@ -1185,10 +1207,36 @@ export default function EncounterPage() {
                           Segment {i + 1}
                         </span>
                       </div>
+                      {/* Display labeled text if available, otherwise original text */}
                       <p 
                         className="text-sm leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: highlightText(t.text) || 'Processing...' }}
+                        dangerouslySetInnerHTML={{ 
+                          __html: highlightText(t.labeled_text || t.text) || 'Processing...' 
+                        }}
                       />
+                      {/* Show speaker changes if multiple speakers detected */}
+                      {t.speaker_changes?.length > 1 && (
+                        <div className="mt-2 pt-2 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground mb-1">Multiple speakers detected:</p>
+                          <div className="space-y-1">
+                            {t.speaker_changes.map((change, idx) => (
+                              <div key={idx} className="flex items-start gap-2 text-xs">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs shrink-0 ${
+                                    change.speaker === 'Officer' 
+                                      ? 'bg-blue-500/20 text-blue-400' 
+                                      : 'bg-green-500/20 text-green-400'
+                                  }`}
+                                >
+                                  {change.speaker}
+                                </Badge>
+                                <span className="text-muted-foreground">{change.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {t.violations_detected?.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-red-500/20">
                           <p className="text-xs text-red-400">
