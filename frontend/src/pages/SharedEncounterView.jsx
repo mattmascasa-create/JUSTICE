@@ -978,6 +978,96 @@ export default function SharedEncounterView() {
               ))}
             </CardContent>
           </Card>
+
+          {/* AI Evidence Highlights */}
+          {highlights.length > 0 && (
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between text-white">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-yellow-400" />
+                    Evidence Highlights
+                    <Badge variant="outline" className="text-xs border-yellow-500/50 text-yellow-400">
+                      {filteredHighlights.length}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowHighlights(!showHighlights)}
+                    className="text-xs"
+                  >
+                    {showHighlights ? 'Hide' : 'Show'}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              {showHighlights && (
+                <CardContent className="space-y-3">
+                  {/* Filter */}
+                  <Select value={highlightFilter} onValueChange={setHighlightFilter}>
+                    <SelectTrigger className="w-full bg-slate-700 border-slate-600">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter highlights" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Highlights</SelectItem>
+                      <SelectItem value="critical">Critical Only</SelectItem>
+                      <SelectItem value="high">High Priority</SelectItem>
+                      <SelectItem value="violation">Violations</SelectItem>
+                      <SelectItem value="escalation">Escalations</SelectItem>
+                      <SelectItem value="rights_assertion">Rights Assertions</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Highlights List */}
+                  <ScrollArea className="h-[350px] pr-2" data-testid="highlights-scroll">
+                    <div className="space-y-2">
+                      {filteredHighlights.map((highlight, idx) => {
+                        const CategoryIcon = categoryIcons[highlight.category] || Flag;
+                        return (
+                          <div
+                            key={highlight.highlight_id || idx}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${categoryColors[highlight.category] || 'border-gray-500/30 bg-gray-500/10'}`}
+                            onClick={() => jumpToHighlight(highlight.timestamp)}
+                            data-testid={`highlight-${idx}`}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <CategoryIcon className="h-4 w-4" />
+                                <Badge className={`text-xs ${severityColors[highlight.severity] || 'bg-gray-500'}`}>
+                                  {highlight.severity?.toUpperCase()}
+                                </Badge>
+                              </div>
+                              <Badge variant="outline" className="text-xs font-mono">
+                                {highlight.timestamp}
+                              </Badge>
+                            </div>
+                            <h4 className="font-medium text-sm text-white mb-1">
+                              {highlight.title}
+                            </h4>
+                            {highlight.quote && (
+                              <p className="text-xs text-gray-400 italic mb-2 line-clamp-2">
+                                "{highlight.quote}"
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-300 mb-2">
+                              {highlight.description}
+                            </p>
+                            {highlight.legal_relevance && (
+                              <div className="flex items-start gap-1 text-xs text-yellow-400/80">
+                                <Scale className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                <span>{highlight.legal_relevance}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              )}
+            </Card>
+          )}
         </div>
       </div>
     </div>
