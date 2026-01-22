@@ -26,6 +26,7 @@ import hmac
 import aiohttp
 import zipfile
 from emergentintegrations.llm.openai import OpenAISpeechToText, LlmChat
+from emergentintegrations.llm.chat import UserMessage
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
