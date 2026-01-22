@@ -379,6 +379,26 @@ export const attorneyCollabAPI = {
   revokeAccess: (encounterId) => api.delete(`/attorney/access/${encounterId}`),
 };
 
+// Video Call API
+export const callsAPI = {
+  // Call management
+  initiateCall: (recipientId, callType = 'video', encounterId = null) => {
+    const formData = new FormData();
+    formData.append('recipient_id', recipientId);
+    formData.append('call_type', callType);
+    if (encounterId) formData.append('encounter_id', encounterId);
+    return api.post('/calls/initiate', formData);
+  },
+  answerCall: (callId) => api.post(`/calls/${callId}/answer`),
+  rejectCall: (callId) => api.post(`/calls/${callId}/reject`),
+  endCall: (callId) => api.post(`/calls/${callId}/end`),
+  getActiveCall: () => api.get('/calls/active'),
+  getIncomingCalls: () => api.get('/calls/incoming'),
+  getCallHistory: (limit = 20, contactId = null) => api.get('/calls/history', {
+    params: { limit, contact_id: contactId }
+  }),
+};
+
 // Policy Impact Dashboard API
 export const policyAPI = {
   getDashboardData: () => api.get('/policy/dashboard-data'),
