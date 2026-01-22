@@ -374,13 +374,17 @@ export default function SharedEncounterView() {
     // Poll for video chunks
     const videoInterval = setInterval(fetchVideoChunks, 10000);
     
+    // Poll for screen chunks
+    const screenInterval = setInterval(fetchScreenChunks, 10000);
+    
     return () => {
       clearInterval(pollInterval);
       clearInterval(videoInterval);
+      clearInterval(screenInterval);
       clearTimeout(reconnectTimeoutRef.current);
       wsRef.current?.close();
     };
-  }, [fetchEncounter, fetchVideoChunks, connectWebSocket, connected, encounterId, token]);
+  }, [fetchEncounter, fetchVideoChunks, fetchScreenChunks, connectWebSocket, connected, encounterId, token]);
 
   // Format duration
   const formatDuration = (seconds) => {
