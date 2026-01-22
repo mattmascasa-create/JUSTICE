@@ -23,6 +23,7 @@ from app.routers.ai_chat import router as ai_chat_router
 from app.routers.encounters import router as encounters_router
 from app.routers.community import router as community_router
 from app.routers.rights import router as rights_router
+from app.routers.attorney import router as attorney_collab_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
