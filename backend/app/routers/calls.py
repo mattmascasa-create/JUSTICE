@@ -1080,3 +1080,238 @@ async def search_transcripts(
         "total_results": len(results),
         "results": results
     }
+
+
+# ============== REAL-TIME TRANSCRIPTION ==============
+
+# Store for live transcription sessions
+live_transcription_sessions = {}  # call_id -> {segments: [], notes: []}
+
+
+@router.post("/{call_id}/live-transcribe")
+async def live_transcribe_chunk(
+    call_id: str,
+    audio_chunk: UploadFile = File(...),
+    chunk_index: int = Form(0),
+    current_user: dict = Depends(get_current_user)
+):
+    """Transcribe a live audio chunk during a call"""
+    user_id = current_user["user_id"]
+    
+    # Verify call exists and user is participant
+    call = active_calls.get(call_id)
+    if not call:
+        call = await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call.get("caller_id"), call.get("recipient_id")]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    # Initialize session if needed
+    if call_id not in live_transcription_sessions:
+        live_transcription_sessions[call_id] = {
+            "segments": [],
+            "notes": [],
+            "started_at": datetime.now(timezone.utc)
+        }
+    
+    try:
+        import tempfile
+        from emergentintegrations.llm.openai import transcribe_audio
+        
+        # Save audio chunk to temp file
+        content = await audio_chunk.read()
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+        
+        try:
+            api_key = os.environ.get("EMERGENT_API_KEY") or os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                raise HTTPException(status_code=500, detail="Transcription API key not configured")
+            
+            # Transcribe chunk
+            result = await transcribe_audio(
+                api_key=api_key,
+                audio_file_path=tmp_path,
+                response_format="verbose_json"
+            )
+            
+            transcript_text = ""
+            if isinstance(result, dict):
+                transcript_text = result.get("text", "").strip()
+            else:
+                transcript_text = str(result).strip()
+            
+            if transcript_text:
+                # Calculate approximate timestamp based on chunk index
+                # Assuming ~5 second chunks
+                timestamp = chunk_index * 5.0
+                
+                segment = {
+                    "index": chunk_index,
+                    "timestamp": timestamp,
+                    "text": transcript_text,
+                    "speaker": "unknown",  # Will be identified by GPT if needed
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                live_transcription_sessions[call_id]["segments"].append(segment)
+                
+                # Broadcast to other participant via WebSocket
+                other_user_id = call.get("recipient_id") if user_id == call.get("caller_id") else call.get("caller_id")
+                other_ws = call_connections.get(call_id, {}).get(other_user_id)
+                if other_ws:
+                    try:
+                        await other_ws.send_json({
+                            "type": "live-transcript",
+                            "segment": segment
+                        })
+                    except:
+                        pass
+                
+                return {
+                    "success": True,
+                    "segment": segment
+                }
+            
+            return {"success": True, "segment": None}
+            
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Live transcription error: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@router.get("/{call_id}/live-transcript")
+async def get_live_transcript(
+    call_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the current live transcript for a call"""
+    user_id = current_user["user_id"]
+    
+    # Verify call exists and user is participant
+    call = active_calls.get(call_id) or await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call.get("caller_id"), call.get("recipient_id")]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    session = live_transcription_sessions.get(call_id, {"segments": [], "notes": []})
+    
+    return {
+        "call_id": call_id,
+        "segments": session.get("segments", []),
+        "notes": session.get("notes", [])
+    }
+
+
+@router.post("/{call_id}/live-note")
+async def add_live_note(
+    call_id: str,
+    content: str = Form(...),
+    timestamp: float = Form(0),
+    note_type: str = Form("general"),  # general, important, action_item, question
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a note during a live call"""
+    user_id = current_user["user_id"]
+    
+    # Verify call
+    call = active_calls.get(call_id) or await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call.get("caller_id"), call.get("recipient_id")]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    # Initialize session if needed
+    if call_id not in live_transcription_sessions:
+        live_transcription_sessions[call_id] = {
+            "segments": [],
+            "notes": [],
+            "started_at": datetime.now(timezone.utc)
+        }
+    
+    note = {
+        "note_id": f"note_{uuid.uuid4().hex[:8]}",
+        "user_id": user_id,
+        "user_name": current_user.get("name", "Unknown"),
+        "content": content,
+        "timestamp": timestamp,
+        "note_type": note_type,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    live_transcription_sessions[call_id]["notes"].append(note)
+    
+    # Broadcast to other participant
+    other_user_id = call.get("recipient_id") if user_id == call.get("caller_id") else call.get("caller_id")
+    other_ws = call_connections.get(call_id, {}).get(other_user_id)
+    if other_ws:
+        try:
+            await other_ws.send_json({
+                "type": "live-note",
+                "note": note
+            })
+        except:
+            pass
+    
+    return {"success": True, "note": note}
+
+
+@router.post("/{call_id}/save-live-transcript")
+async def save_live_transcript(
+    call_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Save the live transcript to the database when call ends"""
+    user_id = current_user["user_id"]
+    
+    # Verify call
+    call = await db.video_calls.find_one({"call_id": call_id}, {"_id": 0})
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    if user_id not in [call.get("caller_id"), call.get("recipient_id")]:
+        raise HTTPException(status_code=403, detail="Not a participant")
+    
+    session = live_transcription_sessions.get(call_id)
+    if not session:
+        return {"success": True, "message": "No live transcript to save"}
+    
+    # Combine segments into full transcript
+    segments = sorted(session.get("segments", []), key=lambda x: x.get("timestamp", 0))
+    full_transcript = " ".join([s.get("text", "") for s in segments])
+    
+    # Save to database
+    await db.live_transcripts.insert_one({
+        "call_id": call_id,
+        "segments": segments,
+        "notes": session.get("notes", []),
+        "full_transcript": full_transcript,
+        "started_at": session.get("started_at"),
+        "saved_at": datetime.now(timezone.utc),
+        "participants": [call.get("caller_id"), call.get("recipient_id")]
+    })
+    
+    # Clean up session
+    del live_transcription_sessions[call_id]
+    
+    return {
+        "success": True,
+        "message": "Live transcript saved",
+        "segment_count": len(segments),
+        "note_count": len(session.get("notes", []))
+    }
