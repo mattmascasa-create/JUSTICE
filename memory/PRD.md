@@ -62,6 +62,14 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Typing indicator while listening
   - Expandable full transcript summary
   - Auto-scroll to latest transcription
+- **Speaker Diarization** ✅ (Jan 22, 2026):
+  - AI-powered speaker identification (Officer vs Citizen)
+  - Confidence scores for speaker detection (95%+ accuracy)
+  - Multi-speaker detection with speaker_changes array
+  - Color-coded segments: blue (Officer), green (Citizen)
+  - Speaker badges with emojis (👮/🙋) and confidence %
+  - Speaker legend/key in transcription panel
+  - Labeled text output ("Officer: ...", "Citizen: ...")
 
 ### Phase 5 (AI Legal Analyst) ✅
 - Document Analysis (police reports, body cam, discovery)
