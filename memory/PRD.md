@@ -276,6 +276,12 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Call Controls**: Toggle video, audio, screen share, fullscreen, end call
 - **Call History**: Database-persisted call records with duration tracking
 - **Attorney Workspace Integration**: Video Call button in Messages tab
+- **Call Recording**: Record video consultations and save to S3 for legal evidence
+  - Start/stop recording with both parties notified
+  - MediaRecorder API for client-side capture
+  - Upload to S3 with presigned download URLs
+  - Fallback to local download if S3 unavailable
+  - Recording history and playback
 - **Version**: 5.9.0
 
 ### Settings Enhancements ✅
