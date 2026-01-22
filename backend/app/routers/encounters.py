@@ -216,6 +216,19 @@ async def upload_audio_chunk(
                         "text": response.text,
                         "speaker": speaker_result.get("speaker")
                     })
+                
+                # Broadcast to share viewers (if any)
+                await manager.broadcast_to_share_viewers(encounter_id, {
+                    "type": "transcription",
+                    "segment_id": segment_id,
+                    "text": response.text,
+                    "labeled_text": speaker_result.get("labeled_text", response.text),
+                    "speaker": speaker_result.get("speaker", "unknown"),
+                    "tone": speaker_result.get("tone", "neutral"),
+                    "tone_severity": speaker_result.get("tone_severity", "normal"),
+                    "violations_detected": violations,
+                    "timestamp": now.isoformat()
+                })
         except Exception as e:
             print(f"Transcription error: {e}")
     
