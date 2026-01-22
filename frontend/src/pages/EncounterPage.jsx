@@ -69,6 +69,40 @@ const riskLevelLabels = {
   critical: 'CRITICAL'
 };
 
+// Tone/emotion colors and icons
+const toneColors = {
+  professional: 'bg-green-500/20 text-green-400 border-green-500/30',
+  calm: 'bg-green-500/20 text-green-400 border-green-500/30',
+  assertive: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  anxious: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  defensive: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  compliant: 'bg-green-500/20 text-green-400 border-green-500/30',
+  aggressive: 'bg-red-500/20 text-red-400 border-red-500/30',
+  intimidating: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  hostile: 'bg-red-500/20 text-red-400 border-red-500/30 animate-pulse',
+  neutral: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+};
+
+const toneIcons = {
+  professional: '✓',
+  calm: '😌',
+  assertive: '💪',
+  anxious: '😰',
+  defensive: '🛡️',
+  compliant: '👍',
+  aggressive: '⚠️',
+  intimidating: '😠',
+  hostile: '🚨',
+  neutral: '•'
+};
+
+const toneSeverityColors = {
+  normal: 'bg-green-500',
+  elevated: 'bg-yellow-500',
+  concerning: 'bg-orange-500',
+  critical: 'bg-red-500 animate-pulse'
+};
+
 // Keywords to highlight in transcription
 const highlightKeywords = {
   danger: ['search', 'arrest', 'detain', 'weapon', 'gun', 'resist', 'jail', 'prison'],
