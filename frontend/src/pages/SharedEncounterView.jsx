@@ -6,10 +6,12 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Slider } from '../components/ui/slider';
 import { 
   Shield, AlertTriangle, MapPin, Clock, Send, Users, Eye, 
   Radio, MessageCircle, AlertCircle, CheckCircle, XCircle,
-  Volume2, Mic, User, ChevronDown
+  Volume2, Mic, User, ChevronDown, Video, Play, Pause,
+  SkipBack, SkipForward, Maximize2, VideoOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 
