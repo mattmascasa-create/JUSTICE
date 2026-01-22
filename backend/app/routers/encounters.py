@@ -880,7 +880,8 @@ async def get_shared_encounter(encounter_id: str, token: str):
         "ai_analysis": encounter.get("ai_analysis", []),
         "manual_marks": encounter.get("manual_marks", []),
         "guidance_messages": messages,
-        "share_active": True
+        "share_active": True,
+        "has_screen_recording": encounter.get("has_screen_recording", False)
     }
 
 
