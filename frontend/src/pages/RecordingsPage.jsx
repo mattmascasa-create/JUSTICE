@@ -479,6 +479,12 @@ export default function RecordingsPage() {
                           Transcribed
                         </Badge>
                       )}
+                      {recording.ai_summary && (
+                        <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Summary
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Actions */}
