@@ -247,9 +247,32 @@ export default function SharedEncounterView() {
     }
   }, [encounterId, token, isLive]);
 
+  // Fetch screen recording chunks
+  const fetchScreenChunks = useCallback(async () => {
+    if (!token || !hasScreenRecording) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/encounters/shared/${encounterId}/screen/chunks?token=${token}`);
+      if (response.ok) {
+        const data = await response.json();
+        setScreenChunks(data.chunks || []);
+        if (data.chunks?.length > 0 && isLive) {
+          setCurrentScreenChunkIndex(data.chunks[data.chunks.length - 1].index);
+        }
+      }
+    } catch (err) {
+      console.log('Could not fetch screen chunks:', err);
+    }
+  }, [encounterId, token, isLive, hasScreenRecording]);
+
   // Get video URL for a chunk
   const getVideoChunkUrl = useCallback((filename) => {
     return `${API_URL}/api/encounters/shared/${encounterId}/video/${filename}?token=${token}`;
+  }, [encounterId, token]);
+
+  // Get screen recording URL for a chunk
+  const getScreenChunkUrl = useCallback((filename) => {
+    return `${API_URL}/api/encounters/shared/${encounterId}/screen/${filename}?token=${token}`;
   }, [encounterId, token]);
 
   // Handle chunk navigation
@@ -258,6 +281,10 @@ export default function SharedEncounterView() {
       setCurrentChunkIndex(index);
       setIsLive(index === videoChunks.length - 1);
       setIsPlaying(true);
+      // Sync screen recording if available
+      if (screenChunks.length > 0 && index < screenChunks.length) {
+        setCurrentScreenChunkIndex(index);
+      }
     }
   };
 
