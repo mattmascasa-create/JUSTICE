@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -6,11 +6,13 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { encounterAPI } from '../lib/api';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { encounterAPI, API_URL } from '../lib/api';
 import { 
   Shield, MapPin, Clock, Video, Mic, FileText, AlertTriangle,
   CheckCircle, ExternalLink, Download, Scale, Users, ArrowLeft,
-  Loader2, Play, AlertCircle, Gavel
+  Loader2, Play, AlertCircle, Gavel, Share2, Copy, SkipBack, SkipForward,
+  Pause, Volume2, Maximize
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,6 +21,13 @@ export default function EncounterReportPage() {
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState(null);
   const [error, setError] = useState(null);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const videoRef = useRef(null);
+  const authToken = localStorage.getItem('justice-token');
 
   useEffect(() => {
     loadReport();
