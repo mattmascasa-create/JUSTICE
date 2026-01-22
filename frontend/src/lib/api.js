@@ -194,7 +194,19 @@ export const encounterAPI = {
   getShared: (encounterId, token) => 
     api.get(`/encounters/shared/${encounterId}?token=${token}`),
   sendGuidance: (encounterId, token, message, senderName) =>
-    api.post(`/encounters/shared/${encounterId}/message?token=${token}&message=${encodeURIComponent(message)}&sender_name=${encodeURIComponent(senderName)}`)
+    api.post(`/encounters/shared/${encounterId}/message?token=${token}&message=${encodeURIComponent(message)}&sender_name=${encodeURIComponent(senderName)}`),
+  // AI Evidence Highlights
+  generateHighlights: (encounterId) =>
+    api.post(`/encounters/${encounterId}/highlights/generate`),
+  regenerateHighlights: (encounterId, feedback) => {
+    const formData = new FormData();
+    formData.append('feedback', feedback);
+    return api.post(`/encounters/${encounterId}/highlights/regenerate`, formData);
+  },
+  getHighlights: (encounterId) =>
+    api.get(`/encounters/${encounterId}/highlights`),
+  getSharedHighlights: (encounterId, token) =>
+    api.get(`/encounters/shared/${encounterId}/highlights?token=${token}`)
 };
 
 // Helper to get the API URL for direct media access
