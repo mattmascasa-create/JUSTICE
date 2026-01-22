@@ -134,66 +134,166 @@ export default function EncounterPage() {
         longitude: location.longitude,
         address: address || `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`,
         encounter_type: encounterType,
-        broadcast_mode: broadcastMode
+        broadcast_mode: broadcastMode,
+        video_enabled: enableVideo
       });
 
       setEncounter(response.data);
       
-      // Request media permissions
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      // Request media permissions based on settings
+      const mediaConstraints = {
         audio: true,
-        video: false // For now, audio only - video in future phase
-      });
+        video: enableVideo ? {
+          facingMode: 'environment', // Use back camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } : false
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       streamRef.current = stream;
 
-      // Create media recorder
+      // Show video preview if video is enabled
+      if (enableVideo && videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = stream;
+      }
+
+      // Determine the correct MIME type
+      const videoMimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
+        ? 'video/webm;codecs=vp9,opus'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+        ? 'video/webm;codecs=vp8,opus'
+        : 'video/webm';
+
+      const audioMimeType = 'audio/webm;codecs=opus';
+
+      // Create video/audio recorder for the full stream
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: enableVideo ? videoMimeType : audioMimeType
       });
       mediaRecorderRef.current = mediaRecorder;
 
+      // Also create a separate audio recorder for transcription
+      if (enableVideo) {
+        const audioStream = new MediaStream(stream.getAudioTracks());
+        const audioRecorder = new MediaRecorder(audioStream, { mimeType: audioMimeType });
+        audioRecorderRef.current = audioRecorder;
+
+        audioRecorder.ondataavailable = async (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+            
+            // Upload audio chunk for transcription
+            if (audioChunksRef.current.length >= 1) {
+              const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+              audioChunksRef.current = [];
+              
+              try {
+                const result = await encounterAPI.uploadAudio(
+                  response.data.encounter_id,
+                  blob,
+                  chunkIndexRef.current++
+                );
+                
+                if (result.data.transcription) {
+                  setTranscriptions(prev => [...prev, result.data.transcription]);
+                  if (result.data.transcription.violations_detected?.length > 0) {
+                    setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+                    toast.warning('⚠️ Potential violation detected!', {
+                      description: result.data.transcription.violations_detected.join(', ')
+                    });
+                  }
+                }
+              } catch (err) {
+                console.error('Audio upload error:', err);
+              }
+            }
+          }
+        };
+
+        audioRecorder.start(10000); // Record audio in 10-second chunks for transcription
+      }
+
+      // Handle video/audio chunks
       mediaRecorder.ondataavailable = async (event) => {
         if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
+          videoChunksRef.current.push(event.data);
           
-          // Upload chunk for transcription every 10 seconds worth of audio
-          if (audioChunksRef.current.length >= 1) {
-            const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            audioChunksRef.current = [];
+          // Upload video chunk every 15 seconds
+          if (videoChunksRef.current.length >= 1) {
+            const blob = new Blob(videoChunksRef.current, { 
+              type: enableVideo ? 'video/webm' : 'audio/webm' 
+            });
+            videoChunksRef.current = [];
+            const currentChunkIndex = videoChunkIndexRef.current++;
             
+            setUploadingChunk(true);
             try {
-              const result = await encounterAPI.uploadAudio(
+              await encounterAPI.uploadVideo(
                 response.data.encounter_id,
                 blob,
-                chunkIndexRef.current++
+                currentChunkIndex
               );
-              
-              if (result.data.transcription) {
-                setTranscriptions(prev => [...prev, result.data.transcription]);
-                if (result.data.transcription.violations_detected?.length > 0) {
-                  setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
-                  toast.warning('⚠️ Potential violation detected!', {
-                    description: result.data.transcription.violations_detected.join(', ')
-                  });
-                }
-              }
+              setVideoChunkCount(prev => prev + 1);
             } catch (err) {
-              console.error('Upload error:', err);
+              console.error('Video upload error:', err);
+              toast.error('Failed to save video chunk');
+            } finally {
+              setUploadingChunk(false);
             }
           }
         }
       };
 
-      // Record in 10-second chunks
-      mediaRecorder.start(10000);
+      // If audio-only, handle transcription directly
+      if (!enableVideo) {
+        mediaRecorder.ondataavailable = async (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+            
+            if (audioChunksRef.current.length >= 1) {
+              const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+              audioChunksRef.current = [];
+              
+              try {
+                const result = await encounterAPI.uploadAudio(
+                  response.data.encounter_id,
+                  blob,
+                  chunkIndexRef.current++
+                );
+                
+                if (result.data.transcription) {
+                  setTranscriptions(prev => [...prev, result.data.transcription]);
+                  if (result.data.transcription.violations_detected?.length > 0) {
+                    setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+                    toast.warning('⚠️ Potential violation detected!', {
+                      description: result.data.transcription.violations_detected.join(', ')
+                    });
+                  }
+                }
+              } catch (err) {
+                console.error('Upload error:', err);
+              }
+            }
+          }
+        };
+      }
+
+      // Record in 15-second chunks for video (larger chunks for better quality)
+      mediaRecorder.start(15000);
       setIsRecording(true);
       setDuration(0);
+      setVideoChunkCount(0);
       
-      toast.success('🚨 Recording started. Stay calm and know your rights.');
+      toast.success(`🚨 ${enableVideo ? 'Video' : 'Audio'} recording started. Stay calm and know your rights.`);
       
     } catch (error) {
       console.error('Recording error:', error);
-      toast.error('Failed to start recording: ' + (error.response?.data?.detail || error.message));
+      if (error.name === 'NotAllowedError') {
+        toast.error('Please allow camera and microphone access to record');
+      } else {
+        toast.error('Failed to start recording: ' + (error.response?.data?.detail || error.message));
+      }
     }
   };
 
