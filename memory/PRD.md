@@ -420,5 +420,5 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - [ ] 3D evidence reconstruction
 
 ## Test Credentials
-- Email: encounter_test@example.com
-- Password: password123
+- Citizen: encounter_test@example.com / password123
+- Attorney: my_attorney@lawfirm.com / attorney123
