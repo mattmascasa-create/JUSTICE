@@ -384,9 +384,12 @@ export default function SharedEncounterView() {
     }
   };
 
-  // Filter highlights
+  // Filter highlights (case-insensitive for severity)
   const filteredHighlights = highlights.filter(h => 
-    highlightFilter === 'all' || h.category === highlightFilter || h.severity === highlightFilter
+    highlightFilter === 'all' || 
+    h.category === highlightFilter || 
+    h.category?.toLowerCase() === highlightFilter ||
+    h.severity?.toLowerCase() === highlightFilter
   );
 
   // Scroll to bottom of transcript
