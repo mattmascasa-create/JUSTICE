@@ -27,27 +27,44 @@ import {
   Radio,
   Database,
   Megaphone,
-  BarChart3
+  BarChart3,
+  Briefcase
 } from 'lucide-react';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: Radio, label: 'Encounter Mode', path: '/encounter', highlight: true },
-  { icon: BarChart3, label: 'Encounter Analytics', path: '/analytics', highlight: true },
-  { icon: FolderOpen, label: 'My Cases', path: '/cases' },
-  { icon: FileBox, label: 'Evidence', path: '/evidence' },
-  { icon: Brain, label: 'Document Analysis', path: '/analyze' },
-  { icon: Database, label: 'Community Vault', path: '/community', highlight: true },
-  { icon: Megaphone, label: 'Policy Impact', path: '/policy', highlight: true },
-  { icon: Bot, label: 'AI Attorney', path: '/ai-attorney' },
-  { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
-  { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
-  { icon: MessageCircle, label: 'Messages', path: '/messages' },
-  { icon: Map, label: 'Incident Map', path: '/incident-map' },
-  { icon: BookOpen, label: 'Know Your Rights', path: '/rights' },
-  { icon: Building, label: 'Transparency', path: '/transparency' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
-];
+// Get nav items based on user role
+const getNavItems = (role) => {
+  const baseItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Radio, label: 'Encounter Mode', path: '/encounter', highlight: true },
+    { icon: BarChart3, label: 'Encounter Analytics', path: '/analytics', highlight: true },
+    { icon: FolderOpen, label: 'My Cases', path: '/cases' },
+    { icon: FileBox, label: 'Evidence', path: '/evidence' },
+    { icon: Brain, label: 'Document Analysis', path: '/analyze' },
+    { icon: Database, label: 'Community Vault', path: '/community', highlight: true },
+    { icon: Megaphone, label: 'Policy Impact', path: '/policy', highlight: true },
+    { icon: Bot, label: 'AI Attorney', path: '/ai-attorney' },
+    { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
+    { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
+    { icon: MessageCircle, label: 'Messages', path: '/messages' },
+    { icon: Map, label: 'Incident Map', path: '/incident-map' },
+    { icon: BookOpen, label: 'Know Your Rights', path: '/rights' },
+    { icon: Building, label: 'Transparency', path: '/transparency' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
+  ];
+
+  // Add attorney-specific items
+  if (role === 'attorney') {
+    // Insert attorney dashboard after the main dashboard
+    baseItems.splice(1, 0, { 
+      icon: Briefcase, 
+      label: 'Attorney Dashboard', 
+      path: '/attorney-dashboard',
+      highlight: true 
+    });
+  }
+
+  return baseItems;
+};
 
 export default function Sidebar({ isMobileSheet = false }) {
   const [collapsed, setCollapsed] = useState(false);
