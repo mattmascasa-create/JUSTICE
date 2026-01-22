@@ -1171,3 +1171,176 @@ async def get_shared_screen_chunk(encounter_id: str, filename: str, token: str):
         }
     )
 
+
+# ============== AI EVIDENCE HIGHLIGHTS ==============
+
+@router.post("/{encounter_id}/highlights/generate")
+async def generate_highlights(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Generate AI-powered evidence highlights for an encounter.
+    Identifies key moments: violations, escalations, important statements.
+    Can be called after encounter ends or on-demand.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Get all transcriptions for this encounter
+    transcriptions = await db.transcriptions.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("start_time", 1).to_list(500)
+    
+    if not transcriptions:
+        raise HTTPException(status_code=400, detail="No transcriptions available for analysis")
+    
+    # Generate highlights using AI
+    highlights = await generate_evidence_highlights(
+        transcriptions=transcriptions,
+        encounter_id=encounter_id,
+        existing_violations=encounter.get("violations", []),
+        existing_analysis=encounter.get("ai_analysis", [])
+    )
+    
+    # Store highlights in database
+    now = datetime.now(timezone.utc)
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$set": {
+            "evidence_highlights": highlights,
+            "highlights_generated_at": now.isoformat(),
+            "highlights_count": len(highlights)
+        }}
+    )
+    
+    # Notify share viewers if encounter is being shared
+    if encounter.get("share_active"):
+        await manager.broadcast_to_share_viewers(encounter_id, {
+            "type": "highlights_updated",
+            "highlights": highlights,
+            "count": len(highlights),
+            "timestamp": now.isoformat()
+        })
+    
+    return {
+        "success": True,
+        "encounter_id": encounter_id,
+        "highlights": highlights,
+        "count": len(highlights),
+        "generated_at": now.isoformat()
+    }
+
+
+@router.post("/{encounter_id}/highlights/regenerate")
+async def regenerate_highlights(
+    encounter_id: str,
+    feedback: str = Form(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Regenerate highlights with user/attorney feedback to improve relevance.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    transcriptions = await db.transcriptions.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort("start_time", 1).to_list(500)
+    
+    previous_highlights = encounter.get("evidence_highlights", [])
+    
+    highlights = await regenerate_highlights_with_feedback(
+        encounter_id=encounter_id,
+        transcriptions=transcriptions,
+        feedback=feedback,
+        previous_highlights=previous_highlights
+    )
+    
+    now = datetime.now(timezone.utc)
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$set": {
+            "evidence_highlights": highlights,
+            "highlights_generated_at": now.isoformat(),
+            "highlights_count": len(highlights),
+            "highlights_feedback": feedback
+        }}
+    )
+    
+    # Notify share viewers
+    if encounter.get("share_active"):
+        await manager.broadcast_to_share_viewers(encounter_id, {
+            "type": "highlights_updated",
+            "highlights": highlights,
+            "count": len(highlights),
+            "timestamp": now.isoformat()
+        })
+    
+    return {
+        "success": True,
+        "highlights": highlights,
+        "count": len(highlights),
+        "regenerated_at": now.isoformat()
+    }
+
+
+@router.get("/{encounter_id}/highlights")
+async def get_highlights(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get evidence highlights for an encounter."""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0, "evidence_highlights": 1, "highlights_generated_at": 1, "highlights_count": 1}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    return {
+        "encounter_id": encounter_id,
+        "highlights": encounter.get("evidence_highlights", []),
+        "count": encounter.get("highlights_count", 0),
+        "generated_at": encounter.get("highlights_generated_at")
+    }
+
+
+@router.get("/shared/{encounter_id}/highlights")
+async def get_shared_highlights(encounter_id: str, token: str):
+    """
+    Public endpoint - Get evidence highlights for shared encounter viewers.
+    Allows viewers to see AI-identified key moments.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Validate share token
+    if not encounter.get("share_active") or encounter.get("share_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid or expired share link")
+    
+    return {
+        "encounter_id": encounter_id,
+        "highlights": encounter.get("evidence_highlights", []),
+        "count": encounter.get("highlights_count", 0),
+        "generated_at": encounter.get("highlights_generated_at")
+    }
+
