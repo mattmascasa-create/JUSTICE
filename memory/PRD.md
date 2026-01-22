@@ -388,6 +388,11 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - `GET /api/calls/incoming` - Get incoming calls
 - `GET /api/calls/history` - Get call history
 - `WS /api/calls/signal/{call_id}` - WebSocket for WebRTC signaling
+- `POST /api/calls/{call_id}/recording/start` - Start recording
+- `POST /api/calls/{call_id}/recording/stop` - Stop recording
+- `POST /api/calls/{call_id}/recording/upload` - Upload recording to S3
+- `GET /api/calls/{call_id}/recordings` - Get recordings for a call
+- `GET /api/calls/recordings/my` - Get all user's recordings
 
 ### Backup API (NEW - v5.9.0)
 - `GET /api/backup/status` - Get S3 backup status
