@@ -11,11 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getInitials } from '../lib/utils';
-import { emergencyContactsAPI, blockchainAPI } from '../lib/api';
+import { emergencyContactsAPI, blockchainAPI, backupAPI } from '../lib/api';
 import { 
   User, Bell, Shield, Moon, Sun, Phone, Mail, 
   LogOut, Trash2, Save, Users, Plus, X,
-  Database, Globe, CheckCircle, AlertCircle, Link2
+  Database, Globe, CheckCircle, AlertCircle, Link2,
+  Cloud, CloudOff, RefreshCw, History, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -26,6 +27,8 @@ export default function SettingsPage() {
   const [newContact, setNewContact] = useState({ name: '', phone: '', email: '' });
   const [ipfsStatus, setIpfsStatus] = useState(null);
   const [blockchainStatus, setBlockchainStatus] = useState(null);
+  const [backupStatus, setBackupStatus] = useState(null);
+  const [backupLoading, setBackupLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -34,16 +37,34 @@ export default function SettingsPage() {
 
   const loadSettings = async () => {
     try {
-      const [contactsRes, ipfsRes, blockchainRes] = await Promise.all([
+      const [contactsRes, ipfsRes, blockchainRes, backupRes] = await Promise.all([
         emergencyContactsAPI.get().catch(() => ({ data: [] })),
         blockchainAPI.getIPFSStatus().catch(() => ({ data: null })),
-        blockchainAPI.getBlockchainStatus().catch(() => ({ data: null }))
+        blockchainAPI.getBlockchainStatus().catch(() => ({ data: null })),
+        backupAPI.getStatus().catch(() => ({ data: null }))
       ]);
       setContacts(contactsRes.data || []);
       setIpfsStatus(ipfsRes.data);
       setBlockchainStatus(blockchainRes.data);
+      setBackupStatus(backupRes.data);
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  };
+
+  const handleTriggerBackup = async () => {
+    setBackupLoading(true);
+    try {
+      await backupAPI.triggerBackup();
+      toast.success('Backup job started! This may take a few minutes.');
+      // Refresh status after a delay
+      setTimeout(() => {
+        loadSettings();
+        setBackupLoading(false);
+      }, 2000);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to start backup');
+      setBackupLoading(false);
     }
   };
 
