@@ -693,20 +693,72 @@ export default function RecordingsPage() {
                           <CheckCircle className="h-4 w-4" />
                           <span className="text-sm">Transcribed {transcript.transcribed_at ? formatDate(transcript.transcribed_at) : ''}</span>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-white border-white/30 hover:bg-white/10"
-                          onClick={copyTranscript}
-                        >
-                          <Copy className="h-4 w-4 mr-1" />
-                          Copy
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {transcript.speaker_labels && (
+                            <div className="flex items-center gap-2 text-xs">
+                              <Badge variant="outline" className="border-blue-500 text-blue-400">
+                                <User className="h-3 w-3 mr-1" />
+                                Attorney: {transcript.speaker_labels.attorney}
+                              </Badge>
+                              <Badge variant="outline" className="border-purple-500 text-purple-400">
+                                <User className="h-3 w-3 mr-1" />
+                                Client: {transcript.speaker_labels.client}
+                              </Badge>
+                            </div>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white border-white/30 hover:bg-white/10"
+                            onClick={copyTranscript}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy
+                          </Button>
+                        </div>
                       </div>
+                      
+                      {/* Speaker-labeled transcript */}
                       <ScrollArea className="h-[400px]">
-                        <p className="text-white/90 whitespace-pre-wrap leading-relaxed">
-                          {transcript.transcript}
-                        </p>
+                        {transcript.speaker_segments && transcript.speaker_segments.length > 0 ? (
+                          <div className="space-y-4">
+                            {transcript.speaker_segments.map((segment, index) => (
+                              <div 
+                                key={index} 
+                                className={`p-3 rounded-lg ${
+                                  segment.speaker === 'attorney' 
+                                    ? 'bg-blue-900/30 border-l-4 border-blue-500' 
+                                    : 'bg-purple-900/30 border-l-4 border-purple-500'
+                                }`}
+                              >
+                                <div className={`text-xs font-semibold mb-1 ${
+                                  segment.speaker === 'attorney' ? 'text-blue-400' : 'text-purple-400'
+                                }`}>
+                                  {segment.speaker === 'attorney' 
+                                    ? `Attorney (${transcript.speaker_labels?.attorney || 'Unknown'})` 
+                                    : `Client (${transcript.speaker_labels?.client || 'Unknown'})`}
+                                </div>
+                                <p className="text-white/90 leading-relaxed">
+                                  {segment.text}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : transcript.speaker_transcript ? (
+                          <div 
+                            className="text-white/90 leading-relaxed prose prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ 
+                              __html: transcript.speaker_transcript
+                                .replace(/\*\*Attorney[^:]*:\*\*/g, '<span class="text-blue-400 font-semibold">Attorney:</span>')
+                                .replace(/\*\*Client[^:]*:\*\*/g, '<span class="text-purple-400 font-semibold">Client:</span>')
+                                .replace(/\n/g, '<br/>') 
+                            }}
+                          />
+                        ) : (
+                          <p className="text-white/90 whitespace-pre-wrap leading-relaxed">
+                            {transcript.transcript}
+                          </p>
+                        )}
                       </ScrollArea>
                     </div>
                   ) : transcript?.transcription_status === 'processing' ? (
@@ -732,12 +784,12 @@ export default function RecordingsPage() {
                         ) : (
                           <>
                             <FileText className="h-4 w-4 mr-2" />
-                            Transcribe Recording
+                            Transcribe with Speaker ID
                           </>
                         )}
                       </Button>
                       <p className="text-sm mt-2 text-white/50">
-                        Uses AI to convert speech to text
+                        AI identifies who said what in the conversation
                       </p>
                     </div>
                   )}
