@@ -171,6 +171,14 @@ export const encounterAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+  uploadScreen: (encounterId, screenBlob, chunkIndex) => {
+    const formData = new FormData();
+    formData.append('screen', screenBlob, `screen_chunk_${chunkIndex}.webm`);
+    formData.append('chunk_index', chunkIndex);
+    return api.post(`/encounters/${encounterId}/screen`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   addOfficer: (encounterId, officerInfo) => {
     const formData = new FormData();
     if (officerInfo.name) formData.append('name', officerInfo.name);
