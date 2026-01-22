@@ -209,9 +209,9 @@ export const encounterAPI = {
     api.get(`/encounters/shared/${encounterId}/highlights?token=${token}`),
   // Export Highlights Report
   exportReport: (encounterId, style = 'formal') =>
-    `${API_URL}/api/encounters/${encounterId}/highlights/export?style=${style}`,
+    `${API_URL}/encounters/${encounterId}/highlights/export?style=${style}`,
   exportSharedReport: (encounterId, token, style = 'formal') =>
-    `${API_URL}/api/encounters/shared/${encounterId}/highlights/export?token=${token}&style=${style}`
+    `${API_URL}/encounters/shared/${encounterId}/highlights/export?token=${token}&style=${style}`
 };
 
 // Helper to get the API URL for direct media access
