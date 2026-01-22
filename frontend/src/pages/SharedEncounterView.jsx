@@ -100,6 +100,7 @@ export default function SharedEncounterView() {
       setTranscriptions(data.transcriptions || []);
       setMessages(data.guidance_messages || []);
       setHasScreenRecording(data.has_screen_recording || false);
+      setHighlights(data.evidence_highlights || []);
       setLoading(false);
     } catch (err) {
       setError(err.message);
