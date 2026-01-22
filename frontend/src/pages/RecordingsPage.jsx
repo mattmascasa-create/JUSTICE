@@ -515,7 +515,7 @@ export default function RecordingsPage() {
             {transcriptSearchResults.length > 0 && (
               <div className="mt-4 space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Found {transcriptSearchResults.length} recording(s) matching "{transcriptSearchQuery}"
+                  Found {transcriptSearchResults.length} recording(s) matching &quot;{transcriptSearchQuery}&quot;
                 </p>
                 {transcriptSearchResults.map((result, index) => (
                   <Card key={result.recording_id} className="bg-muted/50">
