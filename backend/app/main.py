@@ -17,6 +17,8 @@ from app.routers.cases import router as cases_router
 from app.routers.evidence import router as evidence_router
 from app.routers.analytics import router as analytics_router
 from app.routers.sos import router as sos_router
+from app.routers.attorneys import router as attorneys_router
+from app.routers.ai_chat import router as ai_chat_router
 
 # Import config
 from app.core.config import IPFS_ENABLED, S3_ENABLED
@@ -26,7 +28,7 @@ from app.core.config import IPFS_ENABLED, S3_ENABLED
 async def lifespan(app: FastAPI):
     """Application lifespan - startup and shutdown events"""
     # Startup
-    print("🚀 JUSTICE Platform Starting...")
+    print("🚀 JUSTICE Platform Starting (Modular Architecture)...")
     print(f"   IPFS Enabled: {IPFS_ENABLED}")
     print(f"   S3 Enabled: {S3_ENABLED}")
     yield
@@ -58,6 +60,8 @@ app.include_router(cases_router, prefix="/api")
 app.include_router(evidence_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
 app.include_router(sos_router, prefix="/api")
+app.include_router(attorneys_router, prefix="/api")
+app.include_router(ai_chat_router, prefix="/api")
 
 
 # Root endpoint
