@@ -183,15 +183,25 @@ export default function EncounterPage() {
   const [guidanceMessages, setGuidanceMessages] = useState([]);
   const [autoShare, setAutoShare] = useState(true);
   
+  // Screen Recording State
+  const [enableScreenRecording, setEnableScreenRecording] = useState(false);
+  const [screenRecordingActive, setScreenRecordingActive] = useState(false);
+  const [screenRecordingSupported, setScreenRecordingSupported] = useState(false);
+  const [screenChunkCount, setScreenChunkCount] = useState(0);
+  
   const mediaRecorderRef = useRef(null);
   const audioRecorderRef = useRef(null);
+  const screenRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const videoChunksRef = useRef([]);
+  const screenChunksRef = useRef([]);
   const streamRef = useRef(null);
   const audioStreamRef = useRef(null);
+  const screenStreamRef = useRef(null);
   const videoPreviewRef = useRef(null);
   const chunkIndexRef = useRef(0);
   const videoChunkIndexRef = useRef(0);
+  const screenChunkIndexRef = useRef(0);
   const timerRef = useRef(null);
   const analysisQueueRef = useRef([]);
   const lastAnalysisRef = useRef(0);
