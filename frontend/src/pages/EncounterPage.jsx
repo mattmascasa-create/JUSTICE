@@ -751,25 +751,51 @@ export default function EncounterPage() {
     if (!encounter) return;
     
     try {
-      const response = await encounterAPI.getStreamToken(encounter.encounter_id);
-      const fullUrl = `${window.location.origin}${response.data.share_url}`;
-      
-      // Try to share via native share API if available
-      if (navigator.share) {
-        await navigator.share({
-          title: 'JUSTICE - Live Encounter Recording',
-          text: 'I\'m being pulled over. Watch my live recording.',
-          url: fullUrl
-        });
-        toast.success('Shared successfully!');
+      if (!shareActive) {
+        // Create new share link
+        const response = await encounterAPI.createShare(encounter.encounter_id, false);
+        const fullUrl = `${window.location.origin}${response.data.share_url}`;
+        setShareLink(fullUrl);
+        setShareActive(true);
+        
+        // Try to share via native share API if available
+        if (navigator.share) {
+          await navigator.share({
+            title: 'JUSTICE - Live Encounter Recording',
+            text: 'I\'m being pulled over. Watch my live recording and send guidance.',
+            url: fullUrl
+          });
+          toast.success('Shared successfully!');
+        } else {
+          // Fallback to clipboard
+          await navigator.clipboard.writeText(fullUrl);
+          toast.success('Share link created and copied! Share with your contacts.');
+        }
       } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(fullUrl);
-        toast.success('Link copied to clipboard! Share with your contacts.');
+        // Copy existing link
+        if (shareLink) {
+          await navigator.clipboard.writeText(shareLink);
+          toast.success('Link copied to clipboard!');
+        }
       }
     } catch (error) {
       console.error('Share error:', error);
       toast.error('Failed to generate share link');
+    }
+  };
+  
+  // Revoke share link
+  const revokeShareLink = async () => {
+    if (!encounter) return;
+    
+    try {
+      await encounterAPI.revokeShare(encounter.encounter_id);
+      setShareLink(null);
+      setShareActive(false);
+      setViewerCount(0);
+      toast.info('Share link revoked');
+    } catch (error) {
+      console.error('Revoke error:', error);
     }
   };
   
