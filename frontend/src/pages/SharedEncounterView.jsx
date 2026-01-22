@@ -53,10 +53,19 @@ export default function SharedEncounterView() {
   const [connected, setConnected] = useState(false);
   const [viewerCount, setViewerCount] = useState(1);
   
+  // Video streaming state
+  const [videoChunks, setVideoChunks] = useState([]);
+  const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLive, setIsLive] = useState(true);
+  const [videoError, setVideoError] = useState(false);
+  
   const wsRef = useRef(null);
   const transcriptEndRef = useRef(null);
   const messagesEndRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const videoRef = useRef(null);
+  const mediaSourceRef = useRef(null);
 
   // Fetch initial encounter data
   const fetchEncounter = useCallback(async () => {
