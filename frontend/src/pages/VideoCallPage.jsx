@@ -3,13 +3,17 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { callsAPI, API_URL } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import {
   Video, VideoOff, Mic, MicOff, PhoneOff,
   Monitor, MonitorOff, Maximize2, Minimize2,
-  Phone, User, Clock, Circle, Square, Download
+  Phone, User, Clock, Circle, Square, Download,
+  FileText, MessageSquare, Send, ChevronRight, ChevronLeft,
+  Bookmark, AlertCircle, HelpCircle, CheckSquare
 } from 'lucide-react';
 
 // ICE servers for WebRTC (public STUN servers)
@@ -46,6 +50,14 @@ export default function VideoCallPage() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   
+  // Live transcription state
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState([]);
+  const [liveNotes, setLiveNotes] = useState([]);
+  const [showTranscriptPanel, setShowTranscriptPanel] = useState(false);
+  const [noteInput, setNoteInput] = useState('');
+  const [selectedNoteType, setSelectedNoteType] = useState('general');
+  
   // Refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -56,6 +68,9 @@ export default function VideoCallPage() {
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const recordingIntervalRef = useRef(null);
+  const transcriptRecorderRef = useRef(null);
+  const transcriptChunkIndexRef = useRef(0);
+  const transcriptEndRef = useRef(null);
   
   const isIncoming = searchParams.get('incoming') === 'true';
 
