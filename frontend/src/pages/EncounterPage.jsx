@@ -1093,25 +1093,102 @@ export default function EncounterPage() {
         )}
 
         {/* Live Transcription */}
-        <Card>
+        <Card className="border-2 border-blue-500/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Live Transcription
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-500" />
+                Live Transcription
+                <Badge variant="outline" className="ml-2 text-xs bg-blue-500/10 border-blue-500/30">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse mr-1" />
+                  LIVE
+                </Badge>
+              </CardTitle>
+              <Badge variant="secondary">
+                {transcriptions.length} segment{transcriptions.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent className="max-h-48 overflow-y-auto">
-            {transcriptions.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                Transcription will appear here...
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {transcriptions.map((t, i) => (
-                  <div key={i} className="p-2 rounded bg-muted/50 text-sm">
-                    {t.text}
+          <CardContent>
+            <div 
+              className="max-h-64 overflow-y-auto space-y-3 scroll-smooth"
+              ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}
+            >
+              {transcriptions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Mic className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-muted-foreground">
+                    Listening for speech...
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">
+                    Transcription will appear here as you speak
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {transcriptions.map((t, i) => (
+                    <div 
+                      key={i} 
+                      className={`p-3 rounded-lg border transition-all ${
+                        t.violations_detected?.length > 0 
+                          ? 'bg-red-500/10 border-red-500/30' 
+                          : 'bg-muted/30 border-border/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {formatDuration(t.chunk_index ? t.chunk_index * 10 : i * 10)}
+                          </Badge>
+                          {t.violations_detected?.length > 0 && (
+                            <Badge variant="destructive" className="text-xs">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Violation
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          Segment {i + 1}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-relaxed">
+                        {t.text || 'Processing...'}
+                      </p>
+                      {t.violations_detected?.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-red-500/20">
+                          <p className="text-xs text-red-400">
+                            <AlertCircle className="h-3 w-3 inline mr-1" />
+                            {t.violations_detected.join(', ')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {/* Typing indicator for active transcription */}
+                  {!isPaused && (
+                    <div className="flex items-center gap-2 p-2 text-muted-foreground">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+                      </div>
+                      <span className="text-xs">Listening...</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            {/* Full Transcript Summary */}
+            {fullTranscript && fullTranscript.length > 50 && (
+              <div className="mt-3 pt-3 border-t">
+                <details className="text-sm">
+                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                    View full transcript ({fullTranscript.split(' ').length} words)
+                  </summary>
+                  <div className="mt-2 p-3 bg-muted/30 rounded-lg max-h-32 overflow-y-auto text-xs leading-relaxed">
+                    {fullTranscript}
                   </div>
-                ))}
+                </details>
               </div>
             )}
           </CardContent>
