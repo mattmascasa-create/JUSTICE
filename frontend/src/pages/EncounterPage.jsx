@@ -1142,6 +1142,29 @@ export default function EncounterPage() {
                 {transcriptions.length} segment{transcriptions.length !== 1 ? 's' : ''}
               </Badge>
             </div>
+            {/* Speaker Legend */}
+            <div className="flex flex-wrap gap-3 text-xs mt-2">
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded bg-blue-500/30 border border-blue-500/50" />
+                <span className="text-muted-foreground">👮 Officer</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded bg-green-500/30 border border-green-500/50" />
+                <span className="text-muted-foreground">🙋 Citizen</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-red-400">Red</span>
+                <span className="text-muted-foreground">= Danger</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-green-400">Green</span>
+                <span className="text-muted-foreground">= Rights</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-yellow-400">Yellow</span>
+                <span className="text-muted-foreground">= Commands</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div 
@@ -1155,7 +1178,7 @@ export default function EncounterPage() {
                     Listening for speech...
                   </p>
                   <p className="text-xs text-muted-foreground/70 mt-1">
-                    Transcription will appear here as you speak
+                    Transcription will appear here as you speak (with speaker labels)
                   </p>
                 </div>
               ) : (
