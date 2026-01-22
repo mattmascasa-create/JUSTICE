@@ -307,7 +307,17 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Auto-plays from clicked position
   - Segments are highlighted and clickable
   - Helper text explains click-to-seek functionality
-- **Version**: 5.11.0
+- **Live Real-Time Transcription** ✅ (Jan 22, 2026):
+  - Real-time speech-to-text during video calls using OpenAI Whisper
+  - Collapsible transcript panel alongside video feed
+  - Live transcript segments with timestamps
+  - Note-taking with 4 types: general (blue), important (red), action_item (green), question (yellow)
+  - Notes are time-stamped and synced with call duration
+  - Transcript auto-scrolls to latest segment
+  - Live transcribing indicator animation
+  - Notes broadcast to other call participant via WebSocket
+  - Transcript saved to MongoDB when call ends
+- **Version**: 5.12.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
