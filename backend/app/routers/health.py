@@ -15,7 +15,11 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "5.2.0",
+        "version": "5.3.0",
         "ipfs_enabled": IPFS_ENABLED,
-        "s3_enabled": S3_ENABLED
+        "s3_enabled": S3_ENABLED,
+        "features": {
+            "real_time_sharing": True,
+            "live_guidance": True
+        }
     }
