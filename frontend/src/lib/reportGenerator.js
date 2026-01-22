@@ -367,6 +367,65 @@ export async function generateEvidenceReport(reportData) {
 
   checkNewPage();
 
+  // ===== QUICK VERIFICATION QR CODES =====
+  const ipfsEvidence = evidence.filter(ev => ev.ipfs_cid);
+  if (ipfsEvidence.length > 0) {
+    doc.setFillColor(248, 250, 252);
+    doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('QUICK VERIFICATION (Scan QR Codes)', margin + 3, yPos + 6);
+    yPos += 12;
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Scan any QR code to instantly verify evidence on the decentralized IPFS network', margin, yPos);
+    yPos += 6;
+    doc.setTextColor(0, 0, 0);
+    
+    // Generate QR codes for up to 4 evidence items per row
+    const qrSize = 35;
+    const qrSpacing = 45;
+    const maxQRs = Math.min(ipfsEvidence.length, 8); // Max 8 QR codes (2 rows of 4)
+    
+    for (let i = 0; i < maxQRs; i++) {
+      const ev = ipfsEvidence[i];
+      const ipfsUrl = ev.ipfs_gateway_url || `https://gateway.pinata.cloud/ipfs/${ev.ipfs_cid}`;
+      const qrDataUrl = await generateQRCode(ipfsUrl, 100);
+      
+      if (qrDataUrl) {
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const xPos = margin + (col * qrSpacing);
+        const qrYPos = yPos + (row * (qrSize + 12));
+        
+        doc.addImage(qrDataUrl, 'PNG', xPos, qrYPos, qrSize, qrSize);
+        
+        // Add label below QR
+        doc.setFontSize(5);
+        doc.setFont('helvetica', 'bold');
+        const fileName = ev.file_name || `Evidence ${i + 1}`;
+        const shortName = fileName.length > 15 ? fileName.substring(0, 12) + '...' : fileName;
+        doc.text(shortName, xPos + qrSize/2, qrYPos + qrSize + 3, { align: 'center' });
+      }
+    }
+    
+    // Adjust yPos based on how many rows of QR codes we added
+    const qrRows = Math.ceil(maxQRs / 4);
+    yPos += (qrRows * (qrSize + 12)) + 5;
+    
+    if (ipfsEvidence.length > 8) {
+      doc.setFontSize(6);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`+ ${ipfsEvidence.length - 8} more evidence items (see details below)`, margin, yPos);
+      yPos += 5;
+      doc.setTextColor(0, 0, 0);
+    }
+  }
+
+  checkNewPage();
+
   // ===== EVIDENCE DETAILS =====
   if (evidence && evidence.length > 0) {
     doc.setFillColor(248, 250, 252);
