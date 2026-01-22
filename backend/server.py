@@ -2582,12 +2582,22 @@ async def upload_audio_chunk(
                     ).sort("start_time", -1).limit(3).to_list(length=3)
                     context = " | ".join([f"{t.get('speaker', 'Unknown')}: {t.get('text', '')[:100]}" for t in prev_transcripts])
                     
-                    # Identify speaker using AI
+                    # Identify speaker using AI (now includes tone/emotion detection)
                     speaker_result = await identify_speaker(response.text, context)
                     speaker = speaker_result.get("speaker", "unknown")
                     speaker_confidence = speaker_result.get("confidence", 0.0)
                     labeled_text = speaker_result.get("labeled_text", response.text)
                     speaker_changes = speaker_result.get("speaker_changes", [])
+                    
+                    # Extract tone/emotion data
+                    tone = speaker_result.get("tone", "neutral")
+                    tone_confidence = speaker_result.get("tone_confidence", 0.0)
+                    tone_severity = speaker_result.get("tone_severity", "normal")
+                    emotion_indicators = speaker_result.get("emotion_indicators", [])
+                    escalation_detected = speaker_result.get("escalation_detected", False)
+                    escalation_direction = speaker_result.get("escalation_direction", "stable")
+                    officer_demeanor = speaker_result.get("officer_demeanor", {})
+                    citizen_demeanor = speaker_result.get("citizen_demeanor", {})
                     
                     transcription_doc = {
                         "segment_id": segment_id,
@@ -2597,6 +2607,14 @@ async def upload_audio_chunk(
                         "speaker": speaker,
                         "speaker_confidence": speaker_confidence,
                         "speaker_changes": speaker_changes,
+                        "tone": tone,
+                        "tone_confidence": tone_confidence,
+                        "tone_severity": tone_severity,
+                        "emotion_indicators": emotion_indicators,
+                        "escalation_detected": escalation_detected,
+                        "escalation_direction": escalation_direction,
+                        "officer_demeanor": officer_demeanor,
+                        "citizen_demeanor": citizen_demeanor,
                         "start_time": chunk_index * 10.0,  # Approximate timing
                         "end_time": (chunk_index + 1) * 10.0,
                         "confidence": 0.9,
@@ -2620,8 +2638,29 @@ async def upload_audio_chunk(
                         "speaker": speaker,
                         "speaker_confidence": speaker_confidence,
                         "speaker_changes": speaker_changes,
+                        "tone": tone,
+                        "tone_confidence": tone_confidence,
+                        "tone_severity": tone_severity,
+                        "emotion_indicators": emotion_indicators,
+                        "escalation_detected": escalation_detected,
+                        "escalation_direction": escalation_direction,
+                        "officer_demeanor": officer_demeanor,
+                        "citizen_demeanor": citizen_demeanor,
                         "violations_detected": violations
                     }
+                    
+                    # Real-time notification if aggressive tone detected
+                    if tone_severity in ["concerning", "critical"] or escalation_detected:
+                        await manager.send_to_user(current_user["user_id"], {
+                            "type": "tone_alert",
+                            "encounter_id": encounter_id,
+                            "tone": tone,
+                            "tone_severity": tone_severity,
+                            "escalation_detected": escalation_detected,
+                            "emotion_indicators": emotion_indicators,
+                            "text": response.text,
+                            "speaker": speaker
+                        })
                     
                     # Real-time notification if violations detected
                     if violations:
