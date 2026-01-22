@@ -51,7 +51,7 @@ export default function EncounterAnalytics() {
   const [activeTab, setActiveTab] = useState('overview');
 
   const fetchAllData = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('justice-token');
     if (!token) {
       toast.error('Please login to view analytics');
       return;
