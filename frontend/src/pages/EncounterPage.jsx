@@ -7,12 +7,14 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Alert, AlertDescription } from '../components/ui/alert';
+import { Switch } from '../components/ui/switch';
+import { Label } from '../components/ui/label';
 import { encounterAPI } from '../lib/api';
 import { 
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
-  Eye, AlertCircle, Scale, CheckCircle
+  Eye, AlertCircle, Scale, CheckCircle, Camera
 } from 'lucide-react';
 import { toast } from 'sonner';
 
