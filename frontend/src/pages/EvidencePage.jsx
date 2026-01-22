@@ -403,9 +403,25 @@ export default function EvidencePage() {
                     )}
 
                     {ev.blockchain_hash && (
-                      <div className="flex items-center gap-2 text-xs text-green-500 mb-3">
+                      <div className="flex items-center gap-2 text-xs text-green-500 mb-2">
                         <CheckCircle className="h-3 w-3" />
                         <span className="font-mono truncate">{ev.blockchain_hash.slice(0, 24)}...</span>
+                      </div>
+                    )}
+
+                    {ev.ipfs_cid && (
+                      <div className="flex items-center gap-2 text-xs text-blue-500 mb-2">
+                        <Globe className="h-3 w-3" />
+                        <span className="truncate">IPFS: {ev.ipfs_cid.slice(0, 20)}...</span>
+                        <a 
+                          href={`https://gateway.pinata.cloud/ipfs/${ev.ipfs_cid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-blue-600"
+                          title="View on IPFS"
+                        >
+                          <Link2 className="h-3 w-3" />
+                        </a>
                       </div>
                     )}
 
