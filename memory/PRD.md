@@ -17,6 +17,57 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Decentralized Storage**: IPFS via Pinata (when configured)
 - **Maps**: Leaflet + OpenStreetMap
 
+## Code Architecture
+
+```
+/app/
+├── backend/
+│   ├── .env                    # Environment variables
+│   ├── server.py               # Monolithic server (to be gradually migrated)
+│   ├── app/                    # NEW: Refactored module structure
+│   │   ├── __init__.py
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── config.py       # Configuration settings
+│   │   │   └── security.py     # JWT, password hashing, auth
+│   │   ├── db/
+│   │   │   ├── __init__.py
+│   │   │   └── database.py     # MongoDB connection
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── schemas.py      # Pydantic models
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── ai_service.py   # LLM, transcription, analysis
+│   │   │   └── websocket.py    # WebSocket manager
+│   │   └── routers/
+│   │       ├── __init__.py
+│   │       ├── auth.py         # Authentication endpoints
+│   │       ├── analytics.py    # Analytics endpoints
+│   │       └── health.py       # Health check
+├── frontend/
+│   ├── src/
+│   │   ├── pages/              # All page components
+│   │   ├── components/         # Reusable UI components
+│   │   ├── lib/                # API utilities
+│   │   └── contexts/           # React contexts
+└── memory/
+    └── PRD.md
+```
+
+**Refactoring Progress:**
+- ✅ Created modular directory structure (`/app/backend/app/`)
+- ✅ Extracted core config (`config.py`)
+- ✅ Extracted security utilities (`security.py`)
+- ✅ Extracted database connection (`database.py`)
+- ✅ Extracted Pydantic models (`schemas.py`)
+- ✅ Extracted AI services (`ai_service.py`)
+- ✅ Extracted WebSocket manager (`websocket.py`)
+- ✅ Created auth router (`auth.py`)
+- ✅ Created analytics router (`analytics.py`)
+- ✅ Created health router (`health.py`)
+- 🔄 Remaining: Cases, Evidence, Encounters, SOS, AI Chat, etc. (still in server.py)
+
 ## Implemented Features (v5.1) - Jan 21, 2026
 
 ### Phase 1-3 (Core Platform) ✅
