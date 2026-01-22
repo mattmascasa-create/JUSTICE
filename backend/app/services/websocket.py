@@ -12,6 +12,7 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, List[WebSocket]] = {}
         self.encounter_viewers: Dict[str, List[WebSocket]] = {}
+        self.share_viewers: Dict[str, List[WebSocket]] = {}  # For shared encounter viewers
     
     async def connect(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
