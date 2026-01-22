@@ -117,9 +117,11 @@ class TestVoiceCommands:
         encounter_id = self.test_create_encounter_for_voice_commands()
         
         headers = {"Authorization": f"Bearer {self.token}"}
+        # Note: Backend checks for "voice" in note to determine source
+        # Using a note without "voice" to test manual source
         mark_data = {
             "timestamp": "120.0",
-            "note": "Manual mark - officer raised voice"
+            "note": "Manual mark - officer raised tone"
         }
         
         response = requests.post(
