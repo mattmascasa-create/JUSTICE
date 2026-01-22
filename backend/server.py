@@ -2719,42 +2719,83 @@ async def analyze_transcription_for_violations(text: str, encounter_id: str) -> 
     return list(set(violations))  # Remove duplicates
 
 async def identify_speaker(text: str, context: str = "") -> dict:
-    """Use AI to identify the speaker and label transcript segments"""
+    """Use AI to identify the speaker, their tone/emotion, and label transcript segments"""
     if not EMERGENT_LLM_KEY or len(text) < 10:
-        return {"speaker": "unknown", "confidence": 0.0, "labeled_text": text}
+        return {
+            "speaker": "unknown", 
+            "confidence": 0.0, 
+            "labeled_text": text,
+            "tone": "neutral",
+            "tone_confidence": 0.0,
+            "emotion_indicators": []
+        }
     
     try:
-        llm = create_llm_chat(f"speaker_id_{uuid.uuid4().hex[:8]}", """You are an expert at analyzing police encounter transcripts and identifying speakers.
-Your task is to:
-1. Identify who is speaking (Officer, Citizen, or Unknown)
-2. Add speaker labels to the transcript
-3. Provide confidence level
+        llm = create_llm_chat(f"speaker_tone_{uuid.uuid4().hex[:8]}", """You are an expert at analyzing police encounter transcripts for:
+1. Speaker identification (Officer vs Citizen)
+2. Emotional tone and demeanor analysis
+3. Detecting aggression, intimidation, and hostility
 
-Speaker identification clues:
-- Officers typically: ask for license/registration, give commands, cite laws, use formal/authoritative language
-- Citizens typically: respond to questions, express rights, show confusion/fear, use informal language
-- Questions about "why was I pulled over" = Citizen
-- Commands like "step out" or "show me your hands" = Officer""")
+Your analysis helps identify potential misconduct and protects civil rights.
+
+Tone categories:
+- PROFESSIONAL: Calm, neutral, following procedure
+- ASSERTIVE: Firm but appropriate
+- AGGRESSIVE: Hostile, threatening, raised voice indicators
+- INTIMIDATING: Using fear tactics, implied threats
+- HOSTILE: Openly antagonistic, disrespectful
+- CALM: Composed, measured response
+- ANXIOUS: Nervous, fearful, stressed
+- DEFENSIVE: Protecting oneself, citing rights
+- COMPLIANT: Cooperative, following instructions""")
         
-        prompt = f"""Analyze this police encounter transcript segment and identify the speaker(s).
+        prompt = f"""Analyze this police encounter transcript for speaker identification AND emotional tone.
 
 TRANSCRIPT:
 "{text}"
 
 {f'CONTEXT FROM PREVIOUS SEGMENTS: {context}' if context else ''}
 
-Return a JSON object with:
+Return a JSON object with EXACTLY this structure:
 {{
     "speaker": "Officer" or "Citizen" or "Unknown",
     "confidence": 0.0 to 1.0,
     "labeled_text": "Speaker: text with speaker label at start",
     "speaker_changes": [
-        {{"position": 0, "speaker": "Officer", "text": "portion of text"}}
+        {{"position": 0, "speaker": "Officer", "text": "portion of text", "tone": "professional"}}
     ],
-    "reasoning": "brief explanation of why you identified this speaker"
+    "tone": "professional/assertive/aggressive/intimidating/hostile/calm/anxious/defensive/compliant",
+    "tone_confidence": 0.0 to 1.0,
+    "tone_severity": "normal/elevated/concerning/critical",
+    "emotion_indicators": [
+        {{
+            "type": "aggression/intimidation/hostility/fear/stress",
+            "evidence": "specific phrase or behavior",
+            "severity": "low/medium/high/critical"
+        }}
+    ],
+    "escalation_detected": true or false,
+    "escalation_direction": "escalating/de-escalating/stable",
+    "officer_demeanor": {{
+        "professionalism": 0.0 to 1.0,
+        "aggression_level": 0.0 to 1.0,
+        "intimidation_level": 0.0 to 1.0,
+        "concerns": ["list of specific concerns if any"]
+    }},
+    "citizen_demeanor": {{
+        "compliance_level": 0.0 to 1.0,
+        "stress_level": 0.0 to 1.0,
+        "asserting_rights": true or false
+    }},
+    "reasoning": "brief explanation of tone analysis"
 }}
 
-If multiple speakers are detected, split the text and label each part.
+Focus on identifying:
+- Aggressive language (threats, yelling indicators like ALL CAPS or exclamations)
+- Intimidation tactics (implied consequences, power assertions)
+- Hostility (insults, derogatory language, contempt)
+- Professionalism deviations
+
 Return ONLY valid JSON, no markdown."""
 
         response = await llm.send_message(UserMessage(text=prompt))
