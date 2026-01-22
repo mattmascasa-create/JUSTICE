@@ -437,6 +437,10 @@ export const callsAPI = {
     return api.post(`/calls/${callId}/live-note`, formData);
   },
   saveLiveTranscript: (callId) => api.post(`/calls/${callId}/save-live-transcript`),
+  
+  // AI Summary
+  generateSummary: (recordingId) => api.post(`/calls/${recordingId}/summarize`, null, { timeout: 120000 }),
+  getSummary: (recordingId) => api.get(`/calls/${recordingId}/summary`),
 };
 
 // Policy Impact Dashboard API
