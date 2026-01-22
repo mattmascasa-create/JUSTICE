@@ -85,14 +85,17 @@ class TestVoiceCommands:
         encounter_id = self.test_create_encounter_for_voice_commands()
         
         # Test mark violation with voice command note
+        # Use multipart form data (remove Content-Type header for form data)
+        headers = {"Authorization": f"Bearer {self.token}"}
         mark_data = {
-            "timestamp": 45.5,
+            "timestamp": "45.5",
             "note": "Voice command: violation marked"
         }
         
-        response = self.session.post(
+        response = requests.post(
             f"{BASE_URL}/api/encounters/{encounter_id}/mark-violation",
-            data=mark_data  # Form data, not JSON
+            data=mark_data,
+            headers=headers
         )
         
         assert response.status_code == 200, f"Mark violation failed: {response.text}"
