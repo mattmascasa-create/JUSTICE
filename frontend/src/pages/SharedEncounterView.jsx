@@ -702,18 +702,57 @@ export default function SharedEncounterView() {
                   
                   {/* Video Controls */}
                   <div className="p-3 bg-slate-900 space-y-3">
-                    {/* Timeline */}
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400 w-12">{formatChunkTime(currentChunkIndex)}</span>
-                      <Slider
-                        value={[currentChunkIndex]}
-                        max={Math.max(videoChunks.length - 1, 0)}
-                        step={1}
-                        onValueChange={([val]) => goToChunk(val)}
-                        className="flex-1"
-                        data-testid="video-timeline"
-                      />
-                      <span className="text-xs text-gray-400 w-12 text-right">{formatChunkTime(videoChunks.length - 1)}</span>
+                    {/* Timeline with highlight markers */}
+                    <div className="relative">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400 w-12">{formatChunkTime(currentChunkIndex)}</span>
+                        <div className="relative flex-1">
+                          <Slider
+                            value={[currentChunkIndex]}
+                            max={Math.max(videoChunks.length - 1, 0)}
+                            step={1}
+                            onValueChange={([val]) => goToChunk(val)}
+                            className="flex-1"
+                            data-testid="video-timeline"
+                          />
+                          {/* Highlight markers on timeline */}
+                          {highlights.length > 0 && videoChunks.length > 0 && (
+                            <div className="absolute top-0 left-0 right-0 h-full pointer-events-none">
+                              {highlights.map((h, idx) => {
+                                const parts = h.timestamp?.split(':') || [];
+                                const totalSeconds = parts.length === 2 
+                                  ? parseInt(parts[0]) * 60 + parseInt(parts[1])
+                                  : 0;
+                                const chunkIdx = Math.floor(totalSeconds / 15);
+                                const position = (chunkIdx / Math.max(videoChunks.length - 1, 1)) * 100;
+                                if (position > 100) return null;
+                                return (
+                                  <div
+                                    key={idx}
+                                    className={`absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full cursor-pointer pointer-events-auto ${
+                                      h.severity === 'critical' ? 'bg-red-500' :
+                                      h.severity === 'high' ? 'bg-orange-500' :
+                                      h.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                                    }`}
+                                    style={{ left: `${position}%` }}
+                                    title={`${h.title} (${h.timestamp})`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      jumpToHighlight(h.timestamp);
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-400 w-12 text-right">{formatChunkTime(videoChunks.length - 1)}</span>
+                      </div>
+                      {highlights.length > 0 && (
+                        <p className="text-xs text-gray-500 text-center mt-1">
+                          Colored dots = evidence highlights (click to jump)
+                        </p>
+                      )}
                     </div>
                     
                     {/* Playback controls */}
