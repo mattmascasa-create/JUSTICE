@@ -55,7 +55,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
     └── PRD.md
 ```
 
-**Refactoring Status: ✅ COMPLETE**
+**Refactoring Status: ✅ DEPLOYED & LIVE (v5.2.0) - Jan 22, 2026**
 - ✅ Created modular directory structure (`/app/backend/app/`)
 - ✅ Extracted core config (`config.py`)
 - ✅ Extracted security utilities (`security.py`)
@@ -75,9 +75,10 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - ✅ Created community router (`community.py`) - community vault
 - ✅ Created rights router (`rights.py`) - know your rights
 - ✅ Created main.py entry point (65 routes across 11 routers)
-- ✅ Verification tests: 28/34 passed (6 minor response format differences)
-- ⏳ Remaining: Switch supervisor to new main.py when ready
-- ⏳ Remaining: Policy, Blockchain, IPFS, Document Analysis routers (still in server.py but functional)
+- ✅ **LIVE**: Backend now runs modular architecture via redirect (server.py imports app.main)
+- ✅ Full regression test passed: 20/20 backend tests, 6/6 frontend tests (100% success)
+- ✅ Old server.py backed up to server_backup.py (6018 lines)
+- ⏳ Future: Policy, Blockchain, IPFS, Document Analysis routers (still in server_backup.py)
 
 ## Implemented Features (v5.1) - Jan 21, 2026
 
