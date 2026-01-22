@@ -149,7 +149,7 @@ def generate_highlights_report(
     
     for cat, count in sorted(category_counts.items(), key=lambda x: -x[1]):
         cat_display = cat.replace('_', ' ').title()
-        pdf.cell(0, 5, f'  • {cat_display}: {count}', 0, 1)
+        pdf.cell(0, 5, f'  - {cat_display}: {count}', 0, 1)
     
     pdf.ln(5)
     
