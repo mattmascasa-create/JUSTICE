@@ -11,7 +11,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://justice-civil.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://civic-shield.preview.emergentagent.com')
 
 class TestAIAnalysis:
     """Test AI Analysis for Encounter Mode"""

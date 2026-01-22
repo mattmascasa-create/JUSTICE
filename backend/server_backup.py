@@ -6002,7 +6002,7 @@ cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
 if cors_origins == ['*']:
     cors_origins = [
         "http://localhost:3000",
-        "https://justice-civil.preview.emergentagent.com"
+        "https://civic-shield.preview.emergentagent.com"
     ]
 
 app.add_middleware(
