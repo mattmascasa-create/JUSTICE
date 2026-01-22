@@ -208,7 +208,7 @@ def generate_highlights_report(
         pdf.cell(0, 5, 'Original recordings have blockchain-verified timestamps.', 0, 1)
         pdf.cell(0, 5, 'All individuals are presumed innocent until proven guilty.', 0, 1)
     
-    return pdf.output()
+    return bytes(pdf.output())
 
 
 def generate_simple_summary(encounter_data: dict, highlights: list) -> str:
