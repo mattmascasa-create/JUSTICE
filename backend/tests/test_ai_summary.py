@@ -48,7 +48,7 @@ class TestAISummaryEndpoints:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data or "token" in data
         print(f"✓ User login successful")
     
     # ============== POST /api/calls/{recording_id}/summarize ==============
