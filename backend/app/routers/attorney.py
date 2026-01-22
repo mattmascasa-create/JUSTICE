@@ -161,7 +161,7 @@ async def accept_invite(
             "user_id": attorney_id,
             "email": email,
             "name": name,
-            "password": hashed_pw,
+            "password_hash": hashed_pw,
             "role": "attorney",
             "attorney_profile": {
                 "verified": False,
