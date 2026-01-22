@@ -292,8 +292,10 @@ class TestVoiceCommandsUI:
         assert response.status_code == 200
         
         data = response.json()
+        # API returns nested structure with "encounter" key
+        encounter_data = data.get("encounter", data)
         # Verify manual_marks field exists (may be empty initially)
-        assert "manual_marks" in data or data.get("manual_marks") is None or isinstance(data.get("manual_marks", []), list)
+        assert "manual_marks" in encounter_data or encounter_data.get("manual_marks") is None or isinstance(encounter_data.get("manual_marks", []), list)
         print("✓ Encounter API returns marks field for UI")
         
         # Cleanup
