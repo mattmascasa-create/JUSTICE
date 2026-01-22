@@ -83,6 +83,7 @@ function AppRouter() {
       <Route path="/transparency" element={<TransparencyPage />} />
       <Route path="/incident-map" element={<IncidentMapPage />} />
       <Route path="/live/:encounterId" element={<LiveStreamPage />} />
+      <Route path="/shared/:encounterId" element={<SharedEncounterView />} />
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
