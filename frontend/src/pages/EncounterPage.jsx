@@ -691,6 +691,65 @@ export default function EncounterPage() {
       setDuration(0);
       setVideoChunkCount(0);
       
+      // Start screen recording if enabled and supported
+      if (enableScreenRecording && screenRecordingSupported) {
+        try {
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              cursor: 'always',
+              displaySurface: 'monitor'
+            },
+            audio: false // Don't capture system audio
+          });
+          screenStreamRef.current = screenStream;
+          
+          const screenRecorder = new MediaRecorder(screenStream, {
+            mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+              ? 'video/webm;codecs=vp9' 
+              : 'video/webm'
+          });
+          screenRecorderRef.current = screenRecorder;
+          
+          screenRecorder.ondataavailable = async (event) => {
+            if (event.data.size > 0) {
+              screenChunksRef.current.push(event.data);
+              
+              if (screenChunksRef.current.length >= 1) {
+                const blob = new Blob(screenChunksRef.current, { type: 'video/webm' });
+                screenChunksRef.current = [];
+                const currentChunkIndex = screenChunkIndexRef.current++;
+                
+                try {
+                  await encounterAPI.uploadScreen(
+                    response.data.encounter_id,
+                    blob,
+                    currentChunkIndex
+                  );
+                  setScreenChunkCount(prev => prev + 1);
+                } catch (err) {
+                  console.error('Screen upload error:', err);
+                }
+              }
+            }
+          };
+          
+          // Handle user stopping screen share via browser UI
+          screenStream.getVideoTracks()[0].onended = () => {
+            setScreenRecordingActive(false);
+            toast.info('Screen recording stopped');
+          };
+          
+          screenRecorder.start(15000); // 15-second chunks
+          setScreenRecordingActive(true);
+          toast.success('📱 Screen recording started');
+        } catch (screenErr) {
+          console.log('Screen recording not started:', screenErr.message);
+          if (screenErr.name !== 'NotAllowedError') {
+            toast.info('Screen recording unavailable on this device');
+          }
+        }
+      }
+      
       toast.success(`🚨 ${enableVideo ? 'Video' : 'Audio'} recording started. Stay calm and know your rights.`);
       
     } catch (error) {
