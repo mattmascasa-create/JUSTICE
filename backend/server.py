@@ -2576,11 +2576,27 @@ async def upload_audio_chunk(
                     # Analyze transcription for violations in background
                     violations = await analyze_transcription_for_violations(response.text, encounter_id)
                     
+                    # Get previous transcript context for speaker identification
+                    prev_transcripts = await db.transcriptions.find(
+                        {"encounter_id": encounter_id}
+                    ).sort("start_time", -1).limit(3).to_list(length=3)
+                    context = " | ".join([f"{t.get('speaker', 'Unknown')}: {t.get('text', '')[:100]}" for t in prev_transcripts])
+                    
+                    # Identify speaker using AI
+                    speaker_result = await identify_speaker(response.text, context)
+                    speaker = speaker_result.get("speaker", "unknown")
+                    speaker_confidence = speaker_result.get("confidence", 0.0)
+                    labeled_text = speaker_result.get("labeled_text", response.text)
+                    speaker_changes = speaker_result.get("speaker_changes", [])
+                    
                     transcription_doc = {
                         "segment_id": segment_id,
                         "encounter_id": encounter_id,
                         "text": response.text,
-                        "speaker": "unknown",
+                        "labeled_text": labeled_text,
+                        "speaker": speaker,
+                        "speaker_confidence": speaker_confidence,
+                        "speaker_changes": speaker_changes,
                         "start_time": chunk_index * 10.0,  # Approximate timing
                         "end_time": (chunk_index + 1) * 10.0,
                         "confidence": 0.9,
@@ -2600,6 +2616,10 @@ async def upload_audio_chunk(
                     transcription_result = {
                         "segment_id": segment_id,
                         "text": response.text,
+                        "labeled_text": labeled_text,
+                        "speaker": speaker,
+                        "speaker_confidence": speaker_confidence,
+                        "speaker_changes": speaker_changes,
                         "violations_detected": violations
                     }
                     
@@ -2609,7 +2629,8 @@ async def upload_audio_chunk(
                             "type": "violation_detected",
                             "encounter_id": encounter_id,
                             "violations": violations,
-                            "text": response.text
+                            "text": response.text,
+                            "speaker": speaker
                         })
                     
         except Exception as e:
