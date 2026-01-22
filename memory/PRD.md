@@ -282,7 +282,14 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Upload to S3 with presigned download URLs
   - Fallback to local download if S3 unavailable
   - Recording history and playback
-- **Version**: 5.9.0
+- **Recordings Library Page**: Browse, search, filter, and play all recordings
+  - Grid view with thumbnails and metadata
+  - Search by participant name or ID
+  - Filter by status (completed, awaiting upload, failed)
+  - Sort by newest/oldest
+  - Built-in video player with controls (play/pause, seek, skip, volume, fullscreen)
+  - Direct download option
+- **Version**: 5.10.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
