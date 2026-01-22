@@ -146,7 +146,8 @@ class TestExportAuthenticatedHighlightsReport:
             json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
         )
         if response.status_code == 200:
-            return response.json().get("token")
+            # API returns access_token, not token
+            return response.json().get("access_token")
         pytest.skip("Authentication failed - skipping authenticated tests")
     
     def test_authenticated_export_formal_returns_pdf(self, auth_token):
