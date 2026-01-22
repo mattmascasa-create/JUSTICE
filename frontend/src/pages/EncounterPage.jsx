@@ -43,6 +43,20 @@ const rightsReminders = [
   "Everything is being recorded for your protection."
 ];
 
+const riskLevelColors = {
+  low: 'bg-green-500',
+  medium: 'bg-yellow-500',
+  high: 'bg-orange-500',
+  critical: 'bg-red-500 animate-pulse'
+};
+
+const riskLevelLabels = {
+  low: 'Normal',
+  medium: 'Caution',
+  high: 'Alert',
+  critical: 'CRITICAL'
+};
+
 export default function EncounterPage() {
   const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
@@ -58,6 +72,16 @@ export default function EncounterPage() {
   const [currentRightsIndex, setCurrentRightsIndex] = useState(0);
   const [officerInfo, setOfficerInfo] = useState({ name: '', badge: '', department: '' });
   const [showOfficerForm, setShowOfficerForm] = useState(false);
+  
+  // AI Analysis State
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [riskLevel, setRiskLevel] = useState('low');
+  const [detectedViolations, setDetectedViolations] = useState([]);
+  const [biasIndicators, setBiasIndicators] = useState([]);
+  const [proceduralIssues, setProceduralIssues] = useState([]);
+  const [immediateAlert, setImmediateAlert] = useState(null);
+  const [showViolationsPanel, setShowViolationsPanel] = useState(false);
+  const [fullTranscript, setFullTranscript] = useState('');
   const [enableVideo, setEnableVideo] = useState(true);
   const [videoChunkCount, setVideoChunkCount] = useState(0);
   const [uploadingChunk, setUploadingChunk] = useState(false);
