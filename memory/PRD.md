@@ -131,16 +131,20 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - iteration_4.json - Phase 4 & 5
 - iteration_5.json - Phase 6 (Community Vault)
 - iteration_6.json - Phase 7 (Blockchain) - 31/31 passed
+- iteration_7.json - Phase 8 (IPFS Integration) - 7/7 passed ✅ - Jan 22, 2026
 
 ## MOCKED Features
 - **Blockchain**: Simulated (production: Ethereum/Polygon)
 - **SOS SMS**: Logged (production: Twilio)
 - **Emergency Contacts**: Logged (production: SMS/Email)
 
+## LIVE Features
+- **IPFS Storage**: ✅ ACTIVE with Pinata JWT (configured Jan 22, 2026)
+
 ## Prioritized Backlog
 
-### P0 (Needs API Key)
-- [ ] Enable IPFS with user's Pinata JWT
+### P0 - COMPLETED
+- [x] ✅ Enable IPFS with user's Pinata JWT - DONE Jan 22, 2026
 
 ### P1 (Ready)
 - [ ] Real blockchain anchoring (Ethereum/Polygon)
