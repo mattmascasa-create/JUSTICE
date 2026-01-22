@@ -15,7 +15,7 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "5.6.0",
+        "version": "5.7.0",
         "ipfs_enabled": IPFS_ENABLED,
         "s3_enabled": S3_ENABLED,
         "features": {
@@ -23,6 +23,7 @@ async def health_check():
             "live_guidance": True,
             "video_streaming": True,
             "screen_recording": True,
-            "ai_evidence_highlights": True
+            "ai_evidence_highlights": True,
+            "export_highlights_report": True
         }
     }
