@@ -24,6 +24,7 @@ import TransparencyPage from "./pages/TransparencyPage";
 import IncidentMapPage from "./pages/IncidentMapPage";
 import SettingsPage from "./pages/SettingsPage";
 import EncounterPage from "./pages/EncounterPage";
+import EncounterReportPage from "./pages/EncounterReportPage";
 import DocumentAnalysisPage from "./pages/DocumentAnalysisPage";
 import CommunityVaultPage from "./pages/CommunityVaultPage";
 import PolicyDashboardPage from "./pages/PolicyDashboardPage";
