@@ -172,6 +172,13 @@ export default function EncounterPage() {
   const [voiceCommandFeedback, setVoiceCommandFeedback] = useState('');
   const [manualViolationMarks, setManualViolationMarks] = useState([]);
   
+  // Real-time Sharing State
+  const [shareLink, setShareLink] = useState(null);
+  const [shareActive, setShareActive] = useState(false);
+  const [viewerCount, setViewerCount] = useState(0);
+  const [guidanceMessages, setGuidanceMessages] = useState([]);
+  const [autoShare, setAutoShare] = useState(true);
+  
   const mediaRecorderRef = useRef(null);
   const audioRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
