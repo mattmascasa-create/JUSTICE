@@ -65,8 +65,10 @@ export default function RecordingsPage() {
   useEffect(() => {
     if (selectedRecording) {
       fetchTranscript(selectedRecording.recording_id);
+      fetchSummary(selectedRecording.recording_id);
     } else {
       setTranscript(null);
+      setSummary(null);
     }
   }, [selectedRecording]);
 
