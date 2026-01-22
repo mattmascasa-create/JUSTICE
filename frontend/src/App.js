@@ -128,6 +128,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <AppRouter />
+          <IncomingCallModal />
           <Toaster position="top-right" richColors />
         </BrowserRouter>
       </AuthProvider>
