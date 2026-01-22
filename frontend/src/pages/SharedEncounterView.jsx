@@ -206,6 +206,64 @@ export default function SharedEncounterView() {
     }
   };
 
+  // Fetch video chunks
+  const fetchVideoChunks = useCallback(async () => {
+    if (!token) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/encounters/shared/${encounterId}/video/chunks?token=${token}`);
+      if (response.ok) {
+        const data = await response.json();
+        setVideoChunks(data.chunks || []);
+        if (data.chunks?.length > 0 && isLive) {
+          setCurrentChunkIndex(data.chunks[data.chunks.length - 1].index);
+        }
+      }
+    } catch (err) {
+      console.log('Could not fetch video chunks:', err);
+    }
+  }, [encounterId, token, isLive]);
+
+  // Get video URL for a chunk
+  const getVideoChunkUrl = useCallback((filename) => {
+    return `${API_URL}/api/encounters/shared/${encounterId}/video/${filename}?token=${token}`;
+  }, [encounterId, token]);
+
+  // Handle chunk navigation
+  const goToChunk = (index) => {
+    if (index >= 0 && index < videoChunks.length) {
+      setCurrentChunkIndex(index);
+      setIsLive(index === videoChunks.length - 1);
+      setIsPlaying(true);
+    }
+  };
+
+  const goLive = () => {
+    if (videoChunks.length > 0) {
+      setCurrentChunkIndex(videoChunks.length - 1);
+      setIsLive(true);
+      setIsPlaying(true);
+    }
+  };
+
+  // Auto-advance to next chunk when video ends
+  const handleVideoEnded = () => {
+    if (currentChunkIndex < videoChunks.length - 1) {
+      setCurrentChunkIndex(prev => prev + 1);
+    } else {
+      setIsLive(true);
+      setIsPlaying(false);
+    }
+  };
+
+  // Format time for timeline
+  const formatChunkTime = (index) => {
+    const seconds = index * 15; // Each chunk is ~15 seconds
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Scroll to bottom of transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
