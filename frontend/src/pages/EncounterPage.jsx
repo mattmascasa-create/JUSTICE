@@ -9,12 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { encounterAPI } from '../lib/api';
+import { useWebSocket } from '../contexts/WebSocketContext';
 import { 
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
-  Eye, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX
+  Eye, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX,
+  MessageCircle, Copy, ExternalLink
 } from 'lucide-react';
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
