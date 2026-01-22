@@ -367,7 +367,7 @@ export default function EncounterPage() {
             </div>
             <h1 className="font-serif text-4xl font-bold">I&apos;m Being Pulled Over</h1>
             <p className="text-muted-foreground text-lg">
-              This will record audio, pin your location, and protect your rights.
+              Record video &amp; audio, pin your location, and protect your rights.
             </p>
           </div>
 
@@ -391,6 +391,44 @@ export default function EncounterPage() {
                   className="mt-3"
                   data-testid="address-input"
                 />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recording Mode */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Recording Mode
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Video className={`h-5 w-5 ${enableVideo ? 'text-green-500' : 'text-muted-foreground'}`} />
+                  <div>
+                    <p className="font-medium">Video Recording</p>
+                    <p className="text-sm text-muted-foreground">
+                      {enableVideo 
+                        ? 'Video + audio will be recorded and saved automatically'
+                        : 'Audio only - enable video for visual evidence'}
+                    </p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={enableVideo} 
+                  onCheckedChange={setEnableVideo}
+                  data-testid="video-toggle"
+                />
+              </div>
+              {enableVideo && (
+                <Alert className="bg-green-500/10 border-green-500/20">
+                  <Camera className="h-4 w-4 text-green-500" />
+                  <AlertDescription className="text-green-600">
+                    Video recordings provide stronger evidence. Files are automatically saved in chunks.
+                  </AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>
