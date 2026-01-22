@@ -60,11 +60,18 @@ export default function SharedEncounterView() {
   const [isLive, setIsLive] = useState(true);
   const [videoError, setVideoError] = useState(false);
   
+  // Screen recording state
+  const [screenChunks, setScreenChunks] = useState([]);
+  const [currentScreenChunkIndex, setCurrentScreenChunkIndex] = useState(0);
+  const [hasScreenRecording, setHasScreenRecording] = useState(false);
+  const [showPiP, setShowPiP] = useState(true); // Picture-in-picture camera overlay
+  
   const wsRef = useRef(null);
   const transcriptEndRef = useRef(null);
   const messagesEndRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const videoRef = useRef(null);
+  const screenVideoRef = useRef(null);
   const mediaSourceRef = useRef(null);
 
   // Fetch initial encounter data
