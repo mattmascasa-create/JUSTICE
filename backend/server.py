@@ -4228,6 +4228,17 @@ async def generate_evidence_report(
     
     # Generate report
     report_id = f"rpt_{uuid.uuid4().hex[:12]}"
+    
+    # Helper to safely convert dates
+    def safe_isoformat(date_val):
+        if date_val is None:
+            return None
+        if isinstance(date_val, str):
+            return date_val
+        if hasattr(date_val, 'isoformat'):
+            return date_val.isoformat()
+        return str(date_val)
+    
     report = {
         "report_id": report_id,
         "report_type": "COMPREHENSIVE_EVIDENCE_REPORT",
@@ -4240,12 +4251,12 @@ async def generate_evidence_report(
             "status": case.get("status"),
             "severity": case.get("severity"),
             "violation_type": case.get("violation_type"),
-            "incident_date": case.get("incident_date").isoformat() if case.get("incident_date") else None,
+            "incident_date": safe_isoformat(case.get("incident_date")),
             "location": case.get("location"),
             "department": case.get("department"),
             "officer_name": case.get("officer_name"),
             "officer_badge": case.get("officer_badge"),
-            "created_at": case.get("created_at").isoformat() if case.get("created_at") else None
+            "created_at": safe_isoformat(case.get("created_at"))
         },
         "evidence_summary": {
             "total_files": len(evidence_with_verification),
