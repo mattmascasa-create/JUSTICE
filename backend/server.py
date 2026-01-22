@@ -3040,7 +3040,7 @@ Provide a comprehensive analysis including:
 
 Format as JSON with keys: summary, violations_analysis, legal_citations, recommendations, similar_case_references"""
 
-            response = await llm.chat(analysis_prompt)
+            response = await llm.send_message(UserMessage(text=analysis_prompt))
             if response:
                 try:
                     analysis = json.loads(response)
@@ -3497,7 +3497,7 @@ Provide analysis as JSON with these keys:
 - case_precedents: Array of {{case_name, relevance, outcome}}"""
 
     try:
-        response = await llm.chat(analysis_prompt)
+        response = await llm.send_message(UserMessage(text=analysis_prompt))
         analysis = json.loads(response) if response else {}
     except Exception as e:
         logger.error(f"Document analysis error: {e}")
@@ -3598,7 +3598,7 @@ Be concise - this is an emergency situation. Format as JSON:
 }}"""
 
     try:
-        response = await llm.chat(prompt)
+        response = await llm.send_message(UserMessage(text=prompt))
         guidance = json.loads(response) if response else {}
         return guidance
     except Exception as e:
