@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 # Get BASE_URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://rightsdefender.preview.emergentagent.com"
+    BASE_URL = "https://police-encounter.preview.emergentagent.com"
 
 # Test credentials - unique per test run
 TEST_EMAIL = f"test_complete_{uuid.uuid4().hex[:8]}@example.com"
