@@ -16,7 +16,8 @@ import {
   Clock, Calendar, User, Users, FileVideo,
   Filter, SortAsc, SortDesc, X, Volume2,
   VolumeX, Maximize2, SkipBack, SkipForward,
-  FileText, Loader2, Copy, CheckCircle
+  FileText, Loader2, Copy, CheckCircle,
+  Sparkles, ListChecks, AlertTriangle, Lightbulb
 } from 'lucide-react';
 
 export default function RecordingsPage() {
