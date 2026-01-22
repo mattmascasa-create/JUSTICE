@@ -2814,9 +2814,19 @@ Return ONLY valid JSON, no markdown."""
             except json.JSONDecodeError:
                 pass
     except Exception as e:
-        logger.error(f"Speaker identification error: {e}")
+        logger.error(f"Speaker/tone identification error: {e}")
     
-    return {"speaker": "unknown", "confidence": 0.0, "labeled_text": text}
+    return {
+        "speaker": "unknown", 
+        "confidence": 0.0, 
+        "labeled_text": text,
+        "tone": "neutral",
+        "tone_confidence": 0.0,
+        "tone_severity": "normal",
+        "emotion_indicators": [],
+        "escalation_detected": False,
+        "escalation_direction": "stable"
+    }
 
 async def perform_deep_ai_analysis(text: str, encounter_id: str, analysis_type: str = "full") -> dict:
     """Perform comprehensive AI analysis of encounter audio/transcript for violations, bias, and procedural issues"""
