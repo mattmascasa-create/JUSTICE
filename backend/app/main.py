@@ -1,0 +1,77 @@
+"""
+JUSTICE Platform - Main Application Entry Point (Refactored)
+
+This is the new modular entry point for the JUSTICE API.
+It uses the organized router structure from /app/backend/app/
+
+To use this instead of server.py, update the supervisor config to point here.
+"""
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+# Import routers
+from app.routers.health import router as health_router
+from app.routers.auth import router as auth_router
+from app.routers.cases import router as cases_router
+from app.routers.evidence import router as evidence_router
+from app.routers.analytics import router as analytics_router
+from app.routers.sos import router as sos_router
+
+# Import config
+from app.core.config import IPFS_ENABLED, S3_ENABLED
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan - startup and shutdown events"""
+    # Startup
+    print("🚀 JUSTICE Platform Starting...")
+    print(f"   IPFS Enabled: {IPFS_ENABLED}")
+    print(f"   S3 Enabled: {S3_ENABLED}")
+    yield
+    # Shutdown
+    print("👋 JUSTICE Platform Shutting down...")
+
+
+# Create FastAPI application
+app = FastAPI(
+    title="JUSTICE API",
+    description="Civil Rights Defense System - Protecting citizens during police encounters",
+    version="5.2.0",
+    lifespan=lifespan
+)
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers with /api prefix
+app.include_router(health_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(cases_router, prefix="/api")
+app.include_router(evidence_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
+app.include_router(sos_router, prefix="/api")
+
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "name": "JUSTICE API",
+        "version": "5.2.0",
+        "status": "operational",
+        "docs": "/docs"
+    }
+
+
+# For running with uvicorn directly (development)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
