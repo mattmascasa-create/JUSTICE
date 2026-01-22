@@ -24,6 +24,7 @@ import io
 import tempfile
 import hmac
 import aiohttp
+import zipfile
 from emergentintegrations.llm.openai import OpenAISpeechToText, LlmChat
 
 ROOT_DIR = Path(__file__).parent
