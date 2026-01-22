@@ -497,7 +497,7 @@ export default function EncounterPage() {
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            By starting, your location and audio will be recorded and stored securely.
+            By starting, your location and {enableVideo ? 'video/audio' : 'audio'} will be recorded and stored securely.
           </p>
         </div>
       </AppLayout>
@@ -508,25 +508,64 @@ export default function EncounterPage() {
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto space-y-4" data-testid="encounter-recording">
-        {/* Recording Status Bar */}
-        <Card className="bg-red-500/10 border-red-500/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`}>
-                  <Mic className="h-5 w-5 text-white" />
+        {/* Video Preview (if video enabled) */}
+        {enableVideo && (
+          <Card className="overflow-hidden">
+            <div className="relative aspect-video bg-black">
+              <video 
+                ref={videoPreviewRef}
+                autoPlay 
+                muted 
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-3 left-3 flex items-center gap-2">
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`}>
+                  <div className="w-2 h-2 bg-white rounded-full" />
+                  <span className="text-white text-sm font-bold">{isPaused ? 'PAUSED' : 'REC'}</span>
                 </div>
-                <div>
-                  <p className="font-bold text-lg">{isPaused ? 'PAUSED' : 'RECORDING'}</p>
-                  <p className="text-sm text-muted-foreground font-mono">{formatDuration(duration)}</p>
-                </div>
+                <Badge variant="secondary" className="bg-black/50 text-white">
+                  {formatDuration(duration)}
+                </Badge>
               </div>
-              <Badge variant="destructive" className="text-lg px-4 py-1">
-                LIVE
-              </Badge>
+              <div className="absolute top-3 right-3">
+                <Badge variant="secondary" className="bg-black/50 text-white">
+                  <Video className="h-3 w-3 mr-1" />
+                  {videoChunkCount} chunks saved
+                </Badge>
+              </div>
+              {uploadingChunk && (
+                <div className="absolute bottom-3 right-3">
+                  <Badge className="bg-blue-500 animate-pulse">
+                    Saving...
+                  </Badge>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </Card>
+        )}
+
+        {/* Recording Status Bar (for audio-only mode) */}
+        {!enableVideo && (
+          <Card className="bg-red-500/10 border-red-500/50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`}>
+                    <Mic className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-lg">{isPaused ? 'PAUSED' : 'RECORDING'}</p>
+                    <p className="text-sm text-muted-foreground font-mono">{formatDuration(duration)}</p>
+                  </div>
+                </div>
+                <Badge variant="destructive" className="text-lg px-4 py-1">
+                  LIVE
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Rights Reminder */}
         <Alert className="border-blue-500/50 bg-blue-500/10">
