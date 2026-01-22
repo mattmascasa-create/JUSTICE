@@ -31,6 +31,9 @@ import CommunityVaultPage from "./pages/CommunityVaultPage";
 import PolicyDashboardPage from "./pages/PolicyDashboardPage";
 import EncounterAnalytics from "./pages/EncounterAnalytics";
 import SharedEncounterView from "./pages/SharedEncounterView";
+import AttorneyDashboardPage from "./pages/AttorneyDashboardPage";
+import AttorneyAcceptInvitePage from "./pages/AttorneyAcceptInvitePage";
+import AttorneyEncounterWorkspacePage from "./pages/AttorneyEncounterWorkspacePage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
