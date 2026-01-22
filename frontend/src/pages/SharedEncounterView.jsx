@@ -154,6 +154,21 @@ export default function SharedEncounterView() {
                 setCurrentChunkIndex(data.chunk_index);
               }
               break;
+            case 'screen_chunk':
+              // New screen recording chunk available
+              setHasScreenRecording(true);
+              setScreenChunks(prev => {
+                if (prev.some(c => c.index === data.chunk_index)) return prev;
+                return [...prev, {
+                  index: data.chunk_index,
+                  filename: data.filename,
+                  timestamp: data.timestamp
+                }].sort((a, b) => a.index - b.index);
+              });
+              if (isLive) {
+                setCurrentScreenChunkIndex(data.chunk_index);
+              }
+              break;
             default:
               console.log('Unknown message type:', data.type);
           }
