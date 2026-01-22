@@ -2941,6 +2941,43 @@ async def get_encounter_violations(
         "civil_rights_reference": CIVIL_RIGHTS_DATABASE
     }
 
+@api_router.post("/encounters/{encounter_id}/mark-violation")
+async def mark_violation(
+    encounter_id: str,
+    timestamp: float = Form(...),
+    note: str = Form("Manual violation mark"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark a specific moment as a potential violation (voice command or manual)"""
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    mark = {
+        "mark_id": f"mark_{uuid.uuid4().hex[:8]}",
+        "encounter_id": encounter_id,
+        "timestamp_seconds": timestamp,
+        "note": note,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "source": "voice_command" if "voice" in note.lower() else "manual"
+    }
+    
+    await db.encounter_marks.insert_one(mark)
+    
+    # Also update the encounter with the mark
+    await db.encounters.update_one(
+        {"encounter_id": encounter_id},
+        {"$push": {"manual_marks": mark}}
+    )
+    
+    return {
+        "success": True,
+        "mark": mark
+    }
+
 @api_router.post("/encounters/{encounter_id}/end")
 async def end_encounter(
     encounter_id: str,
