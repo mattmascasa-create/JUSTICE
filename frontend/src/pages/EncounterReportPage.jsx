@@ -46,6 +46,71 @@ export default function EncounterReportPage() {
     }
   };
 
+  const getVideoUrl = (filename) => {
+    return `${API_URL}/encounters/${encounterId}/media/${filename}?token=${authToken}`;
+  };
+
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handlePrevVideo = () => {
+    if (currentVideoIndex > 0) {
+      setCurrentVideoIndex(currentVideoIndex - 1);
+      setIsPlaying(false);
+    }
+  };
+
+  const handleNextVideo = () => {
+    const videoFiles = reportData?.media_files?.filter(f => f.type === 'video') || [];
+    if (currentVideoIndex < videoFiles.length - 1) {
+      setCurrentVideoIndex(currentVideoIndex + 1);
+      setIsPlaying(false);
+    }
+  };
+
+  const handleVideoEnded = () => {
+    const videoFiles = reportData?.media_files?.filter(f => f.type === 'video') || [];
+    if (currentVideoIndex < videoFiles.length - 1) {
+      setCurrentVideoIndex(currentVideoIndex + 1);
+      // Auto-play next chunk
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play();
+          setIsPlaying(true);
+        }
+      }, 500);
+    } else {
+      setIsPlaying(false);
+    }
+  };
+
+  const handleGenerateShareLink = async () => {
+    setGeneratingLink(true);
+    try {
+      const response = await encounterAPI.getStreamToken(encounterId);
+      const fullUrl = `${window.location.origin}${response.data.share_url}`;
+      setShareLink(fullUrl);
+      toast.success('Share link generated!');
+    } catch (err) {
+      toast.error('Failed to generate share link');
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    toast.success('Link copied to clipboard!');
+  };
+
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
