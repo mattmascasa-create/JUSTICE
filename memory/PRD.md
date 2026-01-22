@@ -56,6 +56,8 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 
 ### Phase 9 (Evidence Report) ✅ - Jan 22, 2026
 - **Comprehensive PDF Reports**: Generate downloadable evidence reports
+- **QR Code Verification**: Scannable QR codes for instant IPFS verification
+- **Quick Verification Grid**: Up to 8 QR codes at top of report for rapid scanning
 - **IPFS Verification Links**: Gateway URLs for independent verification
 - **SHA-256 Hash Records**: All cryptographic hashes included
 - **Chain of Custody**: Complete audit trail with signatures
