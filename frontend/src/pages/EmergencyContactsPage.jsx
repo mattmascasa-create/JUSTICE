@@ -451,7 +451,7 @@ export default function EmergencyContactsPage() {
                         {contact.notify_on_dead_mans_switch && (
                           <Badge variant="outline" className="text-xs bg-orange-500/10 border-orange-500/30">
                             <Bell className="h-3 w-3 mr-1" />
-                            Dead Man's Switch
+                            Dead Man&apos;s Switch
                           </Badge>
                         )}
                       </div>
