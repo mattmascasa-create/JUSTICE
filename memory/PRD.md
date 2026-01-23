@@ -328,7 +328,8 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - **Export to PDF**: Professional PDF documents with JUSTICE branding, colored section headers, participant info, and confidentiality notice
   - **Batch PDF Export**: Select multiple recordings and export a consolidated report with table of contents, individual summaries, and disclaimer page (max 20 per batch)
   - **Email Delivery**: Send PDF summaries directly to clients/team via email with custom message, CC support, and professional HTML formatting (requires SendGrid API key)
-- **Version**: 5.16.0
+  - **Scheduled Reports** ✅ (Jan 23, 2026): Automated daily/weekly/monthly email reports with APScheduler background jobs, supporting up to 5 schedules per user and 10 recipients per schedule
+- **Version**: 5.17.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
