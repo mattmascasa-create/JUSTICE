@@ -156,8 +156,10 @@ export function WebSocketProvider({ children }) {
     }
   }, [token, user, resetReconnectState, handleMessage]);
 
-  // Keep connect ref updated
-  connectRef.current = connect;
+  // Keep connect ref updated in effect
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   const sendMessage = useCallback((data) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
