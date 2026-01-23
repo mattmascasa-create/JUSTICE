@@ -56,6 +56,7 @@ const getNavItems = (role) => {
     { icon: Bot, label: 'AI Attorney', path: '/ai-attorney' },
     { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
     { icon: Users, label: 'Emergency Contacts', path: '/emergency-contacts' },
+    { icon: Eye, label: 'Witness Network', path: '/witness-network' },
     { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
     { icon: MessageCircle, label: 'Messages', path: '/messages' },
     { icon: Map, label: 'Incident Map', path: '/incident-map' },
