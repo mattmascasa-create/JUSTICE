@@ -141,8 +141,34 @@ async def create_encounter_sos(
                 "notified_at": now.isoformat()
             })
         
-        # TODO: Send SMS if phone provided (requires Twilio)
-        # TODO: Send email if email provided (requires SendGrid)
+        # Send SMS if phone provided
+        phone = contact.get("phone")
+        if phone:
+            from app.services.sms_service import send_sos_alert_sms, is_twilio_configured
+            
+            if is_twilio_configured():
+                # Build full share URL
+                from app.core.config import FRONTEND_URL
+                full_share_url = f"{FRONTEND_URL}{share_url}"
+                
+                sms_result = await send_sos_alert_sms(
+                    to_number=phone,
+                    user_name=user_name,
+                    location_address=address,
+                    share_url=full_share_url,
+                    latitude=latitude,
+                    longitude=longitude
+                )
+                
+                if sms_result.get("success"):
+                    notified_contacts.append({
+                        "contact_id": contact_id,
+                        "name": contact.get("name"),
+                        "method": "sms",
+                        "phone": phone,
+                        "message_sid": sms_result.get("message_sid"),
+                        "notified_at": now.isoformat()
+                    })
     
     # Update alert with notified contacts
     await db.sos_alerts.update_one(
