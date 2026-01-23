@@ -568,14 +568,42 @@ export default function RecordingsPage() {
             {filteredRecordings.map((recording, index) => (
               <Card 
                 key={recording.recording_id} 
-                className="hover:shadow-lg transition-shadow"
+                className={`hover:shadow-lg transition-shadow relative ${
+                  isSelectionMode && selectedIds.includes(recording.recording_id) 
+                    ? 'ring-2 ring-purple-500' 
+                    : ''
+                }`}
                 data-testid={`recording-card-${index}`}
               >
+                {/* Selection Checkbox */}
+                {isSelectionMode && (
+                  <div 
+                    className="absolute top-2 right-2 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={selectedIds.includes(recording.recording_id)}
+                      onCheckedChange={() => toggleSelection(recording.recording_id)}
+                      disabled={!recording.ai_summary}
+                      className={`h-6 w-6 border-2 ${
+                        recording.ai_summary 
+                          ? 'border-white bg-black/50 data-[state=checked]:bg-purple-600' 
+                          : 'border-gray-500 bg-gray-800/50 cursor-not-allowed'
+                      }`}
+                      data-testid={`select-recording-${index}`}
+                    />
+                    {!recording.ai_summary && (
+                      <span className="absolute -bottom-5 right-0 text-xs text-gray-400 whitespace-nowrap">
+                        No summary
+                      </span>
+                    )}
+                  </div>
+                )}
                 <CardContent className="p-0">
                   {/* Thumbnail / Preview */}
                   <div 
                     className="relative h-40 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer group"
-                    onClick={() => openPlayer(recording)}
+                    onClick={() => isSelectionMode && recording.ai_summary ? toggleSelection(recording.recording_id) : openPlayer(recording)}
                   >
                     <Video className="h-12 w-12 text-gray-500 group-hover:text-white transition-colors" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
