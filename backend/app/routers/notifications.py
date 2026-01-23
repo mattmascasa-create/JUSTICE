@@ -1,6 +1,7 @@
 """
 Notifications Router - Real-time alerts and notification management
 """
+import os
 from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,8 +10,12 @@ import uuid
 
 from app.db.database import db
 from app.core.security import get_current_user
+from app.services.push_service import send_push_to_user
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
+
+# VAPID public key for frontend
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 
 
 class NotificationCreate(BaseModel):
@@ -19,6 +24,81 @@ class NotificationCreate(BaseModel):
     message: str
     link: Optional[str] = None
     metadata: Optional[dict] = None
+
+
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: dict  # {p256dh: str, auth: str}
+
+
+@router.get("/vapid-public-key")
+async def get_vapid_public_key():
+    """Get the VAPID public key for push subscription"""
+    return {"vapid_public_key": VAPID_PUBLIC_KEY}
+
+
+@router.post("/push/subscribe")
+async def subscribe_push(
+    subscription: PushSubscription,
+    current_user: dict = Depends(get_current_user)
+):
+    """Subscribe to push notifications"""
+    user_id = current_user["user_id"]
+    
+    # Check if subscription already exists
+    existing = await db.push_subscriptions.find_one({
+        "user_id": user_id,
+        "subscription.endpoint": subscription.endpoint
+    })
+    
+    if existing:
+        return {"success": True, "message": "Already subscribed"}
+    
+    # Store the subscription
+    sub_doc = {
+        "subscription_id": f"push_{uuid.uuid4().hex[:12]}",
+        "user_id": user_id,
+        "subscription": {
+            "endpoint": subscription.endpoint,
+            "keys": subscription.keys
+        },
+        "created_at": datetime.now(timezone.utc),
+        "last_used": None
+    }
+    
+    await db.push_subscriptions.insert_one(sub_doc)
+    
+    return {"success": True, "message": "Push subscription saved"}
+
+
+@router.post("/push/unsubscribe")
+async def unsubscribe_push(
+    subscription: PushSubscription,
+    current_user: dict = Depends(get_current_user)
+):
+    """Unsubscribe from push notifications"""
+    user_id = current_user["user_id"]
+    
+    result = await db.push_subscriptions.delete_one({
+        "user_id": user_id,
+        "subscription.endpoint": subscription.endpoint
+    })
+    
+    return {"success": True, "deleted": result.deleted_count > 0}
+
+
+@router.get("/push/status")
+async def get_push_status(current_user: dict = Depends(get_current_user)):
+    """Check if user has push notifications enabled"""
+    user_id = current_user["user_id"]
+    
+    count = await db.push_subscriptions.count_documents({"user_id": user_id})
+    
+    return {
+        "enabled": count > 0,
+        "subscription_count": count,
+        "vapid_configured": bool(VAPID_PUBLIC_KEY)
+    }
 
 
 @router.get("")
