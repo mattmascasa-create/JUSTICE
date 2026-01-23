@@ -28,7 +28,9 @@ class TestEmailSummaryEndpoint:
             "password": "password123"
         })
         if response.status_code == 200:
-            self.auth_token = response.json().get("token")
+            data = response.json()
+            # Handle both 'token' and 'access_token' response formats
+            self.auth_token = data.get("token") or data.get("access_token")
             return self.auth_token
         return None
     
@@ -48,7 +50,8 @@ class TestEmailSummaryEndpoint:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        # Handle both 'token' and 'access_token' response formats
+        assert "token" in data or "access_token" in data
         print("✓ Login successful")
     
     def test_email_summary_endpoint_exists(self):
