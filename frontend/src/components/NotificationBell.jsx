@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, CheckCheck, AlertTriangle, MessageCircle, FileText, Gavel, Siren } from 'lucide-react';
+import { Bell, X, Check, CheckCheck, AlertTriangle, MessageCircle, FileText, Gavel, Siren, BellRing, BellOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
+import { Switch } from './ui/switch';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from '../contexts/AuthContext';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 import api from '../lib/api';
 import { cn } from '../lib/utils';
 
