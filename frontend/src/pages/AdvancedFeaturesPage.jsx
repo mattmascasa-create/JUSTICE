@@ -62,14 +62,16 @@ export default function AdvancedFeaturesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [dmsRes, witnessRes, foiaRes] = await Promise.all([
+      const [dmsRes, witnessRes, foiaRes, encountersRes] = await Promise.all([
         api.get('/advanced/dead-mans-switch/config'),
         api.get('/advanced/witness/stats'),
-        api.get('/advanced/foia/my-requests')
+        api.get('/advanced/foia/my-requests'),
+        encounterAPI.list('completed').catch(() => ({ data: [] }))
       ]);
       setDmsConfig(dmsRes.data);
       setWitnessStats(witnessRes.data);
       setFoiaRequests(foiaRes.data.requests || []);
+      setEncounters(encountersRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load settings');
