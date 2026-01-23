@@ -108,6 +108,23 @@ export default function RecordingsPage() {
     }
   };
 
+  const fetchTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const res = await templatesAPI.getMyTemplates();
+      setTemplates(res.data.templates || []);
+      // Auto-select default template if exists
+      const defaultTemplate = (res.data.templates || []).find(t => t.is_default);
+      if (defaultTemplate) {
+        setSelectedTemplateId(defaultTemplate.template_id);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
   const filterAndSortRecordings = () => {
     let filtered = [...recordings];
 
