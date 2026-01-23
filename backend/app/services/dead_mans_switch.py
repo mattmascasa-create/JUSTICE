@@ -282,8 +282,6 @@ async def alert_witness_network(
     lat_range = 0.0145 * BROADCAST_RADIUS_MILES
     lng_range = 0.0145 * BROADCAST_RADIUS_MILES / abs(cos(lat * 3.14159 / 180)) if lat != 0 else 0.0145
     
-    from math import cos
-    
     nearby_users = await db.users.find({
         "witness_mode_enabled": True,
         "last_known_location.lat": {"$gte": lat - lat_range, "$lte": lat + lat_range},
