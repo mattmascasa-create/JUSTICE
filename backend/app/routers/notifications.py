@@ -200,9 +200,10 @@ async def create_notification(
     title: str,
     message: str,
     link: Optional[str] = None,
-    metadata: Optional[dict] = None
+    metadata: Optional[dict] = None,
+    send_push: bool = True
 ) -> dict:
-    """Create a new notification for a user"""
+    """Create a new notification for a user and optionally send push"""
     notification = {
         "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
         "user_id": user_id,
@@ -219,6 +220,22 @@ async def create_notification(
     
     # Remove _id for JSON serialization
     notification.pop("_id", None)
+    
+    # Send push notification if enabled
+    if send_push:
+        try:
+            await send_push_to_user(
+                db=db,
+                user_id=user_id,
+                title=title,
+                body=message,
+                url=link or "/notifications",
+                tag=notification_type
+            )
+        except Exception as e:
+            # Don't fail the notification creation if push fails
+            import logging
+            logging.getLogger(__name__).error(f"Failed to send push: {e}")
     
     return notification
 
