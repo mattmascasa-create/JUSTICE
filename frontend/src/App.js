@@ -119,6 +119,7 @@ function AppRouter() {
       <Route path="/recordings" element={<ProtectedRoute><RecordingsPage /></ProtectedRoute>} />
       <Route path="/scheduled-reports" element={<ProtectedRoute><ScheduledReportsPage /></ProtectedRoute>} />
       <Route path="/report-templates" element={<ProtectedRoute><ReportTemplatesPage /></ProtectedRoute>} />
+      <Route path="/notification-preferences" element={<ProtectedRoute><NotificationPreferencesPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
