@@ -183,6 +183,7 @@ export function WebSocketProvider({ children }) {
   const value = {
     isConnected,
     notifications,
+    lastMessage,
     sendMessage,
     sendTyping,
     clearNotifications: () => setNotifications([])
