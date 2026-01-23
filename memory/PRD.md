@@ -481,6 +481,7 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - iteration_22.json - Live Real-Time Transcription - 17/17 passed ✅ - Jan 22, 2026
 - iteration_23.json - AI-Powered Transcript Summaries - 10/10 passed ✅ - Jan 22, 2026
 - iteration_24.json - PDF Export for Summaries - 6/6 passed ✅ - Jan 23, 2026
+- iteration_25.json - Batch PDF Export - 14/14 passed ✅ - Jan 23, 2026
 
 ## MOCKED Features
 - **Blockchain**: Simulated (production: Ethereum/Polygon)
