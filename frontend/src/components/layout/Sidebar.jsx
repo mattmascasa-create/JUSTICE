@@ -30,7 +30,8 @@ import {
   BarChart3,
   Briefcase,
   Video,
-  CalendarClock
+  CalendarClock,
+  Palette
 } from 'lucide-react';
 
 // Get nav items based on user role
@@ -43,6 +44,7 @@ const getNavItems = (role) => {
     { icon: FileBox, label: 'Evidence', path: '/evidence' },
     { icon: Video, label: 'Recordings', path: '/recordings' },
     { icon: CalendarClock, label: 'Scheduled Reports', path: '/scheduled-reports' },
+    { icon: Palette, label: 'Report Templates', path: '/report-templates' },
     { icon: Brain, label: 'Document Analysis', path: '/analyze' },
     { icon: Database, label: 'Community Vault', path: '/community', highlight: true },
     { icon: Megaphone, label: 'Policy Impact', path: '/policy', highlight: true },
