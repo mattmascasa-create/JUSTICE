@@ -82,7 +82,7 @@ class ConnectionManager:
             for viewer in self.encounter_viewers[encounter_id]:
                 try:
                     await viewer.send_bytes(data)
-                except:
+                except Exception:
                     pass
     
     def get_viewer_count(self, encounter_id: str) -> int:
@@ -110,7 +110,7 @@ class ConnectionManager:
             for viewer in self.share_viewers[encounter_id][:]:  # Copy list to avoid mutation during iteration
                 try:
                     await viewer.send_json(message)
-                except:
+                except Exception:
                     self.remove_share_viewer(encounter_id, viewer)
     
     def get_share_viewer_count(self, encounter_id: str) -> int:
