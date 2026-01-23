@@ -79,10 +79,10 @@
       "analytics - GET /api/analytics/encounters/summary, /patterns, /hotspots, /trends"
     ],
     "frontend_pages_tested": [
-      "Homepage (https://civic-shield.preview.emergentagent.com/)",
-      "Register (https://civic-shield.preview.emergentagent.com/register)",
-      "Login (https://civic-shield.preview.emergentagent.com/login)",
-      "Dashboard (https://civic-shield.preview.emergentagent.com/dashboard)"
+      "Homepage (https://rightguardian.preview.emergentagent.com/)",
+      "Register (https://rightguardian.preview.emergentagent.com/register)",
+      "Login (https://rightguardian.preview.emergentagent.com/login)",
+      "Dashboard (https://rightguardian.preview.emergentagent.com/dashboard)"
     ]
   }
 }

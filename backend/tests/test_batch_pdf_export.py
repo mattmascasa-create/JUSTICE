@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://civic-shield.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rightguardian.preview.emergentagent.com')
 
 class TestBatchPDFExport:
     """Tests for batch PDF export endpoint"""
