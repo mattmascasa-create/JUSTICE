@@ -26,10 +26,12 @@ from app.routers.rights import router as rights_router
 from app.routers.attorney import router as attorney_collab_router
 from app.routers.backup import router as backup_router
 from app.routers.calls import router as calls_router
+from app.routers.schedules import router as schedules_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
 from app.services.websocket import manager
+from app.services.scheduled_reports import start_scheduler, stop_scheduler
 from app.db.database import db
 
 
@@ -37,12 +39,22 @@ from app.db.database import db
 async def lifespan(app: FastAPI):
     """Application lifespan - startup and shutdown events"""
     # Startup
-    print("🚀 JUSTICE Platform Starting (Modular Architecture v5.2)...")
+    print("🚀 JUSTICE Platform Starting (Modular Architecture v5.16)...")
     print(f"   IPFS Enabled: {IPFS_ENABLED}")
     print(f"   S3 Enabled: {S3_ENABLED}")
+    
+    # Start the scheduler for automated reports
+    try:
+        start_scheduler()
+        print("   📅 Scheduled Reports: Enabled")
+    except Exception as e:
+        print(f"   ⚠️ Scheduler failed to start: {e}")
+    
     yield
+    
     # Shutdown
     print("👋 JUSTICE Platform Shutting down...")
+    stop_scheduler()
 
 
 # Create FastAPI application
