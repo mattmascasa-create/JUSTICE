@@ -21,12 +21,39 @@ import { toast } from 'sonner';
 import api, { violationAPI, legalPrecedentAPI, foiaAPI, encounterAPI } from '../lib/api';
 
 export default function AdvancedFeaturesPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('protection');
   const [loading, setLoading] = useState(true);
   const [dmsConfig, setDmsConfig] = useState(null);
   const [witnessStats, setWitnessStats] = useState(null);
   const [foiaRequests, setFoiaRequests] = useState([]);
   const [saving, setSaving] = useState(false);
+  
+  // Encounters for analysis
+  const [encounters, setEncounters] = useState([]);
+  const [selectedEncounter, setSelectedEncounter] = useState('');
+  
+  // Violation Analysis State
+  const [analyzingViolations, setAnalyzingViolations] = useState(false);
+  const [violationAnalysis, setViolationAnalysis] = useState(null);
+  
+  // Legal Precedent State
+  const [searchingPrecedents, setSearchingPrecedents] = useState(false);
+  const [precedentResults, setPrecedentResults] = useState(null);
+  
+  // Case Value Estimation State
+  const [estimatingValue, setEstimatingValue] = useState(false);
+  const [valueEstimate, setValueEstimate] = useState(null);
+  const [caseFactors, setCaseFactors] = useState({
+    hasInjury: false,
+    hasArrest: false,
+    hasVideo: true
+  });
+  
+  // FOIA State
+  const [generatingFoia, setGeneratingFoia] = useState(false);
+  const [foiaDialogOpen, setFoiaDialogOpen] = useState(false);
+  const [generatedFoia, setGeneratedFoia] = useState(null);
 
   useEffect(() => {
     fetchData();
