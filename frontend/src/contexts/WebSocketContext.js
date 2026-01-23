@@ -13,10 +13,11 @@ export function WebSocketProvider({ children }) {
   const { token, user } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [lastMessage, setLastMessage] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptRef = useRef(0);
-  const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
+  const reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
 
   const resetReconnectState = useCallback(() => {
     reconnectAttemptRef.current = 0;
