@@ -375,7 +375,8 @@ export default function RecordingsPage() {
         recipients,
         ccList,
         emailMessage.trim() || null,
-        emailRecipientName.trim() || null
+        emailRecipientName.trim() || null,
+        selectedTemplateId
       );
       
       toast.success(`Summary emailed to ${recipients.length} recipient(s)!`);
