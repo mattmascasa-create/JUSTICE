@@ -38,6 +38,15 @@ export default function RecordingsPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [exportingBatch, setExportingBatch] = useState(false);
   
+  // Email dialog state
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailRecipients, setEmailRecipients] = useState('');
+  const [emailCc, setEmailCc] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [emailRecipientName, setEmailRecipientName] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailRecordingIds, setEmailRecordingIds] = useState([]);
+  
   // Transcript search
   const [transcriptSearchQuery, setTranscriptSearchQuery] = useState('');
   const [transcriptSearchResults, setTranscriptSearchResults] = useState([]);
