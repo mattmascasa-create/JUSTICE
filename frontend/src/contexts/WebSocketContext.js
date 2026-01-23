@@ -124,12 +124,14 @@ export function WebSocketProvider({ children }) {
           description: data.message,
           duration: 15000
         });
+        playNotificationSound('message');
         setNotifications(prev => [...prev, { ...data, type: 'guidance_message' }]);
         break;
       case 'viewer_joined':
         toast.success(`👁️ Someone is watching your encounter`, {
           description: `${data.viewer_count} viewer(s) connected`
         });
+        playNotificationSound('system');
         setNotifications(prev => [...prev, { ...data, type: 'viewer_joined' }]);
         break;
       case 'viewer_left':
@@ -144,6 +146,7 @@ export function WebSocketProvider({ children }) {
             onClick: () => window.open(data.share_url, '_blank')
           }
         });
+        playNotificationSound('sos_alert');
         break;
       case 'typing':
         break;
