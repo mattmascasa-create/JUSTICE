@@ -22,6 +22,7 @@ import {
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
 import RightsCoachPanel from '../components/RightsCoachPanel';
+import DeadMansSwitchPanel from '../components/DeadMansSwitchPanel';
 
 const encounterTypes = [
   { value: 'traffic_stop', label: 'Traffic Stop' },
