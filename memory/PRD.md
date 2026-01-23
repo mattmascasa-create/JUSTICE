@@ -326,7 +326,8 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Summaries stored in MongoDB for quick access
   - "Summary" badge on recording cards when summary exists
   - **Export to PDF**: Professional PDF documents with JUSTICE branding, colored section headers, participant info, and confidentiality notice
-- **Version**: 5.14.0
+  - **Batch PDF Export**: Select multiple recordings and export a consolidated report with table of contents, individual summaries, and disclaimer page (max 20 per batch)
+- **Version**: 5.15.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
