@@ -304,7 +304,7 @@ export default function AdvancedFeaturesPage() {
                 <Siren className="h-6 w-6 text-red-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Dead Man's Switch</h3>
+                <h3 className="font-semibold">Dead Man&apos;s Switch</h3>
                 <p className="text-sm text-muted-foreground">Auto emergency response</p>
               </div>
             </div>
@@ -350,7 +350,7 @@ export default function AdvancedFeaturesPage() {
                     <Siren className="h-6 w-6 text-red-500" />
                   </div>
                   <div>
-                    <CardTitle>Dead Man's Switch</CardTitle>
+                    <CardTitle>Dead Man&apos;s Switch</CardTitle>
                     <CardDescription>
                       Automatic emergency response when you become unresponsive
                     </CardDescription>
@@ -512,7 +512,7 @@ export default function AdvancedFeaturesPage() {
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
-                You'll be alerted when encounters happen within 1 mile of your location
+                You&apos;ll be alerted when encounters happen within 1 mile of your location
               </p>
             </CardContent>
           </Card>
