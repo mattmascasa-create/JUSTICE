@@ -24,6 +24,18 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ## Latest Updates (Jan 2026)
 
 ### Completed Features
+
+#### Advanced Protection Features (NEW)
+- **AI Rights Coach**: Real-time legal guidance during encounters using GPT-5.2
+- **Dead Man's Switch**: Auto emergency response when user becomes unresponsive (configurable thresholds)
+- **Witness Network**: 1-mile radius community alerts, reputation system, witness recordings
+
+#### Advanced Legal Strategy Features (NEW)
+- **Automatic Violation Detection**: AI-powered 4th/5th/14th Amendment violation analysis
+- **Legal Precedent Matching**: Matches cases to Terry v. Ohio, Miranda, Mapp v. Ohio, Graham v. Connor, etc.
+- **FOIA Automation**: One-click body cam requests with deadline tracking and auto-escalation
+
+#### Core Features
 - **Notification Sounds**: Custom alert tones per notification type with Web Audio API
 - **Notification Preferences**: Full settings page for push, email, and in-app notification controls
 - **Push Notifications**: Web Push API with service worker for background alerts
