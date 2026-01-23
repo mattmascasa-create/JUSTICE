@@ -1225,6 +1225,24 @@ export default function EncounterPage() {
           </CardContent>
         </Card>
 
+        {/* AI Rights Coach Panel */}
+        <RightsCoachPanel
+          encounterType={encounterType}
+          fullTranscript={fullTranscript}
+          isRecording={isRecording}
+          isPaused={isPaused}
+          onGuidanceReceived={(guidance) => {
+            // Handle potential violations from the coach
+            if (guidance?.potential_violation) {
+              setImmediateAlert({
+                type: 'violation',
+                message: guidance.potential_violation.explanation,
+                severity: guidance.potential_violation.severity
+              });
+            }
+          }}
+        />
+
         {/* Real-time Sharing Status & Guidance */}
         <Card className={`border-2 ${shareActive ? 'border-blue-500/50 bg-blue-500/5' : 'border-gray-500/30'}`}>
           <CardContent className="p-4 space-y-4">
