@@ -24,6 +24,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ## Latest Updates (Jan 2026)
 
 ### Completed Features
+- **Push Notifications**: Web Push API with service worker for background alerts
 - **Notification Bell**: Real-time notification system with badge count and dropdown panel
 - **Report Templates**: Full CRUD for custom branded report templates
 - **Template Integration**: Templates now apply to single PDF export, batch export, and email delivery
