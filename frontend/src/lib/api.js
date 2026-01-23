@@ -453,6 +453,17 @@ export const callsAPI = {
     }, { timeout: 60000 }),
 };
 
+// Scheduled Reports API
+export const schedulesAPI = {
+  getMySchedules: () => api.get('/schedules/my'),
+  createSchedule: (data) => api.post('/schedules/create', data),
+  getSchedule: (scheduleId) => api.get(`/schedules/${scheduleId}`),
+  updateSchedule: (scheduleId, data) => api.put(`/schedules/${scheduleId}`, data),
+  deleteSchedule: (scheduleId) => api.delete(`/schedules/${scheduleId}`),
+  toggleSchedule: (scheduleId) => api.post(`/schedules/${scheduleId}/toggle`),
+  testSchedule: (scheduleId) => api.post(`/schedules/${scheduleId}/test`, null, { timeout: 60000 }),
+};
+
 // Policy Impact Dashboard API
 export const policyAPI = {
   getDashboardData: () => api.get('/policy/dashboard-data'),
