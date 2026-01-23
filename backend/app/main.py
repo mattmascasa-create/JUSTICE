@@ -150,7 +150,8 @@ async def user_websocket(websocket: WebSocket, user_token: str):
                 msg_type = data.get("type")
                 
                 if msg_type == "ping":
-                    await websocket.send_json({"type": "pong"})
+                    # Handle heartbeat ping with timestamp for latency measurement
+                    await manager.handle_ping(websocket, data)
                 elif msg_type == "typing":
                     # Forward typing indicator to recipient
                     recipient_id = data.get("recipient_id")
@@ -164,6 +165,7 @@ async def user_websocket(websocket: WebSocket, user_token: str):
             manager.disconnect(websocket, user_id)
     except Exception as e:
         print(f"WebSocket error: {e}")
+        manager.disconnect(websocket, user_id) if 'user_id' in dir() else None
         try:
             await websocket.close(code=4000, reason="Connection error")
         except:
