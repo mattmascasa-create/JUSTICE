@@ -98,7 +98,7 @@ Analyze the latest exchange and provide guidance. Focus on the most recent offic
             system_message=system_prompt
         ).with_model("openai", "gpt-4o")
         
-        response = chat.send_message(UserMessage(text=user_prompt))
+        response = await chat.send_message(UserMessage(text=user_prompt))
         
         import json
         # Try to parse JSON from response
@@ -173,7 +173,7 @@ Be conservative - only flag clear violations, not borderline conduct."""
             system_message=system_prompt
         ).with_model("openai", "gpt-4o")
         
-        response = chat.send_message(
+        response = await chat.send_message(
             UserMessage(text=f"TRANSCRIPT:\n{transcript}\n\nOFFICER STATEMENTS TO ANALYZE:\n" + "\n".join(officer_statements))
         )
         
