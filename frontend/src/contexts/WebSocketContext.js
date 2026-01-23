@@ -17,7 +17,7 @@ export function WebSocketProvider({ children }) {
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptRef = useRef(0);
-  const reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+  const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
 
   const resetReconnectState = useCallback(() => {
     reconnectAttemptRef.current = 0;
