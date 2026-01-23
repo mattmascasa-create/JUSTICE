@@ -1846,25 +1846,70 @@ export default function EncounterPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-2">
-          <Button variant="outline" size="sm" className="flex-col h-auto py-3">
-            <Phone className="h-5 w-5 mb-1" />
-            <span className="text-xs">Call Lawyer</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-col h-auto py-3"
-            onClick={shareStreamLink}
-            data-testid="share-live-btn"
-          >
-            <Share2 className="h-5 w-5 mb-1" />
-            <span className="text-xs">Share Live</span>
-          </Button>
-          <Button variant="outline" size="sm" className="flex-col h-auto py-3">
-            <Eye className="h-5 w-5 mb-1" />
-            <span className="text-xs">Know Rights</span>
-          </Button>
+        <div className="space-y-3">
+          {/* Quick SOS Button - Prominent */}
+          {sosActive ? (
+            <Button 
+              variant="outline"
+              size="lg"
+              className="w-full h-16 border-2 border-green-500 bg-green-500/20 hover:bg-green-500/30 text-green-400"
+              onClick={cancelSOS}
+              data-testid="cancel-sos-btn"
+            >
+              <CheckCircle className="h-6 w-6 mr-2" />
+              <div className="flex flex-col items-start">
+                <span className="font-bold">SOS Active - Contacts Notified</span>
+                <span className="text-xs opacity-70">Click to cancel SOS</span>
+              </div>
+            </Button>
+          ) : (
+            <Button 
+              variant="destructive"
+              size="lg"
+              className="w-full h-16 bg-red-600 hover:bg-red-700 animate-pulse"
+              onClick={triggerQuickSOS}
+              disabled={sosSending || !encounter}
+              data-testid="quick-sos-btn"
+            >
+              <Siren className="h-6 w-6 mr-2" />
+              <div className="flex flex-col items-start">
+                <span className="font-bold">{sosSending ? 'Sending SOS...' : 'QUICK SOS'}</span>
+                <span className="text-xs opacity-70">Alert all emergency contacts</span>
+              </div>
+            </Button>
+          )}
+
+          {/* Other Quick Actions */}
+          <div className="grid grid-cols-3 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-col h-auto py-3"
+              onClick={() => navigate('/emergency-contacts')}
+            >
+              <Users className="h-5 w-5 mb-1" />
+              <span className="text-xs">Contacts</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-col h-auto py-3"
+              onClick={shareStreamLink}
+              data-testid="share-live-btn"
+            >
+              <Share2 className="h-5 w-5 mb-1" />
+              <span className="text-xs">Share Live</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-col h-auto py-3"
+              onClick={() => navigate('/rights')}
+            >
+              <Eye className="h-5 w-5 mb-1" />
+              <span className="text-xs">Know Rights</span>
+            </Button>
+          </div>
         </div>
       </div>
     </AppLayout>
