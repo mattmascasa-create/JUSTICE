@@ -410,10 +410,13 @@ export function WebSocketProvider({ children }) {
 
   const value = {
     isConnected,
+    connectionState,
+    connectionQuality,
     notifications,
     lastMessage,
     sendMessage,
     sendTyping,
+    reconnect,
     clearNotifications: () => setNotifications([])
   };
 
