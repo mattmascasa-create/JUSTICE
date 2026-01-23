@@ -1136,7 +1136,7 @@ export default function EncounterPage() {
                   <Alert className="bg-purple-500/10 border-purple-500/30">
                     <AlertCircle className="h-4 w-4 text-purple-400" />
                     <AlertDescription className="text-purple-300 text-xs">
-                      You'll be asked to select which screen to share when recording starts
+                      You&apos;ll be asked to select which screen to share when recording starts
                     </AlertDescription>
                   </Alert>
                 )}
@@ -1457,7 +1457,7 @@ export default function EncounterPage() {
                   <p className="text-sm text-muted-foreground">{violation.description}</p>
                   {violation.quote && (
                     <div className="p-2 rounded bg-black/20 border-l-2 border-red-500">
-                      <p className="text-sm italic">"{violation.quote}"</p>
+                      <p className="text-sm italic">&ldquo;{violation.quote}&rdquo;</p>
                     </div>
                   )}
                   {violation.legal_citation && (
@@ -1691,7 +1691,7 @@ export default function EncounterPage() {
                                   'bg-gray-500/30 text-gray-300 border-gray-500/50'
                                 }`}
                               >
-                                {ei.type}: "{ei.evidence?.slice(0, 30)}..."
+                                {ei.type}: &ldquo;{ei.evidence?.slice(0, 30)}&rdquo;...
                               </Badge>
                             ))}
                           </div>
