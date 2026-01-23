@@ -240,6 +240,56 @@ export default function RecordingsPage() {
     }
   };
 
+  // Batch selection handlers
+  const toggleSelection = (recordingId) => {
+    setSelectedIds(prev => 
+      prev.includes(recordingId) 
+        ? prev.filter(id => id !== recordingId)
+        : [...prev, recordingId]
+    );
+  };
+
+  const selectAll = () => {
+    const recordingsWithSummary = filteredRecordings.filter(r => r.ai_summary);
+    setSelectedIds(recordingsWithSummary.map(r => r.recording_id));
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setIsSelectionMode(false);
+  };
+
+  const handleBatchExport = async () => {
+    if (selectedIds.length === 0) {
+      toast.error('Please select at least one recording with a summary');
+      return;
+    }
+    
+    setExportingBatch(true);
+    try {
+      toast.info(`Generating consolidated PDF for ${selectedIds.length} recording(s)...`);
+      const res = await callsAPI.downloadBatchSummaryPDF(selectedIds);
+      
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `consolidated_summary_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Consolidated PDF downloaded!');
+      clearSelection();
+    } catch (error) {
+      console.error('Batch export error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to export batch PDF');
+    } finally {
+      setExportingBatch(false);
+    }
+  };
+
   const fetchTranscript = async (recordingId) => {
     try {
       const res = await callsAPI.getTranscript(recordingId);
