@@ -250,9 +250,11 @@ export function WebSocketProvider({ children }) {
     if (!token || !user) return;
 
     // Prevent multiple connections
-    if (wsRef.current && wsRef.current.readyState === WebSocket.CONNECTING) {
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.CONNECTING || wsRef.current.readyState === WebSocket.OPEN)) {
       return;
     }
+
+    setConnectionState(reconnectAttemptRef.current > 0 ? ConnectionState.RECONNECTING : ConnectionState.CONNECTING);
 
     const wsUrl = process.env.REACT_APP_BACKEND_URL
       .replace('https://', 'wss://')
@@ -262,26 +264,42 @@ export function WebSocketProvider({ children }) {
       wsRef.current = new WebSocket(`${wsUrl}/api/ws/${token}`);
 
       wsRef.current.onopen = () => {
-        setIsConnected(true);
+        setConnectionState(ConnectionState.CONNECTED);
         resetReconnectState();
+        startHeartbeat();
         console.log('WebSocket connected');
       };
 
       wsRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleMessage(data);
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
       };
 
       wsRef.current.onclose = (event) => {
-        setIsConnected(false);
+        setConnectionState(ConnectionState.DISCONNECTED);
+        clearTimers();
         console.log('WebSocket disconnected', event.code, event.reason);
         
-        // Don't reconnect if explicitly closed or max attempts reached
-        if (event.code === 1000 || reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
-          if (reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
-            console.warn('Max WebSocket reconnect attempts reached');
-            toast.error('Connection lost. Please refresh the page.');
-          }
+        // Don't reconnect if explicitly closed (1000) or auth failed (4001)
+        if (event.code === 1000 || event.code === 4001) {
+          return;
+        }
+        
+        // Check if max attempts reached
+        if (reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
+          console.warn('Max WebSocket reconnect attempts reached');
+          setConnectionState(ConnectionState.FAILED);
+          toast.error('Connection lost. Please refresh the page.', {
+            duration: 10000,
+            action: {
+              label: 'Refresh',
+              onClick: () => window.location.reload()
+            }
+          });
           return;
         }
 
@@ -292,6 +310,7 @@ export function WebSocketProvider({ children }) {
           MAX_RECONNECT_DELAY
         );
         
+        setConnectionState(ConnectionState.RECONNECTING);
         console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
         reconnectTimeoutRef.current = setTimeout(connectRef.current, delay);
       };
@@ -301,8 +320,9 @@ export function WebSocketProvider({ children }) {
       };
     } catch (error) {
       console.error('WebSocket connection error:', error);
+      setConnectionState(ConnectionState.FAILED);
     }
-  }, [token, user, resetReconnectState, handleMessage]);
+  }, [token, user, resetReconnectState, handleMessage, startHeartbeat, clearTimers]);
 
   // Keep connect ref updated in effect
   useEffect(() => {
