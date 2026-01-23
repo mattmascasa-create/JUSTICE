@@ -1297,6 +1297,103 @@ export default function RecordingsPage() {
             </Tabs>
           </DialogContent>
         </Dialog>
+
+        {/* Email Summary Dialog */}
+        <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+          <DialogContent className="max-w-md" data-testid="email-dialog">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-blue-500" />
+                Email Summary Report
+              </DialogTitle>
+              <DialogDescription>
+                Send the AI-generated summary report to recipients via email.
+                {emailRecordingIds.length > 1 && (
+                  <span className="block mt-1 text-purple-400">
+                    {emailRecordingIds.length} recording(s) selected
+                  </span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="recipients">Recipient Email(s) *</Label>
+                <Textarea
+                  id="recipients"
+                  placeholder="Enter email addresses (comma or newline separated)&#10;e.g., client@email.com, paralegal@firm.com"
+                  value={emailRecipients}
+                  onChange={(e) => setEmailRecipients(e.target.value)}
+                  className="min-h-[80px]"
+                  data-testid="email-recipients-input"
+                />
+                <p className="text-xs text-muted-foreground">Maximum 10 recipients</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="recipientName">Recipient Name (optional)</Label>
+                <Input
+                  id="recipientName"
+                  placeholder="e.g., John Smith"
+                  value={emailRecipientName}
+                  onChange={(e) => setEmailRecipientName(e.target.value)}
+                  data-testid="email-recipient-name-input"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="cc">CC (optional)</Label>
+                <Input
+                  id="cc"
+                  placeholder="cc@email.com"
+                  value={emailCc}
+                  onChange={(e) => setEmailCc(e.target.value)}
+                  data-testid="email-cc-input"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="message">Personal Message (optional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Add a personal note to include in the email..."
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  className="min-h-[60px]"
+                  data-testid="email-message-input"
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={closeEmailDialog}
+                disabled={sendingEmail}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendEmail}
+                disabled={sendingEmail || !emailRecipients.trim()}
+                className="bg-blue-600 hover:bg-blue-700"
+                data-testid="send-email-btn"
+              >
+                {sendingEmail ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Email
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
