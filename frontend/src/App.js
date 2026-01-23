@@ -38,6 +38,7 @@ import VideoCallPage from "./pages/VideoCallPage";
 import IncomingCallModal from "./components/IncomingCallModal";
 import RecordingsPage from "./pages/RecordingsPage";
 import ScheduledReportsPage from "./pages/ScheduledReportsPage";
+import ReportTemplatesPage from "./pages/ReportTemplatesPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
