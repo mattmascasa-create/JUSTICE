@@ -18,6 +18,7 @@ export function WebSocketProvider({ children }) {
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptRef = useRef(0);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
+  const connectRef = useRef(null);
 
   const resetReconnectState = useCallback(() => {
     reconnectAttemptRef.current = 0;
@@ -144,9 +145,7 @@ export function WebSocketProvider({ children }) {
         );
         
         console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, delay);
+        reconnectTimeoutRef.current = setTimeout(connectRef.current, delay);
       };
 
       wsRef.current.onerror = (error) => {
@@ -156,6 +155,9 @@ export function WebSocketProvider({ children }) {
       console.error('WebSocket connection error:', error);
     }
   }, [token, user, resetReconnectState, handleMessage]);
+
+  // Keep connect ref updated
+  connectRef.current = connect;
 
   const sendMessage = useCallback((data) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
