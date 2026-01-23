@@ -169,6 +169,33 @@ async def create_encounter_sos(
                         "message_sid": sms_result.get("message_sid"),
                         "notified_at": now.isoformat()
                     })
+        
+        # Send Email if email address provided
+        email_addr = contact.get("email")
+        if email_addr:
+            from app.services.email_service import send_sos_alert_email, is_sendgrid_configured
+            
+            if is_sendgrid_configured():
+                from app.core.config import FRONTEND_URL
+                full_share_url = f"{FRONTEND_URL}{share_url}"
+                
+                email_result = await send_sos_alert_email(
+                    to_email=email_addr,
+                    user_name=user_name,
+                    location_address=address,
+                    share_url=full_share_url,
+                    latitude=latitude,
+                    longitude=longitude
+                )
+                
+                if email_result.get("success"):
+                    notified_contacts.append({
+                        "contact_id": contact_id,
+                        "name": contact.get("name"),
+                        "method": "email",
+                        "email": email_addr,
+                        "notified_at": now.isoformat()
+                    })
     
     # Update alert with notified contacts
     await db.sos_alerts.update_one(
