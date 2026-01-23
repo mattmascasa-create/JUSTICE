@@ -189,10 +189,16 @@ export default function Sidebar({ isMobileSheet = false }) {
         {!collapsed && (
           <>
             <span className="font-serif text-xl font-bold tracking-tight flex-1">JUSTICE</span>
+            <ConnectionIndicator />
             <NotificationBell />
           </>
         )}
-        {collapsed && <NotificationBell />}
+        {collapsed && (
+          <div className="flex flex-col items-center gap-2">
+            <ConnectionIndicator />
+            <NotificationBell />
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
