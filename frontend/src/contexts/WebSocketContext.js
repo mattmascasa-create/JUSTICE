@@ -6,10 +6,23 @@ import api from '../lib/api';
 
 const WebSocketContext = createContext();
 
+// Connection state enum for better UI feedback
+export const ConnectionState = {
+  DISCONNECTED: 'disconnected',
+  CONNECTING: 'connecting',
+  CONNECTED: 'connected',
+  RECONNECTING: 'reconnecting',
+  FAILED: 'failed'
+};
+
 // Exponential backoff configuration
 const INITIAL_RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_DELAY = 30000;
 const MAX_RECONNECT_ATTEMPTS = 10;
+
+// Heartbeat configuration
+const HEARTBEAT_INTERVAL = 25000; // Send ping every 25 seconds
+const HEARTBEAT_TIMEOUT = 10000;  // Wait 10 seconds for pong response
 
 // Cache for notification preferences
 let cachedPreferences = null;
