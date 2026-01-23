@@ -73,6 +73,7 @@ export const attorneysAPI = {
 // SOS API
 export const sosAPI = {
   create: (data) => api.post('/sos', data),
+  createEncounterSOS: (data) => api.post('/sos/encounter', data),
   getActive: () => api.get('/sos/active'),
   resolve: (id) => api.post(`/sos/${id}/resolve`),
 };
