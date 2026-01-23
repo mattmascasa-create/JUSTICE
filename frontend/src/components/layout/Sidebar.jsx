@@ -37,6 +37,7 @@ import {
   Eye
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
+import ConnectionIndicator from '../ConnectionIndicator';
 
 // Get nav items based on user role
 const getNavItems = (role) => {
