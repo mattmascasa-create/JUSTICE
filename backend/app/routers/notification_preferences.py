@@ -36,6 +36,16 @@ class NotificationPreferences(BaseModel):
     quiet_hours_enabled: bool = False
     quiet_hours_start: Optional[str] = "22:00"  # 10 PM
     quiet_hours_end: Optional[str] = "08:00"    # 8 AM
+    
+    # Sound settings
+    sounds_enabled: bool = True
+    sound_volume: int = 70  # 0-100
+    sound_message: str = "message"
+    sound_case_update: str = "notification"
+    sound_attorney_response: str = "default_ping"
+    sound_sos_alert: str = "sos_alarm"
+    sound_warning: str = "warning_beep"
+    sound_system: str = "soft_bell"
 
 
 # Default preferences
