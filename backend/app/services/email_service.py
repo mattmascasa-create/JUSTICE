@@ -177,3 +177,231 @@ def generate_summary_email_html(
     """
     
     return html_content
+
+
+
+def is_sendgrid_configured() -> bool:
+    """Check if SendGrid is properly configured"""
+    return bool(os.environ.get("SENDGRID_API_KEY"))
+
+
+async def send_simple_email(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    plain_content: str = None
+) -> dict:
+    """
+    Send a simple email without attachments.
+    
+    Returns:
+        dict with success status and any errors
+    """
+    if not is_sendgrid_configured():
+        logger.warning("SendGrid not configured - Email not sent")
+        return {
+            "success": False,
+            "error": "SendGrid not configured",
+            "configured": False
+        }
+    
+    try:
+        sg = get_sendgrid_client()
+        sender_email = get_sender_email()
+        
+        message = Mail(
+            from_email=(sender_email, "JUSTICE Alerts"),
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        
+        response = sg.send(message)
+        success = response.status_code in [200, 201, 202]
+        
+        logger.info(f"Email sent to {to_email}: status={response.status_code}")
+        
+        return {
+            "success": success,
+            "status_code": response.status_code,
+            "to": to_email
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to send email to {to_email}: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "to": to_email
+        }
+
+
+def generate_sos_alert_html(
+    user_name: str,
+    location_address: str,
+    share_url: str,
+    latitude: float = None,
+    longitude: float = None
+) -> str:
+    """Generate HTML content for SOS alert email"""
+    
+    maps_link = ""
+    if latitude and longitude:
+        maps_link = f"""
+        <p style="margin: 10px 0;">
+            <a href="https://maps.google.com/?q={latitude},{longitude}" 
+               style="background-color: #4285f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                📍 View Location on Map
+            </a>
+        </p>
+        """
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">🚨 EMERGENCY SOS ALERT 🚨</h1>
+        </div>
+        
+        <div style="background-color: #fef2f2; padding: 30px; border: 2px solid #dc2626; border-top: none; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 18px; margin-bottom: 20px;">
+                <strong>{user_name}</strong> is in a police encounter and has triggered an emergency alert!
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+                <h3 style="margin-top: 0; color: #dc2626;">📍 Location</h3>
+                <p style="margin-bottom: 0;">{location_address}</p>
+            </div>
+            
+            {maps_link}
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{share_url}" 
+                   style="background-color: #dc2626; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block;">
+                    👁️ WATCH LIVE STREAM
+                </a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                This is an automated emergency alert from <strong>JUSTICE</strong> - Civil Rights Defense System.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def generate_dead_mans_switch_html(
+    user_name: str,
+    location_address: str,
+    share_url: str,
+    latitude: float = None,
+    longitude: float = None
+) -> str:
+    """Generate HTML content for Dead Man's Switch alert email"""
+    
+    maps_link = ""
+    if latitude and longitude:
+        maps_link = f"""
+        <p style="margin: 10px 0;">
+            <a href="https://maps.google.com/?q={latitude},{longitude}" 
+               style="background-color: #4285f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                📍 View Location on Map
+            </a>
+        </p>
+        """
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #f97316 0%, #c2410c 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">⚠️ DEAD MAN'S SWITCH TRIGGERED ⚠️</h1>
+        </div>
+        
+        <div style="background-color: #fff7ed; padding: 30px; border: 2px solid #f97316; border-top: none; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 18px; margin-bottom: 20px;">
+                <strong>{user_name}</strong> has become <strong style="color: #c2410c;">UNRESPONSIVE</strong> during a police encounter!
+            </p>
+            
+            <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #f59e0b;">
+                <p style="margin: 0; font-weight: bold; color: #92400e;">
+                    ⚡ They may need immediate assistance. Please check on them!
+                </p>
+            </div>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f97316;">
+                <h3 style="margin-top: 0; color: #c2410c;">📍 Last Known Location</h3>
+                <p style="margin-bottom: 0;">{location_address}</p>
+            </div>
+            
+            {maps_link}
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{share_url}" 
+                   style="background-color: #f97316; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block;">
+                    👁️ WATCH LIVE STREAM
+                </a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                This automated alert was triggered because {user_name} did not respond to activity checks.
+                <br><strong>JUSTICE</strong> - Civil Rights Defense System
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
+
+async def send_sos_alert_email(
+    to_email: str,
+    user_name: str,
+    location_address: str,
+    share_url: str,
+    latitude: float = None,
+    longitude: float = None
+) -> dict:
+    """Send an SOS alert email to an emergency contact."""
+    
+    subject = f"🚨 EMERGENCY SOS: {user_name} needs help!"
+    html_content = generate_sos_alert_html(
+        user_name=user_name,
+        location_address=location_address,
+        share_url=share_url,
+        latitude=latitude,
+        longitude=longitude
+    )
+    
+    return await send_simple_email(to_email, subject, html_content)
+
+
+async def send_dead_mans_switch_email(
+    to_email: str,
+    user_name: str,
+    location_address: str,
+    share_url: str,
+    latitude: float = None,
+    longitude: float = None
+) -> dict:
+    """Send a Dead Man's Switch alert email to an emergency contact."""
+    
+    subject = f"⚠️ URGENT: {user_name} is unresponsive during encounter!"
+    html_content = generate_dead_mans_switch_html(
+        user_name=user_name,
+        location_address=location_address,
+        share_url=share_url,
+        latitude=latitude,
+        longitude=longitude
+    )
+    
+    return await send_simple_email(to_email, subject, html_content)
