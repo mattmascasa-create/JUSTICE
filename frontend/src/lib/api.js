@@ -464,6 +464,18 @@ export const schedulesAPI = {
   testSchedule: (scheduleId) => api.post(`/schedules/${scheduleId}/test`, null, { timeout: 60000 }),
 };
 
+// Report Templates API
+export const templatesAPI = {
+  getMyTemplates: () => api.get('/templates/my'),
+  getDefaultTemplate: () => api.get('/templates/default'),
+  createTemplate: (data) => api.post('/templates/create', data),
+  getTemplate: (templateId) => api.get(`/templates/${templateId}`),
+  updateTemplate: (templateId, data) => api.put(`/templates/${templateId}`, data),
+  deleteTemplate: (templateId) => api.delete(`/templates/${templateId}`),
+  setDefault: (templateId) => api.post(`/templates/${templateId}/set-default`),
+  duplicateTemplate: (templateId) => api.post(`/templates/${templateId}/duplicate`),
+};
+
 // Policy Impact Dashboard API
 export const policyAPI = {
   getDashboardData: () => api.get('/policy/dashboard-data'),
