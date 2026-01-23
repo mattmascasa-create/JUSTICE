@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Checkbox } from '../components/ui/checkbox';
 import { callsAPI } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -17,7 +18,8 @@ import {
   Filter, SortAsc, SortDesc, X, Volume2,
   VolumeX, Maximize2, SkipBack, SkipForward,
   FileText, Loader2, Copy, CheckCircle,
-  Sparkles, ListChecks, AlertTriangle, Lightbulb
+  Sparkles, ListChecks, AlertTriangle, Lightbulb,
+  CheckSquare, Square, FileStack
 } from 'lucide-react';
 
 export default function RecordingsPage() {
@@ -28,6 +30,11 @@ export default function RecordingsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
   const [filterStatus, setFilterStatus] = useState('all');
+  
+  // Selection state for batch export
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [exportingBatch, setExportingBatch] = useState(false);
   
   // Transcript search
   const [transcriptSearchQuery, setTranscriptSearchQuery] = useState('');
