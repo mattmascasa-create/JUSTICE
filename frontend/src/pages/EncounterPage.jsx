@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
+import RightsCoachPanel from '../components/RightsCoachPanel';
 
 const encounterTypes = [
   { value: 'traffic_stop', label: 'Traffic Stop' },
