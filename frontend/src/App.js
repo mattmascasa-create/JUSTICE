@@ -42,6 +42,7 @@ import ReportTemplatesPage from "./pages/ReportTemplatesPage";
 import NotificationPreferencesPage from "./pages/NotificationPreferencesPage";
 import AdvancedFeaturesPage from "./pages/AdvancedFeaturesPage";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+import WitnessNetworkPage from "./pages/WitnessNetworkPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
