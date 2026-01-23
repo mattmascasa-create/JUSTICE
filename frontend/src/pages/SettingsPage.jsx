@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       const [contactsRes, ipfsRes, blockchainRes, backupRes] = await Promise.all([
-        emergencyContactsAPI.get().catch(() => ({ data: [] })),
+        emergencyContactsAPI.getAll().catch(() => ({ data: [] })),
         blockchainAPI.getIPFSStatus().catch(() => ({ data: null })),
         blockchainAPI.getBlockchainStatus().catch(() => ({ data: null })),
         backupAPI.getStatus().catch(() => ({ data: null }))
