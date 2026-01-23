@@ -31,7 +31,8 @@ import {
   Briefcase,
   Video,
   CalendarClock,
-  Palette
+  Palette,
+  Zap
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 
