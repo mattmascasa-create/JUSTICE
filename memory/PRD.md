@@ -73,35 +73,42 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ```
 /app/
 ├── backend/
-│   ├── .env                    # Environment variables
-│   ├── server.py               # Monolithic server (to be gradually migrated)
-│   ├── app/                    # NEW: Refactored module structure
+│   ├── .env                    # Environment variables (EMERGENT_LLM_KEY, MONGO_URL, etc.)
+│   ├── server.py               # Monolithic server (redirects to app.main)
+│   ├── app/                    # Refactored module structure
 │   │   ├── __init__.py
+│   │   ├── main.py             # Entry point (v5.3.0)
 │   │   ├── core/
-│   │   │   ├── __init__.py
 │   │   │   ├── config.py       # Configuration settings
 │   │   │   └── security.py     # JWT, password hashing, auth
 │   │   ├── db/
-│   │   │   ├── __init__.py
 │   │   │   └── database.py     # MongoDB connection
 │   │   ├── models/
-│   │   │   ├── __init__.py
 │   │   │   └── schemas.py      # Pydantic models
 │   │   ├── services/
-│   │   │   ├── __init__.py
 │   │   │   ├── ai_service.py   # LLM, transcription, analysis
-│   │   │   └── websocket.py    # WebSocket manager
+│   │   │   ├── websocket.py    # WebSocket manager
+│   │   │   ├── rights_coach.py # AI Rights Coach service ✅
+│   │   │   ├── dead_mans_switch.py
+│   │   │   ├── witness_network.py
+│   │   │   ├── violation_detection.py
+│   │   │   ├── legal_precedent.py
+│   │   │   └── foia_automation.py
 │   │   └── routers/
-│   │       ├── __init__.py
-│   │       ├── auth.py         # Authentication endpoints
-│   │       ├── analytics.py    # Analytics endpoints
-│   │       └── health.py       # Health check
+│   │       ├── auth.py, cases.py, evidence.py, etc.
+│   │       ├── advanced_features.py  # Rights coach, violations, etc.
+│   │       └── emergency_contacts.py # Emergency contacts CRUD ✅
 ├── frontend/
 │   ├── src/
-│   │   ├── pages/              # All page components
-│   │   ├── components/         # Reusable UI components
-│   │   ├── lib/                # API utilities
-│   │   └── contexts/           # React contexts
+│   │   ├── pages/
+│   │   │   ├── EncounterPage.jsx     # Includes RightsCoachPanel ✅
+│   │   │   ├── EmergencyContactsPage.jsx ✅
+│   │   │   └── AdvancedFeaturesPage.jsx
+│   │   ├── components/
+│   │   │   ├── RightsCoachPanel.jsx  # AI guidance panel ✅
+│   │   │   └── NotificationBell.jsx
+│   │   ├── lib/api.js                # API utilities
+│   │   └── contexts/                 # React contexts
 └── memory/
     └── PRD.md
 ```
