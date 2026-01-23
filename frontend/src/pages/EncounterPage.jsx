@@ -17,7 +17,7 @@ import {
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
   Eye, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX,
-  MessageCircle, Copy, ExternalLink
+  MessageCircle, Copy, ExternalLink, Siren
 } from 'lucide-react';
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
