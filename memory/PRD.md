@@ -63,6 +63,14 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Auto-broadcast to nearby witnesses when encounter starts
   - Stats tracking: encounters witnessed, recordings submitted
 
+#### Communication & Alerts (Jan 23, 2026)
+- **SMS Alerts via Twilio** ✅: Send SMS to emergency contacts
+  - Integrated into SOS alerts and Dead Man's Switch
+  - Full message templates with location and live stream links
+  - Google Maps links for GPS coordinates
+  - Graceful fallback when Twilio not configured
+  - Requires: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+
 #### Advanced Legal Strategy Features (NEW)
 - **Automatic Violation Detection**: AI-powered 4th/5th/14th Amendment violation analysis
 - **Legal Precedent Matching**: Matches cases to Terry v. Ohio, Miranda, Mapp v. Ohio, Graham v. Connor, etc.
