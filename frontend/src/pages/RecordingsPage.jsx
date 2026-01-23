@@ -301,6 +301,71 @@ export default function RecordingsPage() {
     }
   };
 
+  // Email functions
+  const openEmailDialog = (recordingIds = null) => {
+    setEmailRecordingIds(recordingIds || selectedIds);
+    setShowEmailDialog(true);
+  };
+
+  const closeEmailDialog = () => {
+    setShowEmailDialog(false);
+    setEmailRecipients('');
+    setEmailCc('');
+    setEmailMessage('');
+    setEmailRecipientName('');
+    setEmailRecordingIds([]);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailRecipients.trim()) {
+      toast.error('Please enter at least one recipient email');
+      return;
+    }
+    
+    // Parse email addresses (comma or newline separated)
+    const recipients = emailRecipients
+      .split(/[,\n]/)
+      .map(e => e.trim())
+      .filter(e => e.length > 0 && e.includes('@'));
+    
+    if (recipients.length === 0) {
+      toast.error('Please enter valid email addresses');
+      return;
+    }
+    
+    if (recipients.length > 10) {
+      toast.error('Maximum 10 recipients allowed');
+      return;
+    }
+    
+    // Parse CC emails if provided
+    const ccList = emailCc.trim() 
+      ? emailCc.split(/[,\n]/).map(e => e.trim()).filter(e => e.length > 0 && e.includes('@'))
+      : null;
+    
+    setSendingEmail(true);
+    try {
+      toast.info(`Sending summary to ${recipients.length} recipient(s)...`);
+      
+      await callsAPI.emailSummary(
+        emailRecordingIds,
+        recipients,
+        ccList,
+        emailMessage.trim() || null,
+        emailRecipientName.trim() || null
+      );
+      
+      toast.success(`Summary emailed to ${recipients.length} recipient(s)!`);
+      closeEmailDialog();
+      clearSelection();
+    } catch (error) {
+      console.error('Email send error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to send email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const fetchTranscript = async (recordingId) => {
     try {
       const res = await callsAPI.getTranscript(recordingId);
