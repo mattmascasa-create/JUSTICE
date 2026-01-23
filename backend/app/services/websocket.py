@@ -4,6 +4,7 @@ WebSocket connection manager for real-time features
 from typing import Dict, List
 from fastapi import WebSocket
 import json
+import asyncio
 
 
 class ConnectionManager:
@@ -29,19 +30,38 @@ class ConnectionManager:
     
     async def send_to_user(self, user_id: str, message: dict):
         if user_id in self.active_connections:
+            dead_connections = []
             for connection in self.active_connections[user_id]:
                 try:
                     await connection.send_json(message)
-                except:
-                    pass
+                except Exception:
+                    dead_connections.append(connection)
+            # Clean up dead connections
+            for conn in dead_connections:
+                self.disconnect(conn, user_id)
     
     async def broadcast(self, message: dict):
-        for user_id, connections in self.active_connections.items():
-            for connection in connections:
-                try:
-                    await connection.send_json(message)
-                except:
-                    pass
+        for user_id in list(self.active_connections.keys()):
+            await self.send_to_user(user_id, message)
+    
+    async def handle_ping(self, websocket: WebSocket, data: dict):
+        """Handle ping message and respond with pong"""
+        try:
+            await websocket.send_json({
+                "type": "pong",
+                "timestamp": data.get("timestamp"),
+                "server_time": asyncio.get_event_loop().time()
+            })
+        except Exception:
+            pass
+    
+    def get_connection_count(self) -> int:
+        """Get total number of active connections"""
+        return sum(len(conns) for conns in self.active_connections.values())
+    
+    def get_user_connection_count(self, user_id: str) -> int:
+        """Get number of connections for a specific user"""
+        return len(self.active_connections.get(user_id, []))
     
     # Encounter streaming methods
     async def add_viewer(self, encounter_id: str, websocket: WebSocket):
