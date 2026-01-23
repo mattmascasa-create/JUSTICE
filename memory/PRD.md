@@ -54,7 +54,14 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Auto-triggers: notifies emergency contacts, enables public broadcast
   - User can disarm if they're safe
   - Tracks activity on touches, clicks, and keyboard
-- **Witness Network**: 1-mile radius community alerts, reputation system, witness recordings
+- **Witness Network** ✅: Community-based encounter monitoring
+  - Dedicated page at `/witness-network`
+  - Enable/disable witness mode with location tracking
+  - Receive alerts for encounters within 1 mile
+  - Join as witness to watch live encounters
+  - Reputation system with badges (New Witness → Guardian)
+  - Auto-broadcast to nearby witnesses when encounter starts
+  - Stats tracking: encounters witnessed, recordings submitted
 
 #### Advanced Legal Strategy Features (NEW)
 - **Automatic Violation Detection**: AI-powered 4th/5th/14th Amendment violation analysis
