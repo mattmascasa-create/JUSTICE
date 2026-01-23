@@ -510,7 +510,7 @@ export default function EmergencyContactsPage() {
               <strong className="text-red-400">SOS Alerts:</strong> Immediate notification when you trigger the SOS button.
             </p>
             <p>
-              <strong className="text-orange-400">Dead Man's Switch:</strong> If you become unresponsive during an encounter, contacts are automatically alerted.
+              <strong className="text-orange-400">Dead Man&apos;s Switch:</strong> If you become unresponsive during an encounter, contacts are automatically alerted.
             </p>
           </CardContent>
         </Card>
