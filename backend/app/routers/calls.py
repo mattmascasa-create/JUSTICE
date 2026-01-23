@@ -1393,9 +1393,9 @@ async def email_summary_pdf(
     request: EmailSummaryRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Email AI summary PDF to recipients"""
+    """Email AI summary PDF to recipients with optional template"""
     from app.services.email_service import send_pdf_email, generate_summary_email_html, EmailDeliveryError
-    from fpdf import FPDF
+    from app.services.pdf_generator import generate_single_summary_pdf, generate_batch_summary_pdf
     
     user_id = current_user["user_id"]
     user_name = current_user.get("name", current_user.get("email", "A JUSTICE user"))
@@ -1437,7 +1437,37 @@ async def email_summary_pdf(
     if not recordings_data:
         raise HTTPException(status_code=400, detail="No recordings with summaries found")
     
-    # Generate PDF (reuse batch PDF logic for single or multiple recordings)
+    # Get template if specified
+    template = None
+    if request.template_id and request.template_id != "system_default":
+        template = await db.report_templates.find_one(
+            {"template_id": request.template_id, "user_id": user_id},
+            {"_id": 0}
+        )
+    elif not request.template_id:
+        # Try to get user's default template
+        template = await db.report_templates.find_one(
+            {"user_id": user_id, "is_default": True},
+            {"_id": 0}
+        )
+    
+    # Generate PDF using templated generator
+    if len(recordings_data) == 1:
+        data = recordings_data[0]
+        pdf_bytes = generate_single_summary_pdf(
+            recording=data["recording"],
+            call=data["call"],
+            summary=data["summary"],
+            template=template
+        )
+        pdf_filename = f"call_summary_{data['recording'].get('recording_id', 'report')}.pdf"
+    else:
+        pdf_bytes = generate_batch_summary_pdf(
+            recordings_data=recordings_data,
+            template=template,
+            user_name=user_name
+        )
+        pdf_filename = f"consolidated_summary_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
     if len(recordings_data) == 1:
         # Single recording - use simpler PDF format
         data = recordings_data[0]
