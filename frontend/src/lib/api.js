@@ -441,6 +441,7 @@ export const callsAPI = {
   // AI Summary
   generateSummary: (recordingId) => api.post(`/calls/${recordingId}/summarize`, null, { timeout: 120000 }),
   getSummary: (recordingId) => api.get(`/calls/${recordingId}/summary`),
+  downloadSummaryPDF: (recordingId) => api.get(`/calls/${recordingId}/summary/pdf`, { responseType: 'blob' }),
 };
 
 // Policy Impact Dashboard API
