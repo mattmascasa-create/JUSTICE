@@ -208,6 +208,31 @@ export default function RecordingsPage() {
     }
   };
 
+  const handleDownloadSummaryPDF = async () => {
+    if (!selectedRecording) return;
+    
+    try {
+      toast.info('Generating PDF...');
+      const res = await callsAPI.downloadSummaryPDF(selectedRecording.recording_id);
+      
+      // Create blob URL and trigger download
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `call_summary_${selectedRecording.recording_id}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('PDF downloaded!');
+    } catch (error) {
+      console.error('PDF download error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to download PDF');
+    }
+  };
+
   const fetchTranscript = async (recordingId) => {
     try {
       const res = await callsAPI.getTranscript(recordingId);
