@@ -165,10 +165,13 @@ async def user_websocket(websocket: WebSocket, user_token: str):
             manager.disconnect(websocket, user_id)
     except Exception as e:
         print(f"WebSocket error: {e}")
-        manager.disconnect(websocket, user_id) if 'user_id' in dir() else None
+        try:
+            manager.disconnect(websocket, user_id)
+        except Exception:
+            pass
         try:
             await websocket.close(code=4000, reason="Connection error")
-        except:
+        except Exception:
             pass
 
 
