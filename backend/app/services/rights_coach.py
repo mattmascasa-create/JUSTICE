@@ -139,7 +139,7 @@ async def analyze_for_violations(
     Returns:
         List of potential violations with timestamps and legal analysis
     """
-    from emergentintegrations.llm.chat import chat, UserMessage, SystemMessage
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
     
     system_prompt = """You are a constitutional law expert analyzing police conduct for rights violations.
 Analyze the officer's statements and identify any potential constitutional violations.
@@ -163,19 +163,23 @@ For each violation found, provide:
 Be conservative - only flag clear violations, not borderline conduct."""
 
     try:
-        response = await chat(
+        chat = LlmChat(
             api_key=os.environ.get("EMERGENT_API_KEY"),
-            messages=[
-                SystemMessage(content=system_prompt),
-                UserMessage(content=f"TRANSCRIPT:\n{transcript}\n\nOFFICER STATEMENTS TO ANALYZE:\n" + "\n".join(officer_statements))
-            ],
             model="gpt-5.2",
-            temperature=0.2,
-            response_format={"type": "json_object"}
+            system_message=system_prompt
+        )
+        
+        response = await chat.send_message(
+            f"TRANSCRIPT:\n{transcript}\n\nOFFICER STATEMENTS TO ANALYZE:\n" + "\n".join(officer_statements)
         )
         
         import json
-        return json.loads(response.content)
+        content = response.content if hasattr(response, 'content') else str(response)
+        if '```json' in content:
+            content = content.split('```json')[1].split('```')[0].strip()
+        elif '```' in content:
+            content = content.split('```')[1].split('```')[0].strip()
+        return json.loads(content)
         
     except Exception as e:
         logger.error(f"Violation analysis error: {e}")
