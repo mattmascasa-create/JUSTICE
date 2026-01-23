@@ -120,6 +120,144 @@ export default function AdvancedFeaturesPage() {
     );
   };
 
+  // Analyze encounter for violations
+  const analyzeViolations = async () => {
+    if (!selectedEncounter) {
+      toast.error('Please select an encounter first');
+      return;
+    }
+    
+    setAnalyzingViolations(true);
+    setViolationAnalysis(null);
+    
+    try {
+      const encounter = encounters.find(e => e.encounter_id === selectedEncounter);
+      const transcript = encounter?.transcript || 'No transcript available';
+      
+      const response = await violationAPI.analyze(
+        selectedEncounter,
+        transcript,
+        encounter?.encounter_type || 'general'
+      );
+      
+      setViolationAnalysis(response.data);
+      toast.success('Violation analysis complete!');
+    } catch (error) {
+      console.error('Violation analysis error:', error);
+      toast.error('Failed to analyze violations');
+    } finally {
+      setAnalyzingViolations(false);
+    }
+  };
+
+  // Search legal precedents
+  const searchPrecedents = async () => {
+    if (!selectedEncounter) {
+      toast.error('Please select an encounter first');
+      return;
+    }
+    
+    if (!violationAnalysis?.violations?.length) {
+      toast.error('Please run violation analysis first');
+      return;
+    }
+    
+    setSearchingPrecedents(true);
+    setPrecedentResults(null);
+    
+    try {
+      const encounter = encounters.find(e => e.encounter_id === selectedEncounter);
+      const transcript = encounter?.transcript || '';
+      
+      const response = await legalPrecedentAPI.searchPrecedents(
+        selectedEncounter,
+        violationAnalysis.violations,
+        transcript,
+        encounter?.encounter_type || 'general'
+      );
+      
+      setPrecedentResults(response.data);
+      toast.success('Legal precedents found!');
+    } catch (error) {
+      console.error('Precedent search error:', error);
+      toast.error('Failed to search precedents');
+    } finally {
+      setSearchingPrecedents(false);
+    }
+  };
+
+  // Estimate case value
+  const estimateCaseValue = async () => {
+    if (!violationAnalysis?.violations?.length) {
+      toast.error('Please run violation analysis first');
+      return;
+    }
+    
+    setEstimatingValue(true);
+    setValueEstimate(null);
+    
+    try {
+      const response = await legalPrecedentAPI.estimateValue(
+        violationAnalysis.violations,
+        caseFactors.hasInjury,
+        caseFactors.hasArrest,
+        caseFactors.hasVideo
+      );
+      
+      setValueEstimate(response.data);
+      toast.success('Case value estimated!');
+    } catch (error) {
+      console.error('Value estimation error:', error);
+      toast.error('Failed to estimate case value');
+    } finally {
+      setEstimatingValue(false);
+    }
+  };
+
+  // Generate FOIA request
+  const generateFoiaRequest = async () => {
+    if (!selectedEncounter) {
+      toast.error('Please select an encounter first');
+      return;
+    }
+    
+    setGeneratingFoia(true);
+    setGeneratedFoia(null);
+    
+    try {
+      const response = await foiaAPI.generate(selectedEncounter);
+      setGeneratedFoia(response.data);
+      setFoiaDialogOpen(true);
+      toast.success('FOIA request generated!');
+      fetchData(); // Refresh FOIA requests list
+    } catch (error) {
+      console.error('FOIA generation error:', error);
+      toast.error('Failed to generate FOIA request');
+    } finally {
+      setGeneratingFoia(false);
+    }
+  };
+
+  // Copy FOIA to clipboard
+  const copyFoiaToClipboard = () => {
+    if (generatedFoia?.request_text) {
+      navigator.clipboard.writeText(generatedFoia.request_text);
+      toast.success('FOIA request copied to clipboard!');
+    }
+  };
+
+  // Mark FOIA as submitted
+  const markFoiaSubmitted = async (requestId, method) => {
+    try {
+      await foiaAPI.submit(requestId, method);
+      toast.success('FOIA marked as submitted!');
+      setFoiaDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to mark as submitted');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
