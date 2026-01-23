@@ -33,6 +33,7 @@ import {
   CalendarClock,
   Palette
 } from 'lucide-react';
+import NotificationBell from '../NotificationBell';
 
 // Get nav items based on user role
 const getNavItems = (role) => {
