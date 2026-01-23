@@ -90,29 +90,34 @@ export function WebSocketProvider({ children }) {
         toast.info(data.data?.title || 'New notification', {
           description: data.data?.message
         });
+        playNotificationSound('notification');
         setNotifications(prev => [...prev, data]);
         break;
       case 'new_message':
         toast.info(`New message from ${data.sender_name}`, {
           description: data.content_preview
         });
+        playNotificationSound('new_message');
         setNotifications(prev => [...prev, data]);
         break;
       case 'case_status_changed':
         toast.info('Case status updated', {
           description: `Status changed to ${data.new_status}`
         });
+        playNotificationSound('case_status_changed');
         break;
       case 'evidence_added':
         toast.success('Evidence uploaded', {
           description: `${data.file_name} added to case`
         });
+        playNotificationSound('case_update');
         break;
       case 'sos_alert':
         toast.error('SOS Alert!', {
           description: `Emergency alert from ${data.user_name}`,
           duration: 10000
         });
+        playNotificationSound('sos_alert');
         break;
       case 'guidance_message':
         toast.info(`💬 Guidance from ${data.sender_name}`, {
