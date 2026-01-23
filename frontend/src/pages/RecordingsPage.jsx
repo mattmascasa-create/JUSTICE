@@ -1195,12 +1195,27 @@ export default function RecordingsPage() {
                 <div className="p-4 min-h-[400px] max-h-[60vh] overflow-auto" data-testid="summary-content">
                   {summary?.has_summary ? (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2 text-purple-400">
                           <Sparkles className="h-4 w-4" />
                           <span className="text-sm">AI Summary generated {summary.summarized_at ? formatDate(summary.summarized_at) : ''}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Template Selector for single PDF */}
+                          <Select value={selectedTemplateId || 'system_default'} onValueChange={(val) => setSelectedTemplateId(val === 'system_default' ? null : val)}>
+                            <SelectTrigger className="w-[140px] h-8 bg-transparent border-white/30 text-white text-xs" data-testid="single-template-selector">
+                              <Palette className="h-3 w-3 mr-1" />
+                              <SelectValue placeholder="Template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="system_default">Default</SelectItem>
+                              {templates.map(t => (
+                                <SelectItem key={t.template_id} value={t.template_id}>
+                                  {t.name} {t.is_default && '★'}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <Button
                             variant="outline"
                             size="sm"
