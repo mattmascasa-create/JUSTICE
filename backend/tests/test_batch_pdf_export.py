@@ -24,7 +24,8 @@ class TestBatchPDFExport:
         )
         
         if login_response.status_code == 200:
-            token = login_response.json().get("token")
+            data = login_response.json()
+            token = data.get("access_token") or data.get("token")
             if token:
                 self.session.headers.update({"Authorization": f"Bearer {token}"})
                 self.authenticated = True
@@ -52,7 +53,7 @@ class TestBatchPDFExport:
         )
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data or "token" in data
         print(f"Login successful, token received")
     
     def test_batch_pdf_endpoint_exists(self):
