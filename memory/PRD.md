@@ -24,6 +24,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ## Latest Updates (Jan 2026)
 
 ### Completed Features
+- **Notification Bell**: Real-time notification system with badge count and dropdown panel
 - **Report Templates**: Full CRUD for custom branded report templates
 - **Template Integration**: Templates now apply to single PDF export, batch export, and email delivery
 - **AI Summaries**: GPT-powered transcript summarization
@@ -33,6 +34,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Live Transcription**: Real-time transcription during video calls
 - **WebSocket User Notifications**: Fixed endpoint for real-time user notifications
 - **Dashboard Analytics**: Added `/api/analytics/dashboard` endpoint
+- **Notifications API**: Full CRUD for user notifications at `/api/notifications`
 
 ### Pending Issues
 - **WebSocket Stability**: Initial connections sometimes fail in preview environment (auto-reconnect works)
