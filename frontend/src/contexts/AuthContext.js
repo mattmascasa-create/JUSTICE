@@ -71,8 +71,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await axios.post(`${API}/auth/logout`, {}, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        withCredentials: true
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
     } catch (error) {
       console.error('Logout error:', error);
