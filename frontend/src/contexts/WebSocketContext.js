@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import { playSound, DEFAULT_NOTIFICATION_SOUNDS } from '../services/notificationSounds';
+import api from '../lib/api';
 
 const WebSocketContext = createContext();
 
@@ -8,6 +10,55 @@ const WebSocketContext = createContext();
 const INITIAL_RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_DELAY = 30000;
 const MAX_RECONNECT_ATTEMPTS = 10;
+
+// Cache for notification preferences
+let cachedPreferences = null;
+let preferencesLastFetched = 0;
+const PREFERENCES_CACHE_TTL = 60000; // 1 minute
+
+async function getNotificationPreferences() {
+  const now = Date.now();
+  if (cachedPreferences && (now - preferencesLastFetched) < PREFERENCES_CACHE_TTL) {
+    return cachedPreferences;
+  }
+  try {
+    const res = await api.get('/notification-preferences');
+    cachedPreferences = res.data;
+    preferencesLastFetched = now;
+    return cachedPreferences;
+  } catch {
+    return null;
+  }
+}
+
+async function playNotificationSound(notificationType) {
+  try {
+    const prefs = await getNotificationPreferences();
+    if (!prefs?.sounds_enabled) return;
+    
+    const typeToKey = {
+      message: 'sound_message',
+      new_message: 'sound_message',
+      case_update: 'sound_case_update',
+      case_status_changed: 'sound_case_update',
+      attorney_response: 'sound_attorney_response',
+      sos_alert: 'sound_sos_alert',
+      warning: 'sound_warning',
+      system: 'sound_system',
+      notification: 'sound_message'
+    };
+    
+    const soundKey = typeToKey[notificationType] || 'sound_message';
+    const soundId = prefs[soundKey] || DEFAULT_NOTIFICATION_SOUNDS[notificationType] || 'default_ping';
+    
+    if (soundId && soundId !== 'none') {
+      const volume = (prefs.sound_volume || 70) / 100;
+      playSound(soundId, volume);
+    }
+  } catch (error) {
+    console.error('Error playing notification sound:', error);
+  }
+}
 
 export function WebSocketProvider({ children }) {
   const { token, user } = useAuth();
