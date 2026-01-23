@@ -75,18 +75,93 @@ async function playNotificationSound(notificationType) {
 
 export function WebSocketProvider({ children }) {
   const { token, user } = useAuth();
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState(ConnectionState.DISCONNECTED);
   const [notifications, setNotifications] = useState([]);
   const [lastMessage, setLastMessage] = useState(null);
+  const [connectionQuality, setConnectionQuality] = useState('good'); // good, degraded, poor
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptRef = useRef(0);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
   const connectRef = useRef(null);
+  const heartbeatIntervalRef = useRef(null);
+  const heartbeatTimeoutRef = useRef(null);
+  const lastPongRef = useRef(Date.now());
+  const missedPongsRef = useRef(0);
+
+  // Derived state for backward compatibility
+  const isConnected = connectionState === ConnectionState.CONNECTED;
 
   const resetReconnectState = useCallback(() => {
     reconnectAttemptRef.current = 0;
     reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+    missedPongsRef.current = 0;
+    setConnectionQuality('good');
+  }, []);
+
+  // Clear all timeouts and intervals
+  const clearTimers = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+      heartbeatTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Start heartbeat mechanism
+  const startHeartbeat = useCallback(() => {
+    // Clear existing heartbeat
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+    }
+    
+    heartbeatIntervalRef.current = setInterval(() => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        // Send ping
+        try {
+          wsRef.current.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+          
+          // Set timeout for pong response
+          heartbeatTimeoutRef.current = setTimeout(() => {
+            missedPongsRef.current += 1;
+            
+            // Update connection quality based on missed pongs
+            if (missedPongsRef.current >= 3) {
+              setConnectionQuality('poor');
+              // Force reconnect if too many missed pongs
+              console.warn('Too many missed heartbeats, forcing reconnect...');
+              if (wsRef.current) {
+                wsRef.current.close(4000, 'Heartbeat timeout');
+              }
+            } else if (missedPongsRef.current >= 1) {
+              setConnectionQuality('degraded');
+            }
+          }, HEARTBEAT_TIMEOUT);
+        } catch (error) {
+          console.error('Error sending heartbeat:', error);
+        }
+      }
+    }, HEARTBEAT_INTERVAL);
+  }, []);
+
+  // Handle pong response
+  const handlePong = useCallback(() => {
+    lastPongRef.current = Date.now();
+    missedPongsRef.current = 0;
+    setConnectionQuality('good');
+    
+    // Clear the timeout waiting for pong
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+      heartbeatTimeoutRef.current = null;
+    }
   }, []);
 
   // Handle incoming WebSocket messages
