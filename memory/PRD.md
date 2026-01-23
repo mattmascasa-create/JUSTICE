@@ -93,13 +93,22 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Notifications API**: Full CRUD for user notifications at `/api/notifications`
 
 ### Pending Issues
-- **WebSocket Stability**: Initial connections sometimes fail in preview environment (auto-reconnect works)
 - **SendGrid API Key**: Not configured - email functionality requires `SENDGRID_API_KEY` in backend/.env
 
 ### Bug Fixes (Jan 23, 2026)
 - **CRITICAL: 403 Forbidden Bug FIXED** ✅: Removed `withCredentials: true` from all axios calls in `AuthContext.js`. This was causing CORS issues when the backend uses `Access-Control-Allow-Origin: *`. All protected pages now load correctly.
 - **AttorneysPage.jsx**: Fixed null check for attorney name in filter function (`a.name?.toLowerCase()`)
 - **SettingsPage.jsx**: Fixed incorrect API method call (`emergencyContactsAPI.get()` → `emergencyContactsAPI.getAll()`)
+
+### WebSocket Stability Improvements (Jan 23, 2026)
+- **Connection State Management**: Added `ConnectionState` enum (DISCONNECTED, CONNECTING, CONNECTED, RECONNECTING, FAILED) for better UI feedback
+- **Heartbeat/Ping-Pong Mechanism**: Client sends ping every 25 seconds, server responds with pong including timestamp for latency measurement
+- **Connection Quality Monitoring**: Tracks missed heartbeats to detect degraded/poor connections (good → degraded → poor → force reconnect)
+- **Visibility Change Handler**: Auto-reconnects when browser tab becomes visible after being hidden
+- **Online/Offline Detection**: Auto-reconnects when network comes back online
+- **Manual Reconnect**: Exposed `reconnect()` function for UI to trigger manual reconnection
+- **Improved Error Handling**: Better exception handling in both frontend and backend WebSocket code
+- **Dead Connection Cleanup**: Backend now removes dead connections automatically when sends fail
 
 ## Code Architecture
 
