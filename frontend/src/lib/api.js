@@ -253,8 +253,12 @@ export const similarCasesAPI = {
 
 // Emergency Contacts API
 export const emergencyContactsAPI = {
-  get: () => api.get('/settings/emergency-contacts'),
-  update: (contacts) => api.post('/settings/emergency-contacts', contacts)
+  getAll: () => api.get('/emergency-contacts'),
+  create: (contact) => api.post('/emergency-contacts', contact),
+  update: (contactId, data) => api.put(`/emergency-contacts/${contactId}`, data),
+  delete: (contactId) => api.delete(`/emergency-contacts/${contactId}`),
+  test: (contactId) => api.post(`/emergency-contacts/${contactId}/test`),
+  reorder: (contactIds) => api.post('/emergency-contacts/reorder', contactIds)
 };
 
 // Community Evidence Vault API
