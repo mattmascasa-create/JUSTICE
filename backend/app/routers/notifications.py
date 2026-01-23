@@ -205,6 +205,10 @@ async def create_notification(
     send_push: bool = True
 ) -> dict:
     """Create a new notification for a user and optionally send push"""
+    
+    # Check if in-app notification should be created
+    should_create = await should_send_notification(user_id, notification_type, "in_app")
+    
     notification = {
         "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
         "user_id": user_id,
@@ -217,26 +221,30 @@ async def create_notification(
         "created_at": datetime.now(timezone.utc)
     }
     
+    # Always store notification (but mark preference)
+    notification["preference_blocked"] = not should_create
     await db.notifications.insert_one(notification)
     
     # Remove _id for JSON serialization
     notification.pop("_id", None)
     
-    # Send push notification if enabled
+    # Send push notification if enabled and user preferences allow
     if send_push:
-        try:
-            await send_push_to_user(
-                db=db,
-                user_id=user_id,
-                title=title,
-                body=message,
-                url=link or "/notifications",
-                tag=notification_type
-            )
-        except Exception as e:
-            # Don't fail the notification creation if push fails
-            import logging
-            logging.getLogger(__name__).error(f"Failed to send push: {e}")
+        should_push = await should_send_notification(user_id, notification_type, "push")
+        if should_push:
+            try:
+                await send_push_to_user(
+                    db=db,
+                    user_id=user_id,
+                    title=title,
+                    body=message,
+                    url=link or "/notifications",
+                    tag=notification_type
+                )
+            except Exception as e:
+                # Don't fail the notification creation if push fails
+                import logging
+                logging.getLogger(__name__).error(f"Failed to send push: {e}")
     
     return notification
 
