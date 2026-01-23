@@ -1235,11 +1235,12 @@ async def get_transcript_summary(
 @router.get("/{recording_id}/summary/pdf")
 async def export_summary_pdf(
     recording_id: str,
+    template_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Export AI summary as a professional PDF document"""
+    """Export AI summary as a professional PDF document with optional template"""
     from fastapi.responses import Response
-    from fpdf import FPDF
+    from app.services.pdf_generator import generate_single_summary_pdf
     
     user_id = current_user["user_id"]
     
@@ -1257,6 +1258,39 @@ async def export_summary_pdf(
     
     # Get call details
     call = await db.video_calls.find_one({"call_id": recording.get("call_id")}, {"_id": 0})
+    
+    # Get template if specified
+    template = None
+    if template_id and template_id != "system_default":
+        template = await db.report_templates.find_one(
+            {"template_id": template_id, "user_id": user_id},
+            {"_id": 0}
+        )
+    elif not template_id:
+        # Try to get user's default template
+        template = await db.report_templates.find_one(
+            {"user_id": user_id, "is_default": True},
+            {"_id": 0}
+        )
+    
+    # Generate PDF using templated generator
+    pdf_bytes = generate_single_summary_pdf(
+        recording=recording,
+        call=call,
+        summary=summary,
+        template=template
+    )
+    
+    # Create filename
+    safe_filename = f"call_summary_{recording_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={safe_filename}"
+        }
+    )
     
     caller_name = call.get("caller_name", "Unknown") if call else "Unknown"
     recipient_name = call.get("recipient_name", "Unknown") if call else "Unknown"
