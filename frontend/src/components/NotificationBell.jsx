@@ -174,7 +174,7 @@ export default function NotificationBell() {
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Bell className="h-10 w-10 mb-3 opacity-50" />
                 <p>No notifications yet</p>
-                <p className="text-sm">You're all caught up!</p>
+                <p className="text-sm">You&apos;re all caught up!</p>
               </div>
             ) : (
               <div className="divide-y divide-border">
