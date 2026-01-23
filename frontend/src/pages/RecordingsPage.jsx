@@ -1418,6 +1418,25 @@ export default function RecordingsPage() {
               </div>
               
               <div className="space-y-2">
+                <Label>Report Template</Label>
+                <Select value={selectedTemplateId || 'system_default'} onValueChange={(val) => setSelectedTemplateId(val === 'system_default' ? null : val)}>
+                  <SelectTrigger data-testid="email-template-selector">
+                    <Palette className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Select Template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="system_default">System Default</SelectItem>
+                    {templates.map(t => (
+                      <SelectItem key={t.template_id} value={t.template_id}>
+                        {t.name} {t.is_default && '★'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Choose a custom template for branded reports</p>
+              </div>
+              
+              <div className="space-y-2">
                 <Label htmlFor="message">Personal Message (optional)</Label>
                 <Textarea
                   id="message"
