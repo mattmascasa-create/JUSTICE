@@ -96,6 +96,11 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **WebSocket Stability**: Initial connections sometimes fail in preview environment (auto-reconnect works)
 - **SendGrid API Key**: Not configured - email functionality requires `SENDGRID_API_KEY` in backend/.env
 
+### Bug Fixes (Jan 23, 2026)
+- **CRITICAL: 403 Forbidden Bug FIXED** ✅: Removed `withCredentials: true` from all axios calls in `AuthContext.js`. This was causing CORS issues when the backend uses `Access-Control-Allow-Origin: *`. All protected pages now load correctly.
+- **AttorneysPage.jsx**: Fixed null check for attorney name in filter function (`a.name?.toLowerCase()`)
+- **SettingsPage.jsx**: Fixed incorrect API method call (`emergencyContactsAPI.get()` → `emergencyContactsAPI.getAll()`)
+
 ## Code Architecture
 
 ```
