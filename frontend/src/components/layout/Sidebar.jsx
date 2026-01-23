@@ -173,15 +173,19 @@ export default function Sidebar({ isMobileSheet = false }) {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
+      {/* Logo and Notification */}
       <div className={cn(
         "flex items-center gap-3 p-6 border-b border-border",
         collapsed && "justify-center p-4"
       )}>
         <Shield className="h-8 w-8 text-signal-blue flex-shrink-0" style={{ color: '#3B82F6' }} />
         {!collapsed && (
-          <span className="font-serif text-xl font-bold tracking-tight">JUSTICE</span>
+          <>
+            <span className="font-serif text-xl font-bold tracking-tight flex-1">JUSTICE</span>
+            <NotificationBell />
+          </>
         )}
+        {collapsed && <NotificationBell />}
       </div>
 
       {/* Navigation */}
