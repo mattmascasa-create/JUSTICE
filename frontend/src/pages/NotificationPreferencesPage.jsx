@@ -306,6 +306,109 @@ export default function NotificationPreferencesPage() {
         )}
       </Card>
 
+      {/* Sound Settings Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Volume2 className="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <CardTitle>Notification Sounds</CardTitle>
+                <CardDescription>
+                  Choose alert tones for different notification types
+                </CardDescription>
+              </div>
+            </div>
+            <Switch
+              checked={preferences?.sounds_enabled}
+              onCheckedChange={(val) => updatePreference('sounds_enabled', val)}
+            />
+          </div>
+        </CardHeader>
+        
+        {preferences?.sounds_enabled && (
+          <CardContent className="space-y-6">
+            <Separator />
+            
+            {/* Volume Slider */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <Volume2 className="h-4 w-4" />
+                  Volume
+                </Label>
+                <span className="text-sm text-muted-foreground">{preferences?.sound_volume || 70}%</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <VolumeX className="h-4 w-4 text-muted-foreground" />
+                <Slider
+                  value={[preferences?.sound_volume || 70]}
+                  onValueChange={([val]) => updatePreference('sound_volume', val)}
+                  max={100}
+                  step={5}
+                  className="flex-1"
+                />
+                <Volume2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+            
+            <Separator />
+            <p className="text-sm text-muted-foreground">
+              Choose a sound for each notification type:
+            </p>
+            
+            <div className="grid gap-4">
+              {notificationTypes.map((type) => (
+                <div 
+                  key={type.key}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                >
+                  <div className="flex items-center gap-3">
+                    <type.icon className={`h-5 w-5 ${type.color}`} />
+                    <div>
+                      <span className="font-medium">{type.label}</span>
+                      {type.critical && (
+                        <Badge variant="destructive" className="ml-2 text-xs">Critical</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <SoundPicker
+                    value={preferences?.[`sound_${type.soundKey}`]}
+                    onChange={(val) => updatePreference(`sound_${type.soundKey}`, val)}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <span className="text-sm text-muted-foreground">
+                Test all sounds at current volume
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const vol = (preferences?.sound_volume || 70) / 100;
+                  notificationTypes.forEach((type, i) => {
+                    setTimeout(() => {
+                      const soundId = preferences?.[`sound_${type.soundKey}`];
+                      if (soundId && soundId !== 'none') {
+                        previewSound(soundId);
+                      }
+                    }, i * 800);
+                  });
+                }}
+              >
+                <Volume2 className="h-4 w-4 mr-2" />
+                Test All
+              </Button>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
       {/* In-App Notifications Card */}
       <Card>
         <CardHeader>
