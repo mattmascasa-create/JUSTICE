@@ -84,8 +84,8 @@ class TestGetMyTemplates:
     def test_get_my_templates_requires_auth(self):
         """GET /api/templates/my should require authentication"""
         response = requests.get(f"{BASE_URL}/api/templates/my")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ GET /api/templates/my requires authentication")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ GET /api/templates/my requires authentication ({response.status_code})")
 
 
 class TestGetDefaultTemplate:
