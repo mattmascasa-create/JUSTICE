@@ -477,6 +477,7 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - iteration_15.xml - Complete Backend Refactoring - 28/34 passed ✅ - Jan 22, 2026
 - iteration_21.json - Attorney Collaboration Mode - 21/21 passed ✅ - Jan 22, 2026
 - iteration_22.json - Live Real-Time Transcription - 17/17 passed ✅ - Jan 22, 2026
+- iteration_23.json - AI-Powered Transcript Summaries - 10/10 passed ✅ - Jan 22, 2026
 
 ## MOCKED Features
 - **Blockchain**: Simulated (production: Ethereum/Polygon)
