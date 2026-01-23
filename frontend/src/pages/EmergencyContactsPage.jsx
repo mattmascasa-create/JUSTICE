@@ -310,7 +310,7 @@ export default function EmergencyContactsPage() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="notify_switch" className="text-sm flex items-center gap-2">
                       <Bell className="h-4 w-4 text-orange-400" />
-                      Notify on Dead Man's Switch
+                      Notify on Dead Man&apos;s Switch
                     </Label>
                     <Switch
                       id="notify_switch"
