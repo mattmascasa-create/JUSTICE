@@ -47,7 +47,13 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Includes current location and address
   - Creates persistent notification for JUSTICE user contacts
   - Cancel SOS functionality to resolve alerts
-- **Dead Man's Switch**: Auto emergency response when user becomes unresponsive (configurable thresholds)
+- **Dead Man's Switch** ✅: Auto-trigger emergency when user unresponsive
+  - Integrated into Encounter Mode with dedicated panel
+  - Configurable inactivity threshold (default 60s)
+  - Warning countdown at 45s with "I'm Okay" button
+  - Auto-triggers: notifies emergency contacts, enables public broadcast
+  - User can disarm if they're safe
+  - Tracks activity on touches, clicks, and keyboard
 - **Witness Network**: 1-mile radius community alerts, reputation system, witness recordings
 
 #### Advanced Legal Strategy Features (NEW)
