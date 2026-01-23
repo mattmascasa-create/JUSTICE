@@ -10,6 +10,65 @@ from app.core.security import get_current_user
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
+@router.get("/dashboard")
+async def get_dashboard_analytics(current_user: dict = Depends(get_current_user)):
+    """Get dashboard analytics summary for the current user"""
+    user_id = current_user["user_id"]
+    
+    # Count cases
+    total_cases = await db.cases.count_documents({"user_id": user_id})
+    open_cases = await db.cases.count_documents({"user_id": user_id, "status": {"$in": ["open", "active", "pending"]}})
+    resolved_cases = await db.cases.count_documents({"user_id": user_id, "status": {"$in": ["resolved", "closed", "completed"]}})
+    
+    # Count evidence files
+    evidence_count = await db.evidence.count_documents({"user_id": user_id})
+    
+    # Count encounters
+    total_encounters = await db.encounters.count_documents({"user_id": user_id})
+    
+    # Get recent activity (last 30 days)
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+    recent_cases = await db.cases.count_documents({
+        "user_id": user_id,
+        "created_at": {"$gte": thirty_days_ago}
+    })
+    
+    # Get violation types for user's encounters
+    user_encounters = await db.encounters.find(
+        {"user_id": user_id},
+        {"encounter_id": 1, "_id": 0}
+    ).to_list(1000)
+    encounter_ids = [e["encounter_id"] for e in user_encounters]
+    
+    # Get violations distribution
+    violations = []
+    if encounter_ids:
+        violations_cursor = await db.ai_analysis.aggregate([
+            {"$match": {"encounter_id": {"$in": encounter_ids}, "violations": {"$exists": True, "$ne": []}}},
+            {"$unwind": "$violations"},
+            {"$group": {"_id": "$violations.type", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+            {"$limit": 10}
+        ]).to_list(10)
+        violations = [{"type": v["_id"], "count": v["count"]} for v in violations_cursor]
+    
+    return {
+        "cases": {
+            "total": total_cases,
+            "open": open_cases,
+            "resolved": resolved_cases
+        },
+        "evidence_count": evidence_count,
+        "encounters": {
+            "total": total_encounters
+        },
+        "recent_activity": {
+            "new_cases_30d": recent_cases
+        },
+        "violations_by_type": violations
+    }
+
+
 @router.get("/encounters/summary")
 async def get_encounter_summary(current_user: dict = Depends(get_current_user)):
     """Get comprehensive encounter statistics for the user"""
