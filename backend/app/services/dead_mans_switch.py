@@ -106,6 +106,10 @@ async def check_inactivity(encounter_id: str) -> Dict:
     if not last_activity:
         return {"armed": True, "triggered": False}
     
+    # Ensure last_activity is timezone-aware
+    if isinstance(last_activity, datetime) and last_activity.tzinfo is None:
+        last_activity = last_activity.replace(tzinfo=timezone.utc)
+    
     now = datetime.now(timezone.utc)
     inactive_seconds = (now - last_activity).total_seconds()
     threshold = config.get("inactivity_threshold", DEFAULT_INACTIVITY_THRESHOLD)
