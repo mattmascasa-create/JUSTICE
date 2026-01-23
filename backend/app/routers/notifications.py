@@ -11,6 +11,7 @@ import uuid
 from app.db.database import db
 from app.core.security import get_current_user
 from app.services.push_service import send_push_to_user
+from app.routers.notification_preferences import should_send_notification
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
