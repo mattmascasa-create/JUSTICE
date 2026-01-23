@@ -32,7 +32,8 @@ import {
   Video,
   CalendarClock,
   Palette,
-  Zap
+  Zap,
+  Users
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 
@@ -53,6 +54,7 @@ const getNavItems = (role) => {
     { icon: Megaphone, label: 'Policy Impact', path: '/policy', highlight: true },
     { icon: Bot, label: 'AI Attorney', path: '/ai-attorney' },
     { icon: Siren, label: 'Emergency SOS', path: '/sos', emergency: true },
+    { icon: Users, label: 'Emergency Contacts', path: '/emergency-contacts' },
     { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
     { icon: MessageCircle, label: 'Messages', path: '/messages' },
     { icon: Map, label: 'Incident Map', path: '/incident-map' },
