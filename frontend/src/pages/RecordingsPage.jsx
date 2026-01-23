@@ -11,7 +11,7 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { Checkbox } from '../components/ui/checkbox';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
-import { callsAPI } from '../lib/api';
+import { callsAPI, templatesAPI } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import {
@@ -46,6 +46,11 @@ export default function RecordingsPage() {
   const [emailRecipientName, setEmailRecipientName] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailRecordingIds, setEmailRecordingIds] = useState([]);
+  
+  // Template state
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   
   // Transcript search
   const [transcriptSearchQuery, setTranscriptSearchQuery] = useState('');
