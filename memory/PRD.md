@@ -325,7 +325,8 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Visual icons for different section types (green for actions, red for legal concerns, yellow for recommendations)
   - Summaries stored in MongoDB for quick access
   - "Summary" badge on recording cards when summary exists
-- **Version**: 5.13.0
+  - **Export to PDF**: Professional PDF documents with JUSTICE branding, colored section headers, participant info, and confidentiality notice
+- **Version**: 5.14.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
