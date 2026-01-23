@@ -173,6 +173,28 @@ export default function NotificationBell() {
             </div>
           </div>
 
+          {/* Push Notification Toggle */}
+          {pushSupported && (
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30">
+              <div className="flex items-center gap-2 text-sm">
+                {pushEnabled ? (
+                  <BellRing className="h-4 w-4 text-green-500" />
+                ) : (
+                  <BellOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span className="text-muted-foreground">
+                  Push alerts {pushEnabled ? 'on' : 'off'}
+                </span>
+              </div>
+              <Switch
+                checked={pushEnabled}
+                onCheckedChange={(checked) => checked ? enablePush() : disablePush()}
+                disabled={pushLoading}
+                data-testid="push-notification-toggle"
+              />
+            </div>
+          )}
+
           {/* Notifications List */}
           <ScrollArea className="h-[400px]">
             {loading ? (
