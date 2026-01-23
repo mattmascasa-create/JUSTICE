@@ -36,6 +36,13 @@ export default function NotificationBell() {
   const dropdownRef = useRef(null);
   const { lastMessage } = useWebSocket();
   const { token } = useAuth();
+  const { 
+    isSupported: pushSupported, 
+    isSubscribed: pushEnabled, 
+    loading: pushLoading,
+    subscribe: enablePush,
+    unsubscribe: disablePush 
+  } = usePushNotifications();
 
   // Fetch notifications on mount
   useEffect(() => {
