@@ -83,9 +83,19 @@ export function WebSocketProvider({ children }) {
   }, [token, user, resetReconnectState]);
 
   const handleMessage = (data) => {
+    // Store last message for components to react to
+    setLastMessage(data);
+    
     switch (data.type) {
       case 'connected':
         console.log('WebSocket authenticated');
+        break;
+      case 'notification':
+        // Real-time notification from server
+        toast.info(data.data?.title || 'New notification', {
+          description: data.data?.message
+        });
+        setNotifications(prev => [...prev, data]);
         break;
       case 'new_message':
         toast.info(`New message from ${data.sender_name}`, {
