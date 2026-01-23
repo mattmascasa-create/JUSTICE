@@ -129,3 +129,4 @@ sendgrid==6.12.5
 APScheduler==3.11.2
 pywebpush==2.2.0
 py-vapid==1.9.4
+twilio==9.10.0
