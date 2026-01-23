@@ -93,7 +93,7 @@ Analyze the latest exchange and provide guidance. Focus on the most recent offic
     try:
         session_id = str(uuid.uuid4())
         chat = LlmChat(
-            api_key=os.environ.get("EMERGENT_API_KEY"),
+            api_key=os.environ.get("EMERGENT_LLM_KEY"),
             session_id=session_id,
             system_message=system_prompt
         ).with_model("openai", "gpt-4o")
@@ -168,7 +168,7 @@ Be conservative - only flag clear violations, not borderline conduct."""
     try:
         session_id = str(uuid.uuid4())
         chat = LlmChat(
-            api_key=os.environ.get("EMERGENT_API_KEY"),
+            api_key=os.environ.get("EMERGENT_LLM_KEY"),
             session_id=session_id,
             system_message=system_prompt
         ).with_model("openai", "gpt-4o")
