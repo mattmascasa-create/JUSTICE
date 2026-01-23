@@ -455,10 +455,66 @@ export default function RecordingsPage() {
               {recordings.length} recording{recordings.length !== 1 ? 's' : ''} saved
             </p>
           </div>
-          <Badge variant="secondary" className="flex items-center gap-2">
-            <FileVideo className="h-4 w-4" />
-            {formatFileSize(recordings.reduce((acc, r) => acc + (r.file_size_bytes || 0), 0))} total
-          </Badge>
+          <div className="flex items-center gap-3">
+            {isSelectionMode ? (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  {selectedIds.length} selected
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  disabled={!filteredRecordings.some(r => r.ai_summary)}
+                >
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSelection}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleBatchExport}
+                  disabled={selectedIds.length === 0 || exportingBatch}
+                  className="bg-purple-600 hover:bg-purple-700"
+                  data-testid="batch-export-btn"
+                >
+                  {exportingBatch ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <FileStack className="h-4 w-4 mr-1" />
+                      Export PDF
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSelectionMode(true)}
+                disabled={!recordings.some(r => r.ai_summary)}
+                data-testid="enable-selection-btn"
+              >
+                <FileStack className="h-4 w-4 mr-2" />
+                Batch Export
+              </Button>
+            )}
+            <Badge variant="secondary" className="flex items-center gap-2">
+              <FileVideo className="h-4 w-4" />
+              {formatFileSize(recordings.reduce((acc, r) => acc + (r.file_size_bytes || 0), 0))} total
+            </Badge>
+          </div>
         </div>
 
         {/* Filters */}
