@@ -11,6 +11,7 @@ import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { encounterAPI } from '../lib/api';
+import api from '../lib/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { 
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
