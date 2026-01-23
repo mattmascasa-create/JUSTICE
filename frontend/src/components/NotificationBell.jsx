@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, CheckCheck, AlertTriangle, MessageCircle, FileText, Gavel, Siren, BellRing, BellOff } from 'lucide-react';
+import { Bell, X, Check, CheckCheck, AlertTriangle, MessageCircle, FileText, Gavel, Siren, BellRing, BellOff, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
