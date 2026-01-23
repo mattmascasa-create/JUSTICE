@@ -254,7 +254,7 @@ export default function RecordingsPage() {
     
     try {
       toast.info('Generating PDF...');
-      const res = await callsAPI.downloadSummaryPDF(selectedRecording.recording_id);
+      const res = await callsAPI.downloadSummaryPDF(selectedRecording.recording_id, selectedTemplateId);
       
       // Create blob URL and trigger download
       const blob = new Blob([res.data], { type: 'application/pdf' });
