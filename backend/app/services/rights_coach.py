@@ -60,6 +60,7 @@ async def get_ai_rights_guidance(
         Dict with guidance, warnings, and suggested responses
     """
     from emergentintegrations.llm.chat import LlmChat, UserMessage
+    import uuid
     
     system_prompt = """You are a constitutional rights expert providing REAL-TIME guidance during a police encounter. 
 Your role is to help citizens understand and exercise their constitutional rights lawfully and safely.
@@ -90,17 +91,18 @@ CONTEXT: {current_context or 'None provided'}
 Analyze the latest exchange and provide guidance. Focus on the most recent officer statement/question."""
 
     try:
+        session_id = str(uuid.uuid4())
         chat = LlmChat(
             api_key=os.environ.get("EMERGENT_API_KEY"),
-            model="gpt-5.2",
+            session_id=session_id,
             system_message=system_prompt
-        )
+        ).with_model("openai", "gpt-4o")
         
-        response = await chat.send_message(user_prompt)
+        response = chat.send_message(UserMessage(content=user_prompt))
         
         import json
         # Try to parse JSON from response
-        content = response.content if hasattr(response, 'content') else str(response)
+        content = str(response)
         # Extract JSON if wrapped in markdown code block
         if '```json' in content:
             content = content.split('```json')[1].split('```')[0].strip()
