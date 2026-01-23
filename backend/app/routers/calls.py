@@ -6,8 +6,8 @@ import logging
 import os
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, Form, WebSocket, WebSocketDisconnect, UploadFile, File
+from typing import Optional, List
+from fastapi import APIRouter, HTTPException, Depends, Form, WebSocket, WebSocketDisconnect, UploadFile, File, Body
 
 from app.db.database import db
 from app.core.security import get_current_user
