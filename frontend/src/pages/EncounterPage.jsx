@@ -1302,6 +1302,24 @@ export default function EncounterPage() {
           }}
         />
 
+        {/* Dead Man's Switch Panel */}
+        <DeadMansSwitchPanel
+          encounterId={encounter?.encounter_id}
+          isRecording={isRecording}
+          onTrigger={(result) => {
+            // Handle DMS trigger - set immediate alert
+            setImmediateAlert({
+              type: 'dms_triggered',
+              message: 'Emergency contacts have been notified!',
+              severity: 10
+            });
+            // Ensure sharing is active
+            if (!shareActive) {
+              shareStreamLink();
+            }
+          }}
+        />
+
         {/* Real-time Sharing Status & Guidance */}
         <Card className={`border-2 ${shareActive ? 'border-blue-500/50 bg-blue-500/5' : 'border-gray-500/30'}`}>
           <CardContent className="p-4 space-y-4">
