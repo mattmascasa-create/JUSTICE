@@ -487,6 +487,7 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - iteration_25.json - Batch PDF Export - 14/14 passed ✅ - Jan 23, 2026
 - iteration_26.json - Email Delivery for Summaries - 20/20 passed ✅ - Jan 23, 2026
 - iteration_27.json - Scheduled Email Reports - 26/26 backend + UI passed ✅ - Jan 23, 2026
+- iteration_28.json - Report Templates - 28/28 backend + UI passed ✅ - Jan 23, 2026
 
 ## MOCKED Features
 - **Blockchain**: Simulated (production: Ethereum/Polygon)
