@@ -86,8 +86,13 @@ export function WebSocketProvider({ children }) {
   const connectRef = useRef(null);
   const heartbeatIntervalRef = useRef(null);
   const heartbeatTimeoutRef = useRef(null);
-  const lastPongRef = useRef(Date.now());
+  const lastPongRef = useRef(null);
   const missedPongsRef = useRef(0);
+
+  // Initialize lastPongRef on mount
+  useEffect(() => {
+    lastPongRef.current = Date.now();
+  }, []);
 
   // Derived state for backward compatibility
   const isConnected = connectionState === ConnectionState.CONNECTED;
