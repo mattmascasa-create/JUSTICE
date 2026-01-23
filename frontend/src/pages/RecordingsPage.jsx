@@ -302,7 +302,7 @@ export default function RecordingsPage() {
     setExportingBatch(true);
     try {
       toast.info(`Generating consolidated PDF for ${selectedIds.length} recording(s)...`);
-      const res = await callsAPI.downloadBatchSummaryPDF(selectedIds);
+      const res = await callsAPI.downloadBatchSummaryPDF(selectedIds, selectedTemplateId);
       
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
