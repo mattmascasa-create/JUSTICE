@@ -37,6 +37,7 @@ import AttorneyEncounterWorkspacePage from "./pages/AttorneyEncounterWorkspacePa
 import VideoCallPage from "./pages/VideoCallPage";
 import IncomingCallModal from "./components/IncomingCallModal";
 import RecordingsPage from "./pages/RecordingsPage";
+import ScheduledReportsPage from "./pages/ScheduledReportsPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
