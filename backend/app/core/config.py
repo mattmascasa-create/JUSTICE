@@ -22,6 +22,11 @@ TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
 TWILIO_ENABLED = bool(TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER)
 
+# SendGrid Email
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+SENDGRID_SENDER_EMAIL = os.environ.get('SENDGRID_SENDER_EMAIL')
+SENDGRID_ENABLED = bool(SENDGRID_API_KEY)
+
 # Frontend URL (for share links in SMS/email)
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://justice-rights.preview.emergentagent.com')
 
