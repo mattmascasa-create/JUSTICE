@@ -1481,7 +1481,7 @@ async def email_summary_pdf(
     try:
         subject = f"Call Summary Report from {user_name} - JUSTICE Platform"
         
-        result = await send_pdf_email(
+        await send_pdf_email(
             to_emails=request.recipient_emails,
             subject=subject,
             body_html=email_html,
