@@ -441,15 +441,22 @@ export const callsAPI = {
   // AI Summary
   generateSummary: (recordingId) => api.post(`/calls/${recordingId}/summarize`, null, { timeout: 120000 }),
   getSummary: (recordingId) => api.get(`/calls/${recordingId}/summary`),
-  downloadSummaryPDF: (recordingId) => api.get(`/calls/${recordingId}/summary/pdf`, { responseType: 'blob' }),
-  downloadBatchSummaryPDF: (recordingIds) => api.post('/calls/batch-summary/pdf', { recording_ids: recordingIds }, { responseType: 'blob', timeout: 120000 }),
-  emailSummary: (recordingIds, recipientEmails, ccEmails = null, customMessage = null, recipientName = null) => 
+  downloadSummaryPDF: (recordingId, templateId = null) => api.get(`/calls/${recordingId}/summary/pdf`, { 
+    params: templateId ? { template_id: templateId } : {},
+    responseType: 'blob' 
+  }),
+  downloadBatchSummaryPDF: (recordingIds, templateId = null) => api.post('/calls/batch-summary/pdf', { 
+    recording_ids: recordingIds,
+    template_id: templateId 
+  }, { responseType: 'blob', timeout: 120000 }),
+  emailSummary: (recordingIds, recipientEmails, ccEmails = null, customMessage = null, recipientName = null, templateId = null) => 
     api.post('/calls/email-summary', { 
       recording_ids: recordingIds, 
       recipient_emails: recipientEmails,
       cc_emails: ccEmails,
       custom_message: customMessage,
-      recipient_name: recipientName
+      recipient_name: recipientName,
+      template_id: templateId
     }, { timeout: 60000 }),
 };
 
