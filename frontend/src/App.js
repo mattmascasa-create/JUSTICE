@@ -39,6 +39,7 @@ import IncomingCallModal from "./components/IncomingCallModal";
 import RecordingsPage from "./pages/RecordingsPage";
 import ScheduledReportsPage from "./pages/ScheduledReportsPage";
 import ReportTemplatesPage from "./pages/ReportTemplatesPage";
+import NotificationPreferencesPage from "./pages/NotificationPreferencesPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
