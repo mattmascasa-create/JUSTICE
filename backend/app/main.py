@@ -29,6 +29,7 @@ from app.routers.calls import router as calls_router
 from app.routers.schedules import router as schedules_router
 from app.routers.templates import router as templates_router
 from app.routers.notifications import router as notifications_router
+from app.routers.notification_preferences import router as notification_prefs_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
@@ -97,6 +98,7 @@ app.include_router(calls_router, prefix="/api")
 app.include_router(schedules_router, prefix="/api")
 app.include_router(templates_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
+app.include_router(notification_prefs_router, prefix="/api")
 
 
 # Root endpoint
