@@ -505,4 +505,66 @@ export const policyAPI = {
   getReport: (reportId) => api.get(`/policy/report/${reportId}`)
 };
 
+// Violation Detection API
+export const violationAPI = {
+  analyze: (encounterId, transcript, encounterType = 'general') => 
+    api.post('/advanced/violations/analyze', { 
+      encounter_id: encounterId, 
+      transcript, 
+      encounter_type: encounterType 
+    }),
+  quickScan: (transcript) => 
+    api.post('/advanced/violations/quick-scan', null, { params: { transcript } }),
+  getReport: (encounterId) => 
+    api.get(`/advanced/violations/report/${encounterId}`),
+  getStats: () => 
+    api.get('/advanced/violations/stats')
+};
+
+// Legal Precedent API
+export const legalPrecedentAPI = {
+  searchPrecedents: (encounterId, violations, transcript, encounterType = 'general') =>
+    api.post('/advanced/legal/precedents', {
+      encounter_id: encounterId,
+      violations,
+      transcript,
+      encounter_type: encounterType
+    }),
+  getCasesByAmendment: (amendment) => 
+    api.get(`/advanced/legal/cases/${amendment}`),
+  searchCases: (keywords) => 
+    api.post('/advanced/legal/search', keywords),
+  estimateValue: (violations, hasInjury = false, hasArrest = false, hasVideo = true) =>
+    api.post('/advanced/legal/estimate-value', {
+      violations,
+      has_injury: hasInjury,
+      has_arrest: hasArrest,
+      has_video: hasVideo
+    })
+};
+
+// FOIA Automation API
+export const foiaAPI = {
+  generate: (encounterId, departmentCode = null, customDepartment = null) =>
+    api.post('/advanced/foia/generate', {
+      encounter_id: encounterId,
+      department_code: departmentCode,
+      custom_department: customDepartment
+    }),
+  submit: (requestId, submissionMethod = 'email') =>
+    api.post(`/advanced/foia/submit/${requestId}`, null, { params: { submission_method: submissionMethod } }),
+  updateStatus: (requestId, status, responseNotes = null, documentsReceived = null) =>
+    api.put(`/advanced/foia/status/${requestId}`, {
+      status,
+      response_notes: responseNotes,
+      documents_received: documentsReceived
+    }),
+  getMyRequests: () => 
+    api.get('/advanced/foia/my-requests'),
+  generateAppeal: (requestId, denialReason) =>
+    api.post(`/advanced/foia/appeal/${requestId}`, null, { params: { denial_reason: denialReason } }),
+  getStats: () => 
+    api.get('/advanced/foia/stats')
+};
+
 export default api;
