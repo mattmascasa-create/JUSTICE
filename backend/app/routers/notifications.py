@@ -137,8 +137,8 @@ async def create_notification(
     
     await db.notifications.insert_one(notification)
     
-    # Return without _id for JSON serialization
-    del notification["_id"] if "_id" in notification else None
+    # Remove _id for JSON serialization
+    notification.pop("_id", None)
     
     return notification
 
