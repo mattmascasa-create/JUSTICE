@@ -24,6 +24,79 @@ export function WebSocketProvider({ children }) {
     reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
   }, []);
 
+  // Handle incoming WebSocket messages
+  const handleMessage = useCallback((data) => {
+    // Store last message for components to react to
+    setLastMessage(data);
+    
+    switch (data.type) {
+      case 'connected':
+        console.log('WebSocket authenticated');
+        break;
+      case 'notification':
+        // Real-time notification from server
+        toast.info(data.data?.title || 'New notification', {
+          description: data.data?.message
+        });
+        setNotifications(prev => [...prev, data]);
+        break;
+      case 'new_message':
+        toast.info(`New message from ${data.sender_name}`, {
+          description: data.content_preview
+        });
+        setNotifications(prev => [...prev, data]);
+        break;
+      case 'case_status_changed':
+        toast.info('Case status updated', {
+          description: `Status changed to ${data.new_status}`
+        });
+        break;
+      case 'evidence_added':
+        toast.success('Evidence uploaded', {
+          description: `${data.file_name} added to case`
+        });
+        break;
+      case 'sos_alert':
+        toast.error('SOS Alert!', {
+          description: `Emergency alert from ${data.user_name}`,
+          duration: 10000
+        });
+        break;
+      case 'guidance_message':
+        toast.info(`💬 Guidance from ${data.sender_name}`, {
+          description: data.message,
+          duration: 15000
+        });
+        setNotifications(prev => [...prev, { ...data, type: 'guidance_message' }]);
+        break;
+      case 'viewer_joined':
+        toast.success(`👁️ Someone is watching your encounter`, {
+          description: `${data.viewer_count} viewer(s) connected`
+        });
+        setNotifications(prev => [...prev, { ...data, type: 'viewer_joined' }]);
+        break;
+      case 'viewer_left':
+        setNotifications(prev => [...prev, { ...data, type: 'viewer_left' }]);
+        break;
+      case 'encounter_share':
+        toast.warning(`🚨 ${data.user_name} is in a police encounter!`, {
+          description: data.message,
+          duration: 30000,
+          action: {
+            label: 'Watch',
+            onClick: () => window.open(data.share_url, '_blank')
+          }
+        });
+        break;
+      case 'typing':
+        break;
+      case 'pong':
+        break;
+      default:
+        console.log('Unknown message type:', data.type);
+    }
+  }, []);
+
   const connect = useCallback(() => {
     if (!token || !user) return;
 
@@ -71,7 +144,9 @@ export function WebSocketProvider({ children }) {
         );
         
         console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
-        reconnectTimeoutRef.current = setTimeout(connect, delay);
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, delay);
       };
 
       wsRef.current.onerror = (error) => {
@@ -80,79 +155,7 @@ export function WebSocketProvider({ children }) {
     } catch (error) {
       console.error('WebSocket connection error:', error);
     }
-  }, [token, user, resetReconnectState]);
-
-  const handleMessage = (data) => {
-    // Store last message for components to react to
-    setLastMessage(data);
-    
-    switch (data.type) {
-      case 'connected':
-        console.log('WebSocket authenticated');
-        break;
-      case 'notification':
-        // Real-time notification from server
-        toast.info(data.data?.title || 'New notification', {
-          description: data.data?.message
-        });
-        setNotifications(prev => [...prev, data]);
-        break;
-      case 'new_message':
-        toast.info(`New message from ${data.sender_name}`, {
-          description: data.content_preview
-        });
-        setNotifications(prev => [...prev, data]);
-        break;
-      case 'case_status_changed':
-        toast.info('Case status updated', {
-          description: `Status changed to ${data.new_status}`
-        });
-        break;
-      case 'evidence_added':
-        toast.success('Evidence uploaded', {
-          description: `${data.file_name} added to case`
-        });
-        break;
-      case 'sos_alert':
-        toast.error('SOS Alert!', {
-          description: `Emergency alert from ${data.user_name}`,
-          duration: 10000
-        });
-        break;
-      case 'guidance_message':
-        // Real-time guidance from viewers
-        toast.info(`💬 Guidance from ${data.sender_name}`, {
-          description: data.message,
-          duration: 15000
-        });
-        setNotifications(prev => [...prev, { ...data, type: 'guidance_message' }]);
-        break;
-      case 'viewer_joined':
-        toast.success(`👁️ Someone is watching your encounter`, {
-          description: `${data.viewer_count} viewer(s) connected`
-        });
-        setNotifications(prev => [...prev, { ...data, type: 'viewer_joined' }]);
-        break;
-      case 'viewer_left':
-        setNotifications(prev => [...prev, { ...data, type: 'viewer_left' }]);
-        break;
-      case 'encounter_share':
-        toast.warning(`🚨 ${data.user_name} is in a police encounter!`, {
-          description: data.message,
-          duration: 30000,
-          action: {
-            label: 'Watch',
-            onClick: () => window.open(data.share_url, '_blank')
-          }
-        });
-        break;
-      case 'typing':
-        // Handle typing indicator
-        break;
-      default:
-        console.log('Unknown message type:', data.type);
-    }
-  };
+  }, [token, user, resetReconnectState, handleMessage]);
 
   const sendMessage = useCallback((data) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
