@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Bell, BellRing, BellOff, Mail, MessageCircle, FileText, 
   Gavel, Siren, AlertTriangle, Settings, Moon, RotateCcw,
-  Loader2, Check, Clock
+  Loader2, Check, Clock, Volume2, VolumeX
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -11,17 +11,20 @@ import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { Separator } from '../components/ui/separator';
 import { Badge } from '../components/ui/badge';
+import { Slider } from '../components/ui/slider';
 import { toast } from 'sonner';
 import api from '../lib/api';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import SoundPicker from '../components/SoundPicker';
+import { previewSound } from '../services/notificationSounds';
 
 const notificationTypes = [
-  { key: 'messages', label: 'Messages', icon: MessageCircle, description: 'New messages from attorneys or contacts', color: 'text-blue-500' },
-  { key: 'case_updates', label: 'Case Updates', icon: FileText, description: 'Status changes and updates to your cases', color: 'text-green-500' },
-  { key: 'attorney_responses', label: 'Attorney Responses', icon: Gavel, description: 'Replies and feedback from attorneys', color: 'text-purple-500' },
-  { key: 'sos_alerts', label: 'SOS Alerts', icon: Siren, description: 'Emergency alerts (recommended to keep on)', color: 'text-red-500', critical: true },
-  { key: 'warnings', label: 'Warnings', icon: AlertTriangle, description: 'Important warnings and action required notices', color: 'text-yellow-500' },
-  { key: 'system', label: 'System Updates', icon: Settings, description: 'Maintenance notices and system announcements', color: 'text-gray-500' },
+  { key: 'messages', soundKey: 'message', label: 'Messages', icon: MessageCircle, description: 'New messages from attorneys or contacts', color: 'text-blue-500' },
+  { key: 'case_updates', soundKey: 'case_update', label: 'Case Updates', icon: FileText, description: 'Status changes and updates to your cases', color: 'text-green-500' },
+  { key: 'attorney_responses', soundKey: 'attorney_response', label: 'Attorney Responses', icon: Gavel, description: 'Replies and feedback from attorneys', color: 'text-purple-500' },
+  { key: 'sos_alerts', soundKey: 'sos_alert', label: 'SOS Alerts', icon: Siren, description: 'Emergency alerts (recommended to keep on)', color: 'text-red-500', critical: true },
+  { key: 'warnings', soundKey: 'warning', label: 'Warnings', icon: AlertTriangle, description: 'Important warnings and action required notices', color: 'text-yellow-500' },
+  { key: 'system', soundKey: 'system', label: 'System Updates', icon: Settings, description: 'Maintenance notices and system announcements', color: 'text-gray-500' },
 ];
 
 export default function NotificationPreferencesPage() {
