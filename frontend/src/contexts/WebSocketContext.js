@@ -403,15 +403,23 @@ export function WebSocketProvider({ children }) {
     };
   }, [connect, connectionState]);
 
+  // Initialize WebSocket connection
   useEffect(() => {
-    connect();
+    // Use setTimeout to avoid synchronous state update warning
+    const timeoutId = setTimeout(() => {
+      if (token && user) {
+        connectRef.current?.();
+      }
+    }, 0);
+    
     return () => {
+      clearTimeout(timeoutId);
       clearTimers();
       if (wsRef.current) {
         wsRef.current.close(1000, 'Component unmounting');
       }
     };
-  }, [connect, clearTimers]);
+  }, [token, user, clearTimers]);
 
   const value = {
     isConnected,
