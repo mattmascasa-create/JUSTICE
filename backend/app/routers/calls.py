@@ -1385,6 +1385,7 @@ class EmailSummaryRequest(BaseModel):
     cc_emails: Optional[List[EmailStr]] = None
     custom_message: Optional[str] = None
     recipient_name: Optional[str] = None
+    template_id: Optional[str] = None
 
 
 @router.post("/email-summary")
