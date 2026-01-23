@@ -108,6 +108,60 @@ async def root():
     }
 
 
+# WebSocket endpoint for authenticated user notifications
+@app.websocket("/api/ws/{user_token}")
+async def user_websocket(websocket: WebSocket, user_token: str):
+    """
+    WebSocket endpoint for real-time notifications to authenticated users.
+    Token is the JWT auth token.
+    """
+    from app.core.security import decode_token
+    
+    try:
+        # Validate the JWT token
+        payload = decode_token(user_token)
+        if not payload:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+        
+        user_id = payload.get("user_id")
+        if not user_id:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+        
+        # Connect the user
+        await manager.connect(websocket, user_id)
+        
+        # Send connection confirmation
+        await websocket.send_json({"type": "connected", "user_id": user_id})
+        
+        try:
+            while True:
+                # Keep connection alive and handle incoming messages
+                data = await websocket.receive_json()
+                msg_type = data.get("type")
+                
+                if msg_type == "ping":
+                    await websocket.send_json({"type": "pong"})
+                elif msg_type == "typing":
+                    # Forward typing indicator to recipient
+                    recipient_id = data.get("recipient_id")
+                    if recipient_id:
+                        await manager.send_to_user(recipient_id, {
+                            "type": "typing",
+                            "from_user_id": user_id,
+                            "conversation_id": data.get("conversation_id")
+                        })
+        except WebSocketDisconnect:
+            manager.disconnect(websocket, user_id)
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        try:
+            await websocket.close(code=4000, reason="Connection error")
+        except:
+            pass
+
+
 # WebSocket endpoint for shared encounter viewers
 @app.websocket("/api/ws/shared/{encounter_id}")
 async def shared_encounter_websocket(websocket: WebSocket, encounter_id: str, token: str):
