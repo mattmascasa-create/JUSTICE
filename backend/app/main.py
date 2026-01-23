@@ -30,6 +30,7 @@ from app.routers.schedules import router as schedules_router
 from app.routers.templates import router as templates_router
 from app.routers.notifications import router as notifications_router
 from app.routers.notification_preferences import router as notification_prefs_router
+from app.routers.advanced_features import router as advanced_features_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
