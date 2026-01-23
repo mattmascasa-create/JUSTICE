@@ -1450,6 +1450,279 @@ async def export_summary_pdf(
     )
 
 
+@router.post("/batch-summary/pdf")
+async def export_batch_summary_pdf(
+    recording_ids: List[str] = Body(..., embed=True),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export multiple AI summaries as a single consolidated PDF document"""
+    from fastapi.responses import Response
+    from fpdf import FPDF
+    
+    user_id = current_user["user_id"]
+    
+    if not recording_ids:
+        raise HTTPException(status_code=400, detail="No recording IDs provided")
+    
+    if len(recording_ids) > 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 recordings per batch export")
+    
+    # Fetch all recordings
+    recordings_data = []
+    for rec_id in recording_ids:
+        recording = await db.call_recordings.find_one({"recording_id": rec_id}, {"_id": 0})
+        if not recording:
+            continue
+        
+        if user_id not in recording.get("participants", []):
+            continue
+        
+        summary = recording.get("ai_summary")
+        if not summary:
+            continue
+        
+        # Get call details
+        call = await db.video_calls.find_one({"call_id": recording.get("call_id")}, {"_id": 0})
+        
+        recordings_data.append({
+            "recording": recording,
+            "call": call,
+            "summary": summary
+        })
+    
+    if not recordings_data:
+        raise HTTPException(status_code=400, detail="No recordings with summaries found")
+    
+    # Create consolidated PDF
+    class BatchSummaryPDF(FPDF):
+        def header(self):
+            self.set_font('Helvetica', 'B', 16)
+            self.set_text_color(79, 70, 229)
+            self.cell(0, 10, 'JUSTICE PLATFORM', 0, 1, 'C')
+            self.set_font('Helvetica', 'B', 14)
+            self.set_text_color(0)
+            self.cell(0, 8, 'Consolidated Call Summary Report', 0, 1, 'C')
+            self.set_font('Helvetica', 'I', 10)
+            self.set_text_color(128)
+            self.cell(0, 5, f'{len(recordings_data)} Consultation(s) | Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}', 0, 1, 'C')
+            self.set_text_color(0)
+            self.line(10, 38, 200, 38)
+            self.ln(12)
+        
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Helvetica', 'I', 8)
+            self.set_text_color(128)
+            self.cell(0, 10, f'Page {self.page_no()} | JUSTICE Platform - Confidential', 0, 0, 'C')
+            self.set_text_color(0)
+    
+    pdf = BatchSummaryPDF()
+    pdf.set_auto_page_break(auto=True, margin=20)
+    
+    section_colors = {
+        'OVERVIEW': (147, 51, 234),
+        'KEY': (59, 130, 246),
+        'ACTION': (34, 197, 94),
+        'LEGAL': (239, 68, 68),
+        'RECOMMEND': (245, 158, 11),
+        'FOLLOW': (107, 114, 128),
+    }
+    
+    def get_section_color(section_name):
+        for key, color in section_colors.items():
+            if key in section_name.upper():
+                return color
+        return (79, 70, 229)
+    
+    # Table of Contents page
+    pdf.add_page()
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.set_fill_color(79, 70, 229)
+    pdf.set_text_color(255)
+    pdf.cell(0, 10, '  TABLE OF CONTENTS', 0, 1, 'L', fill=True)
+    pdf.set_text_color(0)
+    pdf.ln(5)
+    
+    for idx, data in enumerate(recordings_data, 1):
+        recording = data["recording"]
+        call = data["call"]
+        
+        caller_name = call.get("caller_name", "Unknown") if call else "Unknown"
+        recipient_name = call.get("recipient_name", "Unknown") if call else "Unknown"
+        started_at = recording.get("started_at")
+        
+        if started_at and hasattr(started_at, 'strftime'):
+            date_str = started_at.strftime('%b %d, %Y')
+        else:
+            date_str = str(started_at)[:10] if started_at else "Unknown"
+        
+        pdf.set_font('Helvetica', 'B', 11)
+        pdf.cell(10, 7, f'{idx}.', 0, 0)
+        pdf.set_font('Helvetica', '', 11)
+        pdf.cell(0, 7, f'{caller_name} & {recipient_name} - {date_str}', 0, 1)
+    
+    pdf.ln(10)
+    pdf.set_font('Helvetica', 'I', 9)
+    pdf.set_text_color(100)
+    pdf.multi_cell(0, 5, 
+        'This consolidated report contains AI-generated summaries of multiple attorney-client consultations. '
+        'Each summary includes key discussion points, action items, and legal considerations. '
+        'Original recordings remain the authoritative sources.'
+    )
+    pdf.set_text_color(0)
+    
+    # Individual summaries
+    for idx, data in enumerate(recordings_data, 1):
+        pdf.add_page()
+        
+        recording = data["recording"]
+        call = data["call"]
+        summary = data["summary"]
+        
+        caller_name = call.get("caller_name", "Unknown") if call else "Unknown"
+        recipient_name = call.get("recipient_name", "Unknown") if call else "Unknown"
+        duration_seconds = recording.get("duration_seconds", 0)
+        started_at = recording.get("started_at")
+        recording_id = recording.get("recording_id", "N/A")
+        
+        if started_at and hasattr(started_at, 'strftime'):
+            started_at_str = started_at.strftime('%B %d, %Y at %I:%M %p')
+        else:
+            started_at_str = str(started_at) if started_at else "Unknown"
+        
+        duration_str = f"{duration_seconds // 60}m {duration_seconds % 60}s" if duration_seconds else "N/A"
+        
+        # Call header
+        pdf.set_font('Helvetica', 'B', 12)
+        pdf.set_fill_color(59, 130, 246)
+        pdf.set_text_color(255)
+        pdf.cell(0, 8, f'  CONSULTATION #{idx}: {caller_name} & {recipient_name}', 0, 1, 'L', fill=True)
+        pdf.set_text_color(0)
+        pdf.ln(3)
+        
+        # Call info
+        info_items = [
+            ('Recording ID:', recording_id),
+            ('Date:', started_at_str),
+            ('Duration:', duration_str),
+        ]
+        
+        for label, value in info_items:
+            pdf.set_font('Helvetica', 'B', 9)
+            pdf.cell(35, 5, label, 0, 0)
+            pdf.set_font('Helvetica', '', 9)
+            pdf.cell(0, 5, str(value)[:60], 0, 1)
+        
+        pdf.ln(3)
+        
+        # Parse and render summary
+        lines = summary.split('\n')
+        for line in lines:
+            if pdf.get_y() > 260:
+                pdf.add_page()
+            
+            clean_line = line.strip()
+            
+            if not clean_line:
+                pdf.ln(2)
+                continue
+            
+            # Section headers
+            is_section_header = False
+            section_text = clean_line
+            
+            if clean_line.startswith('**') and clean_line.endswith('**'):
+                is_section_header = True
+                section_text = clean_line.replace('**', '')
+            elif '**' in clean_line and clean_line[0].isdigit():
+                parts = clean_line.split('**')
+                if len(parts) >= 2:
+                    is_section_header = True
+                    section_text = parts[1] if parts[1] else (parts[2] if len(parts) > 2 else clean_line)
+            
+            if is_section_header:
+                pdf.ln(2)
+                color = get_section_color(section_text)
+                pdf.set_fill_color(*color)
+                pdf.set_text_color(255)
+                pdf.set_font('Helvetica', 'B', 10)
+                pdf.cell(0, 6, f'  {section_text.upper()}', 0, 1, 'L', fill=True)
+                pdf.set_text_color(0)
+                pdf.ln(1)
+                continue
+            
+            # Bullet points
+            if clean_line.startswith('-') or clean_line.startswith('•'):
+                content = clean_line[1:].strip().replace('**', '')
+                pdf.set_font('Helvetica', '', 9)
+                pdf.cell(5, 4, '', 0, 0)
+                pdf.cell(5, 4, chr(149), 0, 0)
+                if len(content) > 90:
+                    pdf.set_x(20)
+                    pdf.multi_cell(0, 4, content)
+                else:
+                    pdf.cell(0, 4, content, 0, 1)
+                continue
+            
+            # Sub-bullet points
+            if clean_line.startswith('  -') or clean_line.startswith('  •'):
+                content = clean_line.strip()[1:].strip().replace('**', '')
+                pdf.set_font('Helvetica', '', 8)
+                pdf.cell(15, 4, '', 0, 0)
+                pdf.cell(5, 4, '-', 0, 0)
+                if len(content) > 80:
+                    pdf.set_x(30)
+                    pdf.multi_cell(0, 4, content)
+                else:
+                    pdf.cell(0, 4, content, 0, 1)
+                continue
+            
+            # Regular text
+            content = clean_line.replace('**', '')
+            pdf.set_font('Helvetica', '', 9)
+            pdf.multi_cell(0, 4, content)
+        
+        pdf.ln(3)
+    
+    # Final page - disclaimer
+    pdf.add_page()
+    pdf.set_font('Helvetica', 'B', 12)
+    pdf.set_fill_color(100, 100, 100)
+    pdf.set_text_color(255)
+    pdf.cell(0, 8, '  CONFIDENTIALITY & DISCLAIMER', 0, 1, 'L', fill=True)
+    pdf.set_text_color(0)
+    pdf.ln(5)
+    
+    pdf.set_font('Helvetica', '', 10)
+    disclaimers = [
+        "This document contains confidential attorney-client communications.",
+        "All summaries are AI-generated and should be reviewed by qualified legal counsel.",
+        "Original recordings and transcripts remain the authoritative sources.",
+        "This report is for professional use only and should not be distributed without authorization.",
+        f"Report generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+        f"Total consultations: {len(recordings_data)}",
+    ]
+    
+    for disclaimer in disclaimers:
+        pdf.cell(5, 6, chr(149), 0, 0)
+        pdf.cell(0, 6, disclaimer, 0, 1)
+    
+    # Output PDF
+    pdf_bytes = bytes(pdf.output())
+    
+    safe_filename = f"consolidated_summary_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
+    
+    logger.info(f"Batch PDF export: {len(recordings_data)} recordings for user {user_id}")
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={safe_filename}"
+        }
+    )
+
+
 # ============== REAL-TIME TRANSCRIPTION ==============
 
 # Store for live transcription sessions
