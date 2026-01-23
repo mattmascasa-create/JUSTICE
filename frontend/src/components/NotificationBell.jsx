@@ -255,20 +255,33 @@ export default function NotificationBell() {
           </ScrollArea>
 
           {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="p-2 border-t border-border">
+          <div className="p-2 border-t border-border flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setIsOpen(false);
+                window.location.href = '/notification-preferences';
+              }}
+            >
+              <Settings className="h-4 w-4 mr-1" />
+              Preferences
+            </Button>
+            {notifications.length > 0 && (
               <Button
                 variant="ghost"
-                className="w-full text-sm text-muted-foreground hover:text-foreground"
+                size="sm"
+                className="flex-1 text-sm text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   setIsOpen(false);
                   window.location.href = '/notifications';
                 }}
               >
-                View all notifications
+                View all
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
