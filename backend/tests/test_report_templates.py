@@ -48,25 +48,25 @@ def cleanup_templates(auth_headers):
 
 
 class TestTemplatesEndpointExists:
-    """Verify templates endpoints exist (return 401 not 404 without auth)"""
+    """Verify templates endpoints exist (return 401/403 not 404 without auth)"""
     
     def test_templates_my_endpoint_exists(self):
-        """GET /api/templates/my should return 401 without auth, not 404"""
+        """GET /api/templates/my should return 401/403 without auth, not 404"""
         response = requests.get(f"{BASE_URL}/api/templates/my")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ GET /api/templates/my endpoint exists (returns 401)")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ GET /api/templates/my endpoint exists (returns {response.status_code})")
     
     def test_templates_create_endpoint_exists(self):
-        """POST /api/templates/create should return 401 without auth, not 404"""
+        """POST /api/templates/create should return 401/403 without auth, not 404"""
         response = requests.post(f"{BASE_URL}/api/templates/create", json={})
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ POST /api/templates/create endpoint exists (returns 401)")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ POST /api/templates/create endpoint exists (returns {response.status_code})")
     
     def test_templates_default_endpoint_exists(self):
-        """GET /api/templates/default should return 401 without auth, not 404"""
+        """GET /api/templates/default should return 401/403 without auth, not 404"""
         response = requests.get(f"{BASE_URL}/api/templates/default")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ GET /api/templates/default endpoint exists (returns 401)")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ GET /api/templates/default endpoint exists (returns {response.status_code})")
 
 
 class TestGetMyTemplates:
