@@ -907,18 +907,30 @@ export default function RecordingsPage() {
                           <Sparkles className="h-4 w-4" />
                           <span className="text-sm">AI Summary generated {summary.summarized_at ? formatDate(summary.summarized_at) : ''}</span>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-white border-white/30 hover:bg-white/10"
-                          onClick={() => {
-                            navigator.clipboard.writeText(summary.summary.replace(/\*\*/g, ''));
-                            toast.success('Summary copied to clipboard');
-                          }}
-                        >
-                          <Copy className="h-4 w-4 mr-1" />
-                          Copy
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white border-white/30 hover:bg-white/10"
+                            onClick={() => {
+                              navigator.clipboard.writeText(summary.summary.replace(/\*\*/g, ''));
+                              toast.success('Summary copied to clipboard');
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white border-purple-500/50 hover:bg-purple-500/20"
+                            onClick={handleDownloadSummaryPDF}
+                            data-testid="download-summary-pdf-btn"
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            PDF
+                          </Button>
+                        </div>
                       </div>
                       
                       <ScrollArea className="h-[400px]">
