@@ -28,7 +28,9 @@ class TestPDFExport:
             json={"email": self.test_email, "password": self.test_password}
         )
         if response.status_code == 200:
-            self.auth_token = response.json().get("token")
+            data = response.json()
+            # API returns access_token, not token
+            self.auth_token = data.get("access_token") or data.get("token")
             return self.auth_token
         return None
     
@@ -48,7 +50,8 @@ class TestPDFExport:
         )
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        # API returns access_token
+        assert "access_token" in data or "token" in data
         print(f"✓ Login successful for {self.test_email}")
     
     def test_pdf_endpoint_exists(self):
