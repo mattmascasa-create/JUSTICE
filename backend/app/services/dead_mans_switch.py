@@ -279,6 +279,23 @@ async def notify_emergency_contacts(
                     if sms_result.get("success"):
                         notified += 1
             
+            # Send email if email address provided
+            email_addr = contact.get("email")
+            if email_addr:
+                from app.services.email_service import send_dead_mans_switch_email, is_sendgrid_configured
+                
+                if is_sendgrid_configured():
+                    email_result = await send_dead_mans_switch_email(
+                        to_email=email_addr,
+                        user_name=user_name,
+                        location_address=address,
+                        share_url=share_url,
+                        latitude=lat,
+                        longitude=lng
+                    )
+                    if email_result.get("success"):
+                        notified += 1
+            
         except Exception as e:
             logger.error(f"Failed to notify contact: {e}")
     
