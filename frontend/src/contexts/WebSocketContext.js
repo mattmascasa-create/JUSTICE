@@ -239,11 +239,12 @@ export function WebSocketProvider({ children }) {
       case 'typing':
         break;
       case 'pong':
+        handlePong();
         break;
       default:
         console.log('Unknown message type:', data.type);
     }
-  }, []);
+  }, [handlePong]);
 
   const connect = useCallback(() => {
     if (!token || !user) return;
