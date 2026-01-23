@@ -1,0 +1,141 @@
+{
+  "summary": "Scheduled Reports Feature Testing Complete - All 26 backend tests passed. Frontend UI fully verified with CRUD operations (Create, Read, Update, Delete, Toggle) working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "notes": [
+      "WebSocket connection errors (403) observed but do not affect scheduled reports functionality",
+      "Dashboard fetch error (404) for /api/analytics/dashboard - unrelated to scheduled reports feature"
+    ]
+  },
+  "passed_tests": [
+    "GET /api/schedules/my returns schedules array",
+    "GET /api/schedules/my requires authentication",
+    "POST /api/schedules/create validates required recipient_emails",
+    "POST /api/schedules/create validates frequency values",
+    "POST /api/schedules/create validates send_hour range (0-23)",
+    "POST /api/schedules/create enforces max 10 recipients",
+    "POST /api/schedules/create creates weekly schedule successfully",
+    "POST /api/schedules/create creates daily schedule successfully",
+    "POST /api/schedules/create creates monthly schedule successfully",
+    "POST /api/schedules/create generates default name if not provided",
+    "GET /api/schedules/{id} returns specific schedule",
+    "GET /api/schedules/{id} returns 404 for non-existent schedule",
+    "PUT /api/schedules/{id} updates schedule successfully",
+    "PUT /api/schedules/{id} validates frequency on update",
+    "PUT /api/schedules/{id} returns 404 for non-existent schedule",
+    "DELETE /api/schedules/{id} deletes schedule successfully",
+    "DELETE /api/schedules/{id} returns 404 for non-existent schedule",
+    "POST /api/schedules/{id}/toggle toggles active status",
+    "POST /api/schedules/{id}/toggle returns 404 for non-existent schedule",
+    "Weekly schedules validate send_day range (0-6)",
+    "Monthly schedules validate send_date range (1-28)",
+    "POST /api/schedules/create validates email format (422 for invalid)",
+    "Endpoint /api/schedules/my exists (returns 401 not 404)",
+    "Endpoint /api/schedules/create exists (returns 401 not 404)",
+    "Endpoint /api/schedules/{id}/toggle exists"
+  ],
+  "frontend_tests_passed": [
+    "Login and navigation to dashboard",
+    "Scheduled Reports link visible in sidebar",
+    "ScheduledReportsPage renders correctly with page title",
+    "Create Schedule button found (data-testid='create-schedule-btn')",
+    "Create Schedule dialog opens with all form fields",
+    "Schedule name input found (data-testid='schedule-name-input')",
+    "Frequency select found (data-testid='schedule-frequency-select')",
+    "Recipients input found (data-testid='schedule-recipients-input')",
+    "Save button found (data-testid='save-schedule-btn')",
+    "Create schedule via UI - success toast shown",
+    "Toggle schedule via UI - status changes to Paused",
+    "Edit schedule via UI - dialog opens, update succeeds",
+    "Delete schedule via UI - confirmation works, schedule removed"
+  ],
+  "api_integration_verified": {
+    "file": "/app/frontend/src/lib/api.js",
+    "schedulesAPI_methods": [
+      "getMySchedules() - GET /schedules/my",
+      "createSchedule(data) - POST /schedules/create",
+      "getSchedule(scheduleId) - GET /schedules/{id}",
+      "updateSchedule(scheduleId, data) - PUT /schedules/{id}",
+      "deleteSchedule(scheduleId) - DELETE /schedules/{id}",
+      "toggleSchedule(scheduleId) - POST /schedules/{id}/toggle",
+      "testSchedule(scheduleId) - POST /schedules/{id}/test"
+    ]
+  },
+  "sidebar_navigation_verified": {
+    "file": "/app/frontend/src/components/layout/Sidebar.jsx",
+    "nav_item": "{ icon: CalendarClock, label: 'Scheduled Reports', path: '/scheduled-reports' }",
+    "data_testid": "nav-scheduled-reports"
+  },
+  "route_verified": {
+    "file": "/app/frontend/src/App.js",
+    "route": "<Route path=\"/scheduled-reports\" element={<ProtectedRoute><ScheduledReportsPage /></ProtectedRoute>} />"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_scheduled_reports.py",
+    "/app/test_reports/pytest/scheduled_reports_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All CRUD endpoints properly implemented with validation",
+    "Maximum 5 schedules per user enforced",
+    "Maximum 10 recipients per schedule enforced",
+    "Email format validation via Pydantic (returns 422)",
+    "Frequency validation (daily/weekly/monthly only)",
+    "send_hour validation (0-23)",
+    "send_day validation for weekly (0-6)",
+    "send_date validation for monthly (1-28)",
+    "APScheduler background job runs hourly to check schedules",
+    "Email sending requires SendGrid API key (not configured in test env)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_scheduled_reports.py"
+  ],
+  "success_rate": {
+    "backend": "100% (26/26 tests passed)",
+    "frontend": "100% (All UI tests passed)"
+  },
+  "test_credentials": {
+    "test_user": {"email": "test@example.com", "password": "password123"}
+  },
+  "seed_data_creation": "Test schedules created and cleaned up during testing",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Scheduled Reports feature fully verified. Backend CRUD endpoints at /api/schedules/* all working with proper validation. Frontend ScheduledReportsPage.jsx renders correctly with Create Schedule button, dialog with all form fields, and schedule cards with toggle/edit/delete buttons. Navigation sidebar includes Scheduled Reports link. schedulesAPI object in api.js has all required methods. Note: Email sending via SendGrid requires SENDGRID_API_KEY to be configured - test endpoint will fail without it.",
+  "mocked_or_missing": {
+    "SENDGRID_API_KEY": "NOT CONFIGURED - actual email sending will fail",
+    "SENDGRID_SENDER_EMAIL": "NOT CONFIGURED - required for email sending"
+  },
+  "feature_verification": {
+    "feature_name": "Scheduled Email Reports",
+    "backend_endpoints_tested": [
+      "GET /api/schedules/my - List user's schedules",
+      "POST /api/schedules/create - Create new schedule",
+      "GET /api/schedules/{id} - Get specific schedule",
+      "PUT /api/schedules/{id} - Update schedule",
+      "DELETE /api/schedules/{id} - Delete schedule",
+      "POST /api/schedules/{id}/toggle - Toggle active status",
+      "POST /api/schedules/{id}/test - Send test email (requires SendGrid)"
+    ],
+    "frontend_components_verified": [
+      "ScheduledReportsPage.jsx - Full page with schedule list and create dialog",
+      "Sidebar.jsx - Navigation link with CalendarClock icon",
+      "App.js - Route /scheduled-reports configured"
+    ],
+    "validation_rules_verified": [
+      "Empty recipient_emails returns 400",
+      "Invalid frequency returns 400",
+      "Invalid send_hour (>23) returns 400",
+      "Invalid send_day (>6) returns 400",
+      "Invalid send_date (>28) returns 400",
+      "More than 10 recipients returns 400",
+      "Invalid email format returns 422",
+      "Maximum 5 schedules per user enforced"
+    ]
+  }
+}
