@@ -110,6 +110,19 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Improved Error Handling**: Better exception handling in both frontend and backend WebSocket code
 - **Dead Connection Cleanup**: Backend now removes dead connections automatically when sends fail
 
+### Connection Indicator (Jan 23, 2026)
+- **Visual Indicator**: Green wifi icon with dot in sidebar header when connected
+- **State Feedback**: Shows different icons/colors for connecting, reconnecting, disconnected, failed states
+- **Tooltip**: Displays connection status and "Click to reconnect" when disconnected
+- **Connection Quality**: Shows degraded/poor connection with pulse animation
+
+### Advanced Features - Legal Strategy (Jan 23, 2026)
+- **Automatic Violation Detection**: Interactive AI analysis of encounters for constitutional rights violations (4th, 5th, 14th Amendment)
+- **Legal Precedent Matching**: Search for similar successful cases with relevance scores and outcome predictions
+- **Case Value Estimator**: Estimate potential case value based on violations, injury, arrest, and video evidence
+- **FOIA Automation**: One-click body cam footage requests with auto-generation and tracking
+- **Backend Services Fixed**: Updated `violation_detection.py` and `legal_precedent.py` to use correct `LlmChat` API pattern
+
 ## Code Architecture
 
 ```
