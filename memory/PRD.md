@@ -24,6 +24,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ## Latest Updates (Jan 2026)
 
 ### Completed Features
+- **Notification Sounds**: Custom alert tones per notification type with Web Audio API
 - **Notification Preferences**: Full settings page for push, email, and in-app notification controls
 - **Push Notifications**: Web Push API with service worker for background alerts
 - **Notification Bell**: Real-time notification system with badge count and dropdown panel
