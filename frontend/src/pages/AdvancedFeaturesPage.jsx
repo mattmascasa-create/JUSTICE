@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Shield, Brain, Users, AlertTriangle, Scale, FileText,
   Loader2, CheckCircle, XCircle, Clock, MapPin, Radio,
   Siren, Eye, Gavel, FileSearch, ChevronRight, Settings,
-  Zap, Heart, Bell
+  Zap, Heart, Bell, Play, Copy, ExternalLink, DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -12,8 +13,12 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Slider } from '../components/ui/slider';
 import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { toast } from 'sonner';
-import api from '../lib/api';
+import api, { violationAPI, legalPrecedentAPI, foiaAPI, encounterAPI } from '../lib/api';
 
 export default function AdvancedFeaturesPage() {
   const [activeTab, setActiveTab] = useState('protection');
