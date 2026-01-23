@@ -1428,7 +1428,7 @@ export default function RecordingsPage() {
                     <SelectItem value="system_default">System Default</SelectItem>
                     {templates.map(t => (
                       <SelectItem key={t.template_id} value={t.template_id}>
-                        {t.name} {t.is_default && '★'}
+                        {t.template_name} {t.is_default && '★'}
                       </SelectItem>
                     ))}
                   </SelectContent>
