@@ -78,6 +78,7 @@ export default function RecordingsPage() {
 
   useEffect(() => {
     fetchRecordings();
+    fetchTemplates();
   }, []);
 
   useEffect(() => {
