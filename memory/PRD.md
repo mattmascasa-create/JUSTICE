@@ -40,6 +40,13 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Priority ordering with drag-and-drop
   - Test alert functionality
   - Auto-detection of JUSTICE users
+- **Quick SOS Button** ✅: One-tap emergency alert during encounters
+  - Prominent red button in Encounter Mode
+  - Alerts all emergency contacts with notify_on_sos enabled
+  - Auto-creates share link for live viewing
+  - Includes current location and address
+  - Creates persistent notification for JUSTICE user contacts
+  - Cancel SOS functionality to resolve alerts
 - **Dead Man's Switch**: Auto emergency response when user becomes unresponsive (configurable thresholds)
 - **Witness Network**: 1-mile radius community alerts, reputation system, witness recordings
 
