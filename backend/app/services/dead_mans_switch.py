@@ -239,10 +239,13 @@ async def notify_emergency_contacts(
         return 0
     
     location = encounter.get("location", {})
-    location_str = f"{location.get('lat', 'Unknown')}, {location.get('lng', 'Unknown')}"
+    lat = location.get("lat") or encounter.get("latitude")
+    lng = location.get("lng") or encounter.get("longitude")
+    address = encounter.get("address", "Unknown location")
     
     # Create share URL for the encounter
-    share_url = f"/encounter/watch/{encounter_id}"
+    from app.core.config import FRONTEND_URL
+    share_url = f"{FRONTEND_URL}/encounter/watch/{encounter_id}"
     
     notified = 0
     for contact in contacts:
@@ -253,15 +256,29 @@ async def notify_emergency_contacts(
                     db=db,
                     user_id=contact["contact_user_id"],
                     title=f"🚨 EMERGENCY: {user_name} needs help!",
-                    body=f"Dead man's switch triggered. Location: {location_str}",
+                    body=f"Dead man's switch triggered. Location: {address}",
                     url=share_url,
                     tag="emergency"
                 )
+                notified += 1
             
-            # TODO: Send SMS via Twilio if phone number provided
-            # TODO: Send email if email provided
+            # Send SMS via Twilio if phone number provided
+            phone = contact.get("phone")
+            if phone:
+                from app.services.sms_service import send_dead_mans_switch_sms, is_twilio_configured
+                
+                if is_twilio_configured():
+                    sms_result = await send_dead_mans_switch_sms(
+                        to_number=phone,
+                        user_name=user_name,
+                        location_address=address,
+                        share_url=share_url,
+                        latitude=lat,
+                        longitude=lng
+                    )
+                    if sms_result.get("success"):
+                        notified += 1
             
-            notified += 1
         except Exception as e:
             logger.error(f"Failed to notify contact: {e}")
     
