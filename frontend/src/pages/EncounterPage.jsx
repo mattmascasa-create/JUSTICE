@@ -210,6 +210,64 @@ export default function EncounterPage() {
   const stopRecordingRef = useRef(null);
   const shareStreamLinkRef = useRef(null);
 
+  // Quick SOS State
+  const [sosActive, setSosActive] = useState(false);
+  const [sosSending, setSosSending] = useState(false);
+  const [sosAlertId, setSosAlertId] = useState(null);
+
+  // Quick SOS function - sends emergency alert to all contacts
+  const triggerQuickSOS = async () => {
+    if (!encounter || sosSending) return;
+    
+    setSosSending(true);
+    
+    try {
+      const response = await sosAPI.createEncounterSOS({
+        encounter_id: encounter.encounter_id,
+        latitude: location?.coords?.latitude,
+        longitude: location?.coords?.longitude,
+        address: address || 'Unknown location',
+        message: 'Emergency SOS - I need help during a police encounter!'
+      });
+      
+      setSosActive(true);
+      setSosAlertId(response.data.alert_id);
+      
+      toast.success(
+        `🚨 SOS Alert Sent! ${response.data.contacts_notified} contact(s) notified.`,
+        { duration: 5000 }
+      );
+      
+      // Set immediate alert for UI
+      setImmediateAlert({
+        type: 'sos_active',
+        message: `SOS active - ${response.data.contacts_notified} contacts notified`,
+        severity: 10
+      });
+      
+    } catch (error) {
+      console.error('SOS error:', error);
+      toast.error('Failed to send SOS alert. Try again or call 911.');
+    } finally {
+      setSosSending(false);
+    }
+  };
+
+  // Cancel SOS function
+  const cancelSOS = async () => {
+    if (!sosAlertId) return;
+    
+    try {
+      await sosAPI.resolve(sosAlertId);
+      setSosActive(false);
+      setSosAlertId(null);
+      setImmediateAlert(null);
+      toast.success('SOS alert cancelled');
+    } catch (error) {
+      console.error('Cancel SOS error:', error);
+    }
+  };
+
   // Perform real-time AI analysis on transcriptions
   const performAIAnalysis = async (text) => {
     if (!encounter || !text || text.length < 30) return;
