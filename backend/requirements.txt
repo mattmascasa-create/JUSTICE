@@ -127,3 +127,5 @@ zipp==3.23.0
 fpdf2==2.8.5
 sendgrid==6.12.5
 APScheduler==3.11.2
+pywebpush==2.2.0
+py-vapid==1.9.4
