@@ -332,7 +332,9 @@ export function WebSocketProvider({ children }) {
   const sendMessage = useCallback((data) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(data));
+      return true;
     }
+    return false;
   }, []);
 
   const sendTyping = useCallback((recipientId, conversationId) => {
@@ -343,17 +345,68 @@ export function WebSocketProvider({ children }) {
     });
   }, [sendMessage]);
 
+  // Manual reconnect function for UI
+  const reconnect = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+    clearTimers();
+    resetReconnectState();
+    setTimeout(() => connect(), 100);
+  }, [connect, clearTimers, resetReconnectState]);
+
+  // Handle visibility change - reconnect when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && connectionState !== ConnectionState.CONNECTED) {
+        console.log('Tab became visible, checking connection...');
+        // Check if we should reconnect
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+          reconnectAttemptRef.current = 0; // Reset attempts on visibility change
+          connect();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [connect, connectionState]);
+
+  // Handle online/offline events
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network online, reconnecting...');
+      if (connectionState !== ConnectionState.CONNECTED) {
+        reconnectAttemptRef.current = 0;
+        connect();
+      }
+    };
+
+    const handleOffline = () => {
+      console.log('Network offline');
+      setConnectionState(ConnectionState.DISCONNECTED);
+      setConnectionQuality('poor');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [connect, connectionState]);
+
   useEffect(() => {
     connect();
     return () => {
+      clearTimers();
       if (wsRef.current) {
-        wsRef.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+        wsRef.current.close(1000, 'Component unmounting');
       }
     };
-  }, [connect]);
+  }, [connect, clearTimers]);
 
   const value = {
     isConnected,
