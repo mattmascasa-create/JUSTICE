@@ -178,7 +178,7 @@ export default function RightsCoachPanel({
                     <div>
                       <p className="text-xs text-blue-400/70 mb-1">Say this:</p>
                       <p className="text-sm font-medium text-blue-300 italic">
-                        "{guidance.suggested_response}"
+                        &ldquo;{guidance.suggested_response}&rdquo;
                       </p>
                     </div>
                   </div>
@@ -237,7 +237,7 @@ export default function RightsCoachPanel({
               {guidance.do_not && (
                 <div className="p-2 rounded bg-gray-500/10 border border-gray-500/30">
                   <p className="text-xs text-gray-400">
-                    <span className="font-bold text-red-400">Don't:</span> {guidance.do_not}
+                    <span className="font-bold text-red-400">Do not:</span> {guidance.do_not}
                   </p>
                 </div>
               )}
