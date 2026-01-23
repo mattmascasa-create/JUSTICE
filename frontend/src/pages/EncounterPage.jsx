@@ -600,6 +600,19 @@ export default function EncounterPage() {
         }
       }
       
+      // Broadcast to Witness Network
+      try {
+        const witnessResponse = await api.post(`/advanced/witness/broadcast/${response.data.encounter_id}`, {
+          lat: location.latitude,
+          lng: location.longitude
+        });
+        if (witnessResponse.data.witnesses_alerted > 0) {
+          toast.success(`👁️ ${witnessResponse.data.witnesses_alerted} nearby witness(es) alerted!`);
+        }
+      } catch (witnessErr) {
+        console.log('Witness broadcast failed:', witnessErr);
+      }
+      
       // Request media permissions based on settings
       const mediaConstraints = {
         audio: true,
