@@ -317,7 +317,15 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Live transcribing indicator animation
   - Notes broadcast to other call participant via WebSocket
   - Transcript saved to MongoDB when call ends
-- **Version**: 5.12.0
+- **AI-Powered Transcript Summaries** ✅ (Jan 22, 2026):
+  - Generate comprehensive summaries from call transcripts using GPT-4o-mini
+  - AI extracts: Overview, Key Discussion Points, Action Items, Legal Concerns, Recommendations, Follow-up Notes
+  - Summary tab in video player dialog alongside Video and Transcript tabs
+  - Copy summary to clipboard functionality
+  - Visual icons for different section types (green for actions, red for legal concerns, yellow for recommendations)
+  - Summaries stored in MongoDB for quick access
+  - "Summary" badge on recording cards when summary exists
+- **Version**: 5.13.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
