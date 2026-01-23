@@ -352,7 +352,7 @@ export default function EmergencyContactsPage() {
         <Alert className="border-blue-500/50 bg-blue-500/10">
           <Shield className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-sm">
-            Emergency contacts will receive alerts via in-app notifications (if they're JUSTICE users) 
+            Emergency contacts will receive alerts via in-app notifications (if they&apos;re JUSTICE users) 
             and email/SMS (coming soon). You can add up to 10 contacts.
           </AlertDescription>
         </Alert>
