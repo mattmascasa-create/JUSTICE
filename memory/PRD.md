@@ -12,10 +12,31 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **AI**: GPT-5.2 via Emergent LLM key
 - **Speech-to-Text**: OpenAI Whisper
 - **Auth**: JWT + Emergent Google OAuth
-- **Real-time**: WebSocket (exponential backoff)
+- **Real-time**: WebSocket (exponential backoff) + User notifications endpoint
 - **Evidence Integrity**: SHA-256 hashing + Simulated Blockchain
 - **Decentralized Storage**: IPFS via Pinata (when configured)
+- **Cloud Storage**: AWS S3 for recordings
+- **Email**: SendGrid (requires API key)
+- **PDF Generation**: fpdf2
+- **Scheduling**: APScheduler
 - **Maps**: Leaflet + OpenStreetMap
+
+## Latest Updates (Jan 2026)
+
+### Completed Features
+- **Report Templates**: Full CRUD for custom branded report templates
+- **Template Integration**: Templates now apply to single PDF export, batch export, and email delivery
+- **AI Summaries**: GPT-powered transcript summarization
+- **PDF Export**: Single and batch PDF generation
+- **Email Delivery**: SendGrid integration for emailing reports (requires API key)
+- **Scheduled Reports**: APScheduler-based recurring report delivery
+- **Live Transcription**: Real-time transcription during video calls
+- **WebSocket User Notifications**: Fixed endpoint for real-time user notifications
+- **Dashboard Analytics**: Added `/api/analytics/dashboard` endpoint
+
+### Pending Issues
+- **WebSocket Stability**: Initial connections sometimes fail in preview environment (auto-reconnect works)
+- **SendGrid API Key**: Not configured - email functionality requires `SENDGRID_API_KEY` in backend/.env
 
 ## Code Architecture
 
