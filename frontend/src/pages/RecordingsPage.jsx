@@ -1183,6 +1183,16 @@ export default function RecordingsPage() {
                             <Download className="h-4 w-4 mr-1" />
                             PDF
                           </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white border-blue-500/50 hover:bg-blue-500/20"
+                            onClick={() => openEmailDialog([selectedRecording?.recording_id])}
+                            data-testid="email-single-summary-btn"
+                          >
+                            <Mail className="h-4 w-4 mr-1" />
+                            Email
+                          </Button>
                         </div>
                       </div>
                       
