@@ -562,6 +562,21 @@ export default function RecordingsPage() {
                 <span className="text-sm text-muted-foreground">
                   {selectedIds.length} selected
                 </span>
+                {/* Template Selector */}
+                <Select value={selectedTemplateId || 'system_default'} onValueChange={(val) => setSelectedTemplateId(val === 'system_default' ? null : val)}>
+                  <SelectTrigger className="w-[180px]" data-testid="template-selector">
+                    <Palette className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Select Template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="system_default">System Default</SelectItem>
+                    {templates.map(t => (
+                      <SelectItem key={t.template_id} value={t.template_id}>
+                        {t.name} {t.is_default && '★'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"
