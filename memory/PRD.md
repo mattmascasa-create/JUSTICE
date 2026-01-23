@@ -327,7 +327,8 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - "Summary" badge on recording cards when summary exists
   - **Export to PDF**: Professional PDF documents with JUSTICE branding, colored section headers, participant info, and confidentiality notice
   - **Batch PDF Export**: Select multiple recordings and export a consolidated report with table of contents, individual summaries, and disclaimer page (max 20 per batch)
-- **Version**: 5.15.0
+  - **Email Delivery**: Send PDF summaries directly to clients/team via email with custom message, CC support, and professional HTML formatting (requires SendGrid API key)
+- **Version**: 5.16.0
 
 ### Settings Enhancements ✅
 - **Emergency Contacts UI**: Add/remove contacts for encounter notifications
