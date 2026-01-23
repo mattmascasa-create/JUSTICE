@@ -127,15 +127,21 @@ Analyze this encounter thoroughly for any constitutional rights violations."""
     try:
         llm = LlmChat(
             api_key=os.environ.get("EMERGENT_LLM_KEY"),
-            model="gpt-5.2",
-            system_message=system_prompt,
-            temperature=0.2,
-            response_format={"type": "json_object"}
-        )
-        response = await llm.chat([UserMessage(content=user_prompt)])
+            session_id=f"violation_{analysis_id}",
+            system_message=system_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        response = await llm.send_message(UserMessage(text=user_prompt))
         
         import json
-        analysis = json.loads(response.content)
+        # Parse response - handle markdown code blocks
+        content = str(response).strip()
+        if '```json' in content:
+            content = content.split('```json')[1].split('```')[0].strip()
+        elif '```' in content:
+            content = content.split('```')[1].split('```')[0].strip()
+        
+        analysis = json.loads(content)
         analysis["analysis_id"] = analysis_id
         analysis["encounter_id"] = encounter_id
         analysis["analyzed_at"] = datetime.now(timezone.utc).isoformat()

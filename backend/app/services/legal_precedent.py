@@ -173,15 +173,21 @@ Analyze this encounter and match relevant legal precedents."""
     try:
         llm = LlmChat(
             api_key=os.environ.get("EMERGENT_LLM_KEY"),
-            model="gpt-5.2",
-            system_message=system_prompt,
-            temperature=0.3,
-            response_format={"type": "json_object"}
-        )
-        response = await llm.chat([UserMessage(content=user_prompt)])
+            session_id=f"precedent_{search_id}",
+            system_message=system_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        response = await llm.send_message(UserMessage(text=user_prompt))
         
         import json
-        result = json.loads(response.content)
+        # Parse response - handle markdown code blocks
+        content = str(response).strip()
+        if '```json' in content:
+            content = content.split('```json')[1].split('```')[0].strip()
+        elif '```' in content:
+            content = content.split('```')[1].split('```')[0].strip()
+        
+        result = json.loads(content)
         result["search_id"] = search_id
         result["encounter_id"] = encounter_id
         result["searched_at"] = datetime.now(timezone.utc).isoformat()
