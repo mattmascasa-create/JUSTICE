@@ -56,7 +56,7 @@ export default function AttorneysPage() {
   };
 
   const filteredAttorneys = attorneys.filter(a =>
-    a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     a.bio?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
