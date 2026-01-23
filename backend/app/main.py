@@ -100,6 +100,7 @@ app.include_router(schedules_router, prefix="/api")
 app.include_router(templates_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(notification_prefs_router, prefix="/api")
+app.include_router(advanced_features_router, prefix="/api")
 
 
 # Root endpoint
