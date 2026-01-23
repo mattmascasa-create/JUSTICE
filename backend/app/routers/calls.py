@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional, List
+from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Depends, Form, WebSocket, WebSocketDisconnect, UploadFile, File, Body
 
 from app.db.database import db
@@ -895,7 +896,6 @@ Now process all segments:"""
                         # Build formatted speaker transcript
                         formatted_lines = []
                         for seg in speaker_segments:
-                            speaker_name = transcript.speaker_labels.get(seg["speaker"], seg["speaker"].title()) if hasattr(transcript, 'speaker_labels') else seg["speaker"].title()
                             mins = int(seg["start"] // 60)
                             secs = int(seg["start"] % 60)
                             formatted_lines.append(f"[{mins}:{secs:02d}] **{seg['speaker'].title()}:** {seg['text']}")
