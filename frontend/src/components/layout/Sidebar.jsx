@@ -33,7 +33,8 @@ import {
   CalendarClock,
   Palette,
   Zap,
-  Users
+  Users,
+  Eye
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 
