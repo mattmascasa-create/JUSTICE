@@ -5,7 +5,6 @@ export const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // Create axios instance with defaults
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
 });
 
 // Add auth token to requests
