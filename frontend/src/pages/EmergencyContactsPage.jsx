@@ -32,6 +32,13 @@ const relationshipColors = {
   other: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
 
+// Helper component defined outside to avoid re-creation on every render
+const RelationshipIcon = ({ relationship }) => {
+  const option = relationshipOptions.find(o => o.value === relationship);
+  const Icon = option?.icon || Users;
+  return <Icon className="h-4 w-4" />;
+};
+
 export default function EmergencyContactsPage() {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
@@ -174,12 +181,6 @@ export default function EmergencyContactsPage() {
     } catch (error) {
       toast.error('Failed to update contact');
     }
-  };
-
-  const RelationshipIcon = ({ relationship }) => {
-    const option = relationshipOptions.find(o => o.value === relationship);
-    const Icon = option?.icon || Users;
-    return <Icon className="h-4 w-4" />;
   };
 
   return (
