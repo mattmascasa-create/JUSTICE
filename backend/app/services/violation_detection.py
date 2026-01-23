@@ -61,7 +61,7 @@ async def analyze_encounter_for_violations(
     """
     Comprehensive AI analysis of encounter transcript for rights violations.
     """
-    from emergentintegrations.llm.chat import chat, UserMessage, SystemMessage
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
     
     analysis_id = f"analysis_{uuid.uuid4().hex[:12]}"
     
@@ -125,16 +125,14 @@ FULL TRANSCRIPT:
 Analyze this encounter thoroughly for any constitutional rights violations."""
 
     try:
-        response = await chat(
-            api_key=os.environ.get("EMERGENT_API_KEY"),
-            messages=[
-                SystemMessage(content=system_prompt),
-                UserMessage(content=user_prompt)
-            ],
+        llm = LlmChat(
+            api_key=os.environ.get("EMERGENT_LLM_KEY"),
             model="gpt-5.2",
+            system_message=system_prompt,
             temperature=0.2,
             response_format={"type": "json_object"}
         )
+        response = await llm.chat([UserMessage(content=user_prompt)])
         
         import json
         analysis = json.loads(response.content)

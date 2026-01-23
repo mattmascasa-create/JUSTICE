@@ -98,7 +98,7 @@ async def find_matching_precedents(
     Find legal precedents matching the encounter and violations.
     Uses AI to analyze and match relevant case law.
     """
-    from emergentintegrations.llm.chat import chat, UserMessage, SystemMessage
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
     
     search_id = f"search_{uuid.uuid4().hex[:12]}"
     
@@ -171,16 +171,14 @@ TRANSCRIPT EXCERPT:
 Analyze this encounter and match relevant legal precedents."""
 
     try:
-        response = await chat(
-            api_key=os.environ.get("EMERGENT_API_KEY"),
-            messages=[
-                SystemMessage(content=system_prompt),
-                UserMessage(content=user_prompt)
-            ],
+        llm = LlmChat(
+            api_key=os.environ.get("EMERGENT_LLM_KEY"),
             model="gpt-5.2",
+            system_message=system_prompt,
             temperature=0.3,
             response_format={"type": "json_object"}
         )
+        response = await llm.chat([UserMessage(content=user_prompt)])
         
         import json
         result = json.loads(response.content)
