@@ -117,6 +117,7 @@ function AppRouter() {
       <Route path="/call/:callId" element={<ProtectedRoute><VideoCallPage /></ProtectedRoute>} />
       <Route path="/recordings" element={<ProtectedRoute><RecordingsPage /></ProtectedRoute>} />
       <Route path="/scheduled-reports" element={<ProtectedRoute><ScheduledReportsPage /></ProtectedRoute>} />
+      <Route path="/report-templates" element={<ProtectedRoute><ReportTemplatesPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
