@@ -41,6 +41,7 @@ import ScheduledReportsPage from "./pages/ScheduledReportsPage";
 import ReportTemplatesPage from "./pages/ReportTemplatesPage";
 import NotificationPreferencesPage from "./pages/NotificationPreferencesPage";
 import AdvancedFeaturesPage from "./pages/AdvancedFeaturesPage";
+import EmergencyContactsPage from "./pages/EmergencyContactsPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
@@ -122,6 +123,7 @@ function AppRouter() {
       <Route path="/report-templates" element={<ProtectedRoute><ReportTemplatesPage /></ProtectedRoute>} />
       <Route path="/notification-preferences" element={<ProtectedRoute><NotificationPreferencesPage /></ProtectedRoute>} />
       <Route path="/advanced-features" element={<ProtectedRoute><AdvancedFeaturesPage /></ProtectedRoute>} />
+      <Route path="/emergency-contacts" element={<ProtectedRoute><EmergencyContactsPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
