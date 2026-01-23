@@ -573,6 +573,17 @@ export default function RecordingsPage() {
                     </>
                   )}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => openEmailDialog()}
+                  disabled={selectedIds.length === 0}
+                  className="border-blue-500/50 text-blue-600 hover:bg-blue-50"
+                  data-testid="email-summary-btn"
+                >
+                  <Mail className="h-4 w-4 mr-1" />
+                  Email
+                </Button>
               </>
             ) : (
               <Button
