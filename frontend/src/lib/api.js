@@ -443,6 +443,14 @@ export const callsAPI = {
   getSummary: (recordingId) => api.get(`/calls/${recordingId}/summary`),
   downloadSummaryPDF: (recordingId) => api.get(`/calls/${recordingId}/summary/pdf`, { responseType: 'blob' }),
   downloadBatchSummaryPDF: (recordingIds) => api.post('/calls/batch-summary/pdf', { recording_ids: recordingIds }, { responseType: 'blob', timeout: 120000 }),
+  emailSummary: (recordingIds, recipientEmails, ccEmails = null, customMessage = null, recipientName = null) => 
+    api.post('/calls/email-summary', { 
+      recording_ids: recordingIds, 
+      recipient_emails: recipientEmails,
+      cc_emails: ccEmails,
+      custom_message: customMessage,
+      recipient_name: recipientName
+    }, { timeout: 60000 }),
 };
 
 // Policy Impact Dashboard API
