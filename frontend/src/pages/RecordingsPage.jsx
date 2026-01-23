@@ -21,7 +21,8 @@ import {
   VolumeX, Maximize2, SkipBack, SkipForward,
   FileText, Loader2, Copy, CheckCircle,
   Sparkles, ListChecks, AlertTriangle, Lightbulb,
-  CheckSquare, Square, FileStack, Mail, Send
+  CheckSquare, Square, FileStack, Mail, Send,
+  Palette
 } from 'lucide-react';
 
 export default function RecordingsPage() {
