@@ -12,7 +12,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rights-shield-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://legal-shield-11.preview.emergentagent.com')
 
 class TestHealthEndpoint:
     """Test health endpoint shows new features"""

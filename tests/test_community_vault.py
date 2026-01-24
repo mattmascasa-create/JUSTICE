@@ -11,7 +11,7 @@ import os
 from datetime import datetime, timedelta
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rights-shield-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://legal-shield-11.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "encounter_test@example.com"
