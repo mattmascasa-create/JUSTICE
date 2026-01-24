@@ -140,6 +140,17 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **RTSP Camera Support**: URL validation and common format templates
 - **Research Document**: `/app/memory/HARDWARE_INTEGRATION_RESEARCH.md` with implementation roadmap
 
+### Two-Factor Authentication (Jan 24, 2026)
+- **2FA Settings Page**: New page at `/security/2fa` for configuring authentication methods
+- **Authenticator App (TOTP)**: QR code + manual key for Google Authenticator, Authy, etc.
+- **SMS Authentication**: Verification codes via Twilio SMS
+- **Email Authentication**: Verification codes via SendGrid email
+- **Backup Codes**: 10 one-time use recovery codes with regeneration
+- **Primary Method Selection**: Choose preferred 2FA method
+- **Disable 2FA**: Password-protected 2FA removal
+- **Settings Integration**: Link from Settings > Security to 2FA configuration
+- **Backend**: `pyotp` for TOTP, `qrcode` for QR generation, secure code hashing
+
 ## Code Architecture
 
 ```
