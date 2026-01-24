@@ -567,4 +567,36 @@ export const foiaAPI = {
     api.get('/advanced/foia/stats')
 };
 
+// Hardware Integration API
+export const hardwareAPI = {
+  // Device Management
+  getDevices: () => api.get('/hardware/devices'),
+  registerDevice: (deviceType, deviceName, connectionInfo = null) =>
+    api.post('/hardware/devices', { device_type: deviceType, device_name: deviceName, connection_info: connectionInfo }),
+  getDevice: (deviceId) => api.get(`/hardware/devices/${deviceId}`),
+  updateDeviceSettings: (deviceId, settings) =>
+    api.put(`/hardware/devices/${deviceId}/settings`, { settings }),
+  deleteDevice: (deviceId) => api.delete(`/hardware/devices/${deviceId}`),
+  updateDeviceStatus: (deviceId, status) =>
+    api.put(`/hardware/devices/${deviceId}/status`, null, { params: { status } }),
+  
+  // GoPro
+  getGoProConfig: (deviceId) => api.get(`/hardware/gopro/${deviceId}/config`),
+  getGoProPairingGuide: () => api.get('/hardware/gopro/pairing-guide'),
+  
+  // RTSP Camera
+  validateRtspUrl: (rtspUrl) => api.post('/hardware/rtsp/validate', { rtsp_url: rtspUrl }),
+  getRtspSetupGuide: () => api.get('/hardware/rtsp/setup-guide'),
+  
+  // Dash Cam
+  getDashcamSetupGuide: () => api.get('/hardware/dashcam/setup-guide'),
+  
+  // Stealth Recording
+  getStealthSettings: () => api.get('/hardware/stealth/settings'),
+  updateStealthSettings: (settings) => api.put('/hardware/stealth/settings', settings),
+  
+  // Multi-Camera
+  getMultiCameraLayout: () => api.get('/hardware/multi-camera/layout')
+};
+
 export default api;
