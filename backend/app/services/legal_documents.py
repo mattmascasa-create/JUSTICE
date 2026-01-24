@@ -190,7 +190,7 @@ Use proper legal terminology and formatting. Be factual and precise."""
         context_parts.append(f"Complainant: {user.get('name', 'Not provided')}")
         
         # Encounter details
-        context_parts.append(f"\n## Incident Details")
+        context_parts.append("\n## Incident Details")
         context_parts.append(f"Date: {encounter.get('started_at', 'Unknown')}")
         context_parts.append(f"Location: {encounter.get('address', encounter.get('location', {}).get('address', 'Unknown'))}")
         context_parts.append(f"Type: {encounter.get('encounter_type', 'Unknown')}")
@@ -201,12 +201,12 @@ Use proper legal terminology and formatting. Be factual and precise."""
         
         # Transcript
         if encounter.get('transcript'):
-            context_parts.append(f"\n## Transcript")
+            context_parts.append("\n## Transcript")
             context_parts.append(encounter['transcript'][:3000])  # Limit length
         
         # Violations
         if violation_report and violation_report.get('violations'):
-            context_parts.append(f"\n## Identified Violations")
+            context_parts.append("\n## Identified Violations")
             for v in violation_report['violations']:
                 context_parts.append(f"- {v.get('violation_type', 'Unknown')}: {v.get('explanation', '')}")
                 if v.get('case_law'):
@@ -214,7 +214,7 @@ Use proper legal terminology and formatting. Be factual and precise."""
         
         # Additional info
         if additional_info:
-            context_parts.append(f"\n## Additional Information")
+            context_parts.append("\n## Additional Information")
             if additional_info.get('user_statement'):
                 context_parts.append(f"User statement: {additional_info['user_statement']}")
             if additional_info.get('injuries'):
