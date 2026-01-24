@@ -6,18 +6,21 @@ from fastapi import APIRouter
 router = APIRouter(prefix="/rights", tags=["Know Your Rights"])
 
 
-# Rights database
+# Rights database - formatted for frontend
 RIGHTS_INFO = {
     "traffic_stop": {
         "title": "Traffic Stop Rights",
-        "summary": "Know your rights during a traffic stop",
-        "key_rights": [
+        "summary": "Know your rights during a traffic stop - what you must do and what you can refuse.",
+        "amendment": "4th & 5th",
+        "icon": "Shield",
+        "key_points": [
             "You have the right to remain silent",
             "You do NOT have to consent to a search of your vehicle",
             "You can ask: 'Am I being detained or am I free to go?'",
             "You have the right to refuse field sobriety tests in most states",
             "You must provide license, registration, and insurance when asked"
         ],
+        "what_to_say": "Officer, I am exercising my right to remain silent. I do not consent to any searches.",
         "dos": [
             "Keep your hands visible on the steering wheel",
             "Be polite but assertive about your rights",
@@ -34,13 +37,16 @@ RIGHTS_INFO = {
     },
     "arrest": {
         "title": "Rights During Arrest",
-        "summary": "Your constitutional rights during an arrest",
-        "key_rights": [
+        "summary": "Your constitutional rights during an arrest - know what to say and what not to do.",
+        "amendment": "5th & 6th",
+        "icon": "Scale",
+        "key_points": [
             "You have the right to remain silent (5th Amendment)",
             "You have the right to an attorney (6th Amendment)",
             "You must be read your Miranda rights before interrogation",
             "You have the right to know the charges against you"
         ],
+        "what_to_say": "I am exercising my right to remain silent. I want a lawyer.",
         "dos": [
             "State clearly: 'I am exercising my right to remain silent'",
             "State clearly: 'I want a lawyer'",
@@ -57,12 +63,26 @@ RIGHTS_INFO = {
     },
     "search": {
         "title": "Search & Seizure Rights",
-        "summary": "Protection against unreasonable searches (4th Amendment)",
-        "key_rights": [
+        "summary": "Protection against unreasonable searches - your 4th Amendment shield.",
+        "amendment": "4th",
+        "icon": "Shield",
+        "key_points": [
             "Police generally need a warrant to search your home",
             "You can refuse consent to any search",
             "You can ask: 'Do you have a warrant?'",
-            "Plain view doctrine: visible contraband can be seized"
+            "Plain view doctrine: visible contraband can be seized",
+            "You can refuse to open your door without a warrant"
+        ],
+        "what_to_say": "I do not consent to this search. Do you have a warrant?",
+        "dos": [
+            "Clearly state: 'I do not consent to this search'",
+            "Ask to see the warrant and check its validity",
+            "Document what was searched and seized"
+        ],
+        "donts": [
+            "Don't physically block officers with a warrant",
+            "Don't hide or destroy evidence",
+            "Don't obstruct justice"
         ],
         "exceptions": [
             "Search incident to lawful arrest",
@@ -71,34 +91,29 @@ RIGHTS_INFO = {
             "Automobile exception",
             "Consent (which you can refuse)"
         ],
-        "dos": [
-            "Clearly state: 'I do not consent to this search'",
-            "Ask for a warrant",
-            "Document what was searched and seized"
-        ],
-        "donts": [
-            "Don't physically block officers with a warrant",
-            "Don't hide or destroy evidence"
-        ],
         "legal_citations": ["4th Amendment", "Mapp v. Ohio", "Terry v. Ohio"]
     },
     "protest": {
         "title": "First Amendment Protest Rights",
-        "summary": "Your rights during protests and demonstrations",
-        "key_rights": [
+        "summary": "Your rights during protests and demonstrations - freedom of assembly and speech.",
+        "amendment": "1st",
+        "icon": "Megaphone",
+        "key_points": [
             "Right to peaceful assembly (1st Amendment)",
             "Right to photograph and record in public",
-            "Right to distribute literature",
-            "Freedom of speech protection"
+            "Right to distribute literature and express views",
+            "Freedom of speech protection",
+            "Right to be in public spaces"
         ],
+        "what_to_say": "I am exercising my First Amendment right to peacefully assemble and record.",
         "dos": [
             "Stay on public property",
-            "Follow permit requirements",
+            "Follow permit requirements when applicable",
             "Record police interactions",
             "Know your exit routes"
         ],
         "donts": [
-            "Don't block traffic or entrances",
+            "Don't block traffic or entrances illegally",
             "Don't engage in violence",
             "Don't resist if arrested",
             "Don't destroy property"
