@@ -123,6 +123,23 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **FOIA Automation**: One-click body cam footage requests with auto-generation and tracking
 - **Backend Services Fixed**: Updated `violation_detection.py` and `legal_precedent.py` to use correct `LlmChat` API pattern
 
+### Hardware Integration (Jan 24, 2026)
+- **Hardware Integration Page**: New page at `/hardware` for managing external recording devices
+- **Device Management**: Register/configure GoPro, dash cams, and IP/RTSP cameras
+- **Stealth Recording Mode**: Comprehensive settings for discreet recording:
+  - Black screen mode (screen off while recording)
+  - Flash/LED disable
+  - Silent mode (no sounds or vibrations)
+  - Volume button trigger to start recording
+  - Background recording capability
+  - Auto cloud upload
+  - Quick launch gestures (triple power, double volume, shake)
+- **Setup Guides**: Interactive guides for GoPro, RTSP cameras, and dash cams
+- **Multi-Camera Support**: Layout management for multiple camera sources
+- **GoPro Integration**: BLE pairing and RTMP streaming configuration
+- **RTSP Camera Support**: URL validation and common format templates
+- **Research Document**: `/app/memory/HARDWARE_INTEGRATION_RESEARCH.md` with implementation roadmap
+
 ## Code Architecture
 
 ```
