@@ -109,6 +109,8 @@ app.include_router(advanced_features_router, prefix="/api")
 app.include_router(emergency_contacts_router, prefix="/api")
 app.include_router(hardware_router, prefix="/api")
 app.include_router(two_factor_router, prefix="/api")
+app.include_router(training_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
 
 
 # Root endpoint
