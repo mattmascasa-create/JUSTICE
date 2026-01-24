@@ -127,17 +127,10 @@ RIGHTS_INFO = {
 async def get_all_rights_categories():
     """Get all rights with full details"""
     rights_list = []
-    icon_map = {
-        "traffic_stop": "Shield",
-        "arrest": "Scale",
-        "search": "Shield",
-        "protest": "Megaphone"
-    }
     
     for category, data in RIGHTS_INFO.items():
         rights_list.append({
             "id": category,
-            "icon": icon_map.get(category, "Shield"),
             **data
         })
     
