@@ -4,6 +4,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { Toaster } from "./components/ui/sonner";
+import PanicButton from "./components/PanicButton";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
