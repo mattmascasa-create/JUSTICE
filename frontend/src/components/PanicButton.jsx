@@ -42,17 +42,6 @@ export default function PanicButton() {
     };
   };
 
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const newX = Math.max(0, Math.min(window.innerWidth - 70, e.clientX - dragOffset.current.x));
-    const newY = Math.max(0, Math.min(window.innerHeight - 70, e.clientY - dragOffset.current.y));
-    setPosition({ x: newX, y: newY });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   useEffect(() => {
     if (isDragging) {
       const handleMove = (e) => {
