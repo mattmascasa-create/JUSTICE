@@ -104,6 +104,7 @@ app.include_router(notifications_router, prefix="/api")
 app.include_router(notification_prefs_router, prefix="/api")
 app.include_router(advanced_features_router, prefix="/api")
 app.include_router(emergency_contacts_router, prefix="/api")
+app.include_router(hardware_router, prefix="/api")
 
 
 # Root endpoint
