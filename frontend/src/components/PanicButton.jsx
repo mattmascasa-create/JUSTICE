@@ -12,7 +12,18 @@ export default function PanicButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 20, y: window.innerHeight - 100 });
+  const [position, setPosition] = useState(() => {
+    // Initialize from localStorage synchronously
+    const saved = localStorage.getItem('panic-button-position');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // Use default
+      }
+    }
+    return { x: 20, y: typeof window !== 'undefined' ? window.innerHeight - 100 : 500 };
+  });
   const buttonRef = useRef(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
