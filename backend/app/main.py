@@ -36,6 +36,8 @@ from app.routers.hardware import router as hardware_router
 from app.routers.two_factor import router as two_factor_router
 from app.routers.training import router as training_router
 from app.routers.documents import router as documents_router
+from app.routers.incidents import router as incidents_router
+from app.routers.departments import router as departments_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
@@ -111,6 +113,8 @@ app.include_router(hardware_router, prefix="/api")
 app.include_router(two_factor_router, prefix="/api")
 app.include_router(training_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
+app.include_router(incidents_router, prefix="/api")
+app.include_router(departments_router, prefix="/api")
 
 
 # Root endpoint
