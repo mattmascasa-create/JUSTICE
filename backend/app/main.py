@@ -34,6 +34,8 @@ from app.routers.advanced_features import router as advanced_features_router
 from app.routers.emergency_contacts import router as emergency_contacts_router
 from app.routers.hardware import router as hardware_router
 from app.routers.two_factor import router as two_factor_router
+from app.routers.training import router as training_router
+from app.routers.documents import router as documents_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
