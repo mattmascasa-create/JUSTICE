@@ -132,6 +132,7 @@ function AppRouter() {
       <Route path="/witness-network" element={<ProtectedRoute><WitnessNetworkPage /></ProtectedRoute>} />
       <Route path="/hardware" element={<ProtectedRoute><HardwareIntegrationPage /></ProtectedRoute>} />
       <Route path="/security/2fa" element={<ProtectedRoute><TwoFactorSettingsPage /></ProtectedRoute>} />
+      <Route path="/training" element={<ProtectedRoute><RightsTrainingPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
