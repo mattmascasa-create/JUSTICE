@@ -127,6 +127,7 @@ function AppRouter() {
       <Route path="/advanced-features" element={<ProtectedRoute><AdvancedFeaturesPage /></ProtectedRoute>} />
       <Route path="/emergency-contacts" element={<ProtectedRoute><EmergencyContactsPage /></ProtectedRoute>} />
       <Route path="/witness-network" element={<ProtectedRoute><WitnessNetworkPage /></ProtectedRoute>} />
+      <Route path="/hardware" element={<ProtectedRoute><HardwareIntegrationPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
