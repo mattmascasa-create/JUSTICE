@@ -130,3 +130,6 @@ APScheduler==3.11.2
 pywebpush==2.2.0
 py-vapid==1.9.4
 twilio==9.10.0
+pillow==12.1.0
+pyotp==2.9.0
+qrcode==8.2
