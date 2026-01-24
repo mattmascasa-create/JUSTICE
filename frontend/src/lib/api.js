@@ -599,4 +599,31 @@ export const hardwareAPI = {
   getMultiCameraLayout: () => api.get('/hardware/multi-camera/layout')
 };
 
+// Two-Factor Authentication API
+export const twoFactorAPI = {
+  // Status
+  getStatus: () => api.get('/2fa/status'),
+  
+  // TOTP (Authenticator App)
+  setupTOTP: () => api.post('/2fa/totp/setup'),
+  verifyTOTP: (code) => api.post('/2fa/totp/verify', { code }),
+  
+  // SMS
+  setupSMS: (phone) => api.post('/2fa/sms/setup', { phone }),
+  verifySMS: (code) => api.post('/2fa/sms/verify', { code }),
+  
+  // Email
+  setupEmail: () => api.post('/2fa/email/setup'),
+  verifyEmail: (code) => api.post('/2fa/email/verify', { code }),
+  
+  // Management
+  disable: (password) => api.post('/2fa/disable', { password }),
+  regenerateBackupCodes: () => api.post('/2fa/backup-codes/regenerate'),
+  setPrimaryMethod: (method) => api.put('/2fa/primary-method', { method }),
+  
+  // Login
+  sendCode: (method = null) => api.post('/2fa/send-code', null, { params: { method } }),
+  verifyLogin: (code, method = null) => api.post('/2fa/verify-login', { code }, { params: { method } })
+};
+
 export default api;
