@@ -96,7 +96,7 @@ export default function IncidentMapPage() {
         incidentsAPI.getForMap(params),
         incidentsAPI.getStats()
       ]);
-      setIncidents(incidentsRes.data);
+      setIncidents(incidentsRes.data.incidents || incidentsRes.data || []);
       setStats(statsRes.data);
     } catch (error) {
       toast.error('Failed to load incident data');
