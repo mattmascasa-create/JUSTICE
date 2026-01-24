@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { playSound, DEFAULT_NOTIFICATION_SOUNDS } from '../services/notificationSounds';
 import api from '../lib/api';
 
-const WebSocketContext = createContext();
+const WebSocketContext = createContext(null);
 
 // Connection state enum for better UI feedback
 export const ConnectionState = {

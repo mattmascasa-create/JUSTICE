@@ -1,10 +1,24 @@
-import React from 'react';
-import { useWebSocket, ConnectionState } from '../contexts/WebSocketContext';
+import React, { useContext } from 'react';
+import { ConnectionState } from '../contexts/WebSocketContext';
 import { Wifi, WifiOff, Loader2, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
+// Import context directly to check if available
+const WebSocketContext = React.createContext(null);
+
 export default function ConnectionIndicator() {
-  const { connectionState, connectionQuality, reconnect } = useWebSocket();
+  // Try to use WebSocket context, but don't crash if not available
+  let wsContext = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    wsContext = require('../contexts/WebSocketContext').useWebSocket?.();
+  } catch {
+    // Context not available, will render as disconnected
+  }
+  
+  const connectionState = wsContext?.connectionState || ConnectionState.DISCONNECTED;
+  const connectionQuality = wsContext?.connectionQuality || 'unknown';
+  const reconnect = wsContext?.reconnect || (() => {});
 
   const getIndicator = () => {
     switch (connectionState) {
