@@ -129,7 +129,7 @@ def generate_sample_incidents(days: int, violation_type: str = None, state: str 
     ]
     
     severities = ["low", "medium", "high", "critical"]
-    outcomes = ["pending", "resolved", "under_investigation", "lawsuit_filed"]
+    statuses = ["pending", "resolved", "under_investigation", "lawsuit_filed"]
     
     incidents = []
     now = datetime.now(timezone.utc)
@@ -153,20 +153,21 @@ def generate_sample_incidents(days: int, violation_type: str = None, state: str 
         lat_offset = random.uniform(-0.1, 0.1)
         lng_offset = random.uniform(-0.1, 0.1)
         
+        incident_date = now - timedelta(days=random.randint(1, days))
+        
         incident = {
-            "submission_id": f"demo_{i}",
-            "location": {
-                "latitude": loc["lat"] + lat_offset,
-                "longitude": loc["lng"] + lng_offset,
-                "city": loc["city"],
-                "state": loc["state"]
-            },
+            "case_id": f"case_{i}",
+            "title": f"{v_type} Incident",
+            "latitude": loc["lat"] + lat_offset,
+            "longitude": loc["lng"] + lng_offset,
+            "city": loc["city"],
+            "state": loc["state"],
             "violation_type": v_type,
             "severity": sev,
+            "status": random.choice(statuses),
             "department": f"{loc['city']} Police Department",
-            "state": loc["state"],
-            "created_at": (now - timedelta(days=random.randint(1, days))).isoformat(),
-            "outcome": random.choice(outcomes)
+            "incident_date": incident_date.isoformat(),
+            "created_at": incident_date.isoformat()
         }
         incidents.append(incident)
     
