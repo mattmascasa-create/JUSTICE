@@ -626,4 +626,29 @@ export const twoFactorAPI = {
   verifyLogin: (code, method = null) => api.post('/2fa/verify-login', { code }, { params: { method } })
 };
 
+// Rights Training API
+export const trainingAPI = {
+  getCategories: () => api.get('/training/categories'),
+  getScenarios: (category = null) => api.get('/training/scenarios', { params: { category } }),
+  getScenario: (scenarioId) => api.get(`/training/scenarios/${scenarioId}`),
+  getProgress: () => api.get('/training/progress'),
+  submitAnswer: (scenarioId, answerId) => api.post('/training/submit', { scenario_id: scenarioId, answer_id: answerId }),
+  getBadges: () => api.get('/training/badges'),
+  getLeaderboard: (limit = 10) => api.get('/training/leaderboard', { params: { limit } })
+};
+
+// Legal Documents API
+export const documentsAPI = {
+  getTypes: () => api.get('/documents/types'),
+  generate: (encounterId, documentType, additionalInfo = {}) => 
+    api.post('/documents/generate', { 
+      encounter_id: encounterId, 
+      document_type: documentType,
+      ...additionalInfo
+    }),
+  getMyDocuments: () => api.get('/documents/my-documents'),
+  getDocument: (documentId) => api.get(`/documents/${documentId}`),
+  deleteDocument: (documentId) => api.delete(`/documents/${documentId}`)
+};
+
 export default api;
