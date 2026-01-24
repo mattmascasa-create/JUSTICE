@@ -32,6 +32,7 @@ from app.routers.notifications import router as notifications_router
 from app.routers.notification_preferences import router as notification_prefs_router
 from app.routers.advanced_features import router as advanced_features_router
 from app.routers.emergency_contacts import router as emergency_contacts_router
+from app.routers.hardware import router as hardware_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
