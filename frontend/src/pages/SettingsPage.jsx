@@ -501,7 +501,15 @@ export default function SettingsPage() {
                 <p className="font-medium">Two-Factor Authentication</p>
                 <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
               </div>
-              <Button variant="outline" size="sm" data-testid="enable-2fa-btn">Enable</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/security/2fa')}
+                data-testid="enable-2fa-btn"
+              >
+                Configure
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
