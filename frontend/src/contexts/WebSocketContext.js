@@ -442,8 +442,16 @@ export function WebSocketProvider({ children }) {
 
 export function useWebSocket() {
   const context = useContext(WebSocketContext);
+  // Return safe defaults if used outside provider (e.g., in Sidebar before auth)
   if (!context) {
-    throw new Error('useWebSocket must be used within a WebSocketProvider');
+    return {
+      connectionState: ConnectionState.DISCONNECTED,
+      connectionQuality: 'unknown',
+      notifications: [],
+      reconnect: () => {},
+      clearNotifications: () => {},
+      isConnected: false
+    };
   }
   return context;
 }
