@@ -43,6 +43,7 @@ import NotificationPreferencesPage from "./pages/NotificationPreferencesPage";
 import AdvancedFeaturesPage from "./pages/AdvancedFeaturesPage";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
 import WitnessNetworkPage from "./pages/WitnessNetworkPage";
+import HardwareIntegrationPage from "./pages/HardwareIntegrationPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
