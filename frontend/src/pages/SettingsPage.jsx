@@ -16,9 +16,10 @@ import {
   User, Bell, Shield, Moon, Sun, Phone, Mail, 
   LogOut, Trash2, Save, Users, Plus, X,
   Database, Globe, CheckCircle, AlertCircle, Link2,
-  Cloud, CloudOff, RefreshCw, History, Loader2
+  Cloud, CloudOff, RefreshCw, History, Loader2, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
