@@ -148,6 +148,7 @@ function App() {
         <BrowserRouter>
           <AppRouter />
           <IncomingCallModal />
+          <PanicButton />
           <Toaster position="top-right" richColors />
         </BrowserRouter>
       </AuthProvider>
