@@ -34,7 +34,8 @@ import {
   Palette,
   Zap,
   Users,
-  Eye
+  Eye,
+  Camera
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 import ConnectionIndicator from '../ConnectionIndicator';
