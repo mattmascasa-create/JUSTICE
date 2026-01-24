@@ -55,11 +55,21 @@ export default function PanicButton() {
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      const handleMove = (e) => {
+        const newX = Math.max(0, Math.min(window.innerWidth - 70, e.clientX - dragOffset.current.x));
+        const newY = Math.max(0, Math.min(window.innerHeight - 70, e.clientY - dragOffset.current.y));
+        setPosition({ x: newX, y: newY });
+      };
+      
+      const handleUp = () => {
+        setIsDragging(false);
+      };
+      
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleUp);
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('mousemove', handleMove);
+        window.removeEventListener('mouseup', handleUp);
       };
     }
   }, [isDragging]);
