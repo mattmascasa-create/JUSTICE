@@ -44,6 +44,7 @@ import AdvancedFeaturesPage from "./pages/AdvancedFeaturesPage";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
 import WitnessNetworkPage from "./pages/WitnessNetworkPage";
 import HardwareIntegrationPage from "./pages/HardwareIntegrationPage";
+import TwoFactorSettingsPage from "./pages/TwoFactorSettingsPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
