@@ -27,19 +27,6 @@ export default function PanicButton() {
   const buttonRef = useRef(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  // Load saved position
-  useEffect(() => {
-    const saved = localStorage.getItem('panic-button-position');
-    if (saved) {
-      try {
-        const pos = JSON.parse(saved);
-        setPosition(pos);
-      } catch (e) {
-        // Use default
-      }
-    }
-  }, []);
-
   // Save position on change
   useEffect(() => {
     localStorage.setItem('panic-button-position', JSON.stringify(position));
