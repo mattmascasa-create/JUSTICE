@@ -63,7 +63,7 @@ const getNavItems = (role) => {
     { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
     { icon: MessageCircle, label: 'Messages', path: '/messages' },
     { icon: Map, label: 'Incident Map', path: '/incident-map' },
-    { icon: BookOpen, label: 'Know Your Rights', path: '/rights' },
+    { icon: BookOpen, label: 'Know Your Rights', path: '/training' },
     { icon: Building, label: 'Transparency', path: '/transparency' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
