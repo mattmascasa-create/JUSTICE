@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [newContact, setNewContact] = useState({ name: '', phone: '', email: '' });
   const [ipfsStatus, setIpfsStatus] = useState(null);
