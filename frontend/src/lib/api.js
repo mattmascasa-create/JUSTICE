@@ -659,4 +659,75 @@ export const documentsAPI = {
   getSharedDocument: (shareId) => api.get(`/documents/shared/${shareId}`)
 };
 
+// Court-Grade Evidence Integrity API
+export const evidenceIntegrityAPI = {
+  // Register evidence with cryptographic verification
+  register: (evidenceId, metadata, fileHash, blockchainTier = 'local') =>
+    api.post('/evidence-integrity/register', {
+      ...metadata,
+      evidence_id: evidenceId,
+      blockchain_tier: blockchainTier
+    }, { params: { file_hash: fileHash } }),
+  
+  // Verify evidence integrity
+  verify: (evidenceId) => api.get(`/evidence-integrity/${evidenceId}/verify`),
+  
+  // Get chain of custody
+  getCustodyChain: (evidenceId) => api.get(`/evidence-integrity/${evidenceId}/custody-chain`),
+  
+  // Log custody event
+  logCustodyEvent: (evidenceId, action, details = {}) =>
+    api.post(`/evidence-integrity/${evidenceId}/custody-event`, { 
+      evidence_id: evidenceId,
+      action, 
+      details 
+    }),
+  
+  // Generate court package
+  getCourtPackage: (evidenceId) => api.get(`/evidence-integrity/${evidenceId}/court-package`),
+  
+  // Get forensic metadata
+  getMetadata: (evidenceId) => api.get(`/evidence-integrity/${evidenceId}/metadata`),
+  
+  // Get integrity stats
+  getStats: () => api.get('/evidence-integrity/stats')
+};
+
+// Police Accountability Portal API
+export const accountabilityAPI = {
+  // Public endpoints (no auth required)
+  getPublicStats: () => api.get('/accountability/public/stats'),
+  getPublicDepartments: (state = null, sortBy = 'accountability_score', limit = 50, offset = 0) => 
+    api.get('/accountability/public/departments', { 
+      params: { state, sort_by: sortBy, limit, offset } 
+    }),
+  getPublicDepartment: (departmentId) => api.get(`/accountability/public/departments/${departmentId}`),
+  getPublicOfficers: (query = null, departmentId = null, minViolations = null, maxScore = null, limit = 50) =>
+    api.get('/accountability/public/officers', {
+      params: { query, department_id: departmentId, min_violations: minViolations, max_score: maxScore, limit }
+    }),
+  getPublicOfficer: (officerId) => api.get(`/accountability/public/officers/${officerId}`),
+  getOfficerByBadge: (badgeNumber, departmentId) =>
+    api.get(`/accountability/public/officers/badge/${badgeNumber}`, { params: { department_id: departmentId } }),
+  getLeaderboard: (state = null, limit = 20) =>
+    api.get('/accountability/public/leaderboard', { params: { state, limit } }),
+  getViolationTypes: () => api.get('/accountability/public/violation-types'),
+  
+  // Authenticated endpoints
+  reportViolation: (violationData) => api.post('/accountability/violations/report', violationData),
+  createOfficer: (officerData) => api.post('/accountability/officers', officerData),
+  createDepartment: (departmentData) => api.post('/accountability/departments', departmentData),
+  updateViolationOutcome: (violationId, outcome, disciplinaryAction = null, settlementAmount = null) =>
+    api.patch(`/accountability/violations/${violationId}/outcome`, {
+      outcome,
+      disciplinary_action: disciplinaryAction,
+      settlement_amount: settlementAmount
+    }),
+  getMyReports: (limit = 50) => api.get('/accountability/my-reports', { params: { limit } }),
+  linkOfficerToEncounter: (encounterId, badgeNumber, departmentName, departmentState) =>
+    api.post(`/accountability/encounters/${encounterId}/link-officer`, null, {
+      params: { badge_number: badgeNumber, department_name: departmentName, department_state: departmentState }
+    })
+};
+
 export default api;
