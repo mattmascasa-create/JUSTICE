@@ -43,7 +43,8 @@ export function QuickOfficerLookup({ variant = 'button', className = '', onOffic
     setLoading(true);
     setSearched(true);
     try {
-      const response = await accountabilityAPI.quickLookup(badge.trim(), state || null);
+      const stateParam = state && state !== 'all' ? state : null;
+      const response = await accountabilityAPI.quickLookup(badge.trim(), stateParam);
       setResults(response.data);
       
       if (response.data.found && onOfficerFound) {
