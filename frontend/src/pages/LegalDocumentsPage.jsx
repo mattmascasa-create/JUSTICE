@@ -705,3 +705,37 @@ export default function LegalDocumentsPage() {
     </AppLayout>
   );
 }
+
+// Helper component to load shared document content
+function SharedDocumentContent({ shareId }) {
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const response = await documentsAPI.getSharedDocument(shareId);
+        setContent(response.data.document?.content || 'Document content not available');
+      } catch (error) {
+        setContent('Failed to load document content');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadContent();
+  }, [shareId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-muted rounded-lg">
+      {content}
+    </pre>
+  );
+}
