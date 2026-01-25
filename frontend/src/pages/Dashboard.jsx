@@ -204,6 +204,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
+          {/* Location Alerts Panel */}
+          <LocationAlertPanel className="lg:row-span-2" />
+
           {/* Violations by Type */}
           <Card data-testid="violations-by-type">
             <CardHeader>
