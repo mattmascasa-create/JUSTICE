@@ -18,15 +18,22 @@ export default function LegalDocumentsPage() {
   const [encounters, setEncounters] = useState([]);
   const [documentTypes, setDocumentTypes] = useState([]);
   const [myDocuments, setMyDocuments] = useState([]);
+  const [receivedShares, setReceivedShares] = useState([]);
+  const [sentShares, setSentShares] = useState([]);
+  const [attorneys, setAttorneys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [selectedEncounter, setSelectedEncounter] = useState('');
   const [selectedDocType, setSelectedDocType] = useState('');
   const [userStatement, setUserStatement] = useState('');
   const [injuries, setInjuries] = useState('');
   const [witnesses, setWitnesses] = useState('');
   const [generatedDoc, setGeneratedDoc] = useState(null);
-  const [viewingDoc, setViewingDoc] = useState(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [docToShare, setDocToShare] = useState(null);
+  const [shareRecipient, setShareRecipient] = useState('');
+  const [shareMessage, setShareMessage] = useState('');
 
   useEffect(() => {
     loadData();
@@ -35,16 +42,22 @@ export default function LegalDocumentsPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [encountersRes, typesRes, docsRes] = await Promise.all([
+      const [encountersRes, typesRes, docsRes, receivedRes, sentRes, attorneysRes] = await Promise.all([
         encounterAPI.list(),
         documentsAPI.getTypes(),
-        documentsAPI.getMyDocuments()
+        documentsAPI.getMyDocuments(),
+        documentsAPI.getReceivedShares().catch(() => ({ data: { shares: [] } })),
+        documentsAPI.getSentShares().catch(() => ({ data: { shares: [] } })),
+        attorneyAPI.getMyAttorneys().catch(() => ({ data: { attorneys: [] } }))
       ]);
       
       const encountersList = encountersRes.data.encounters || encountersRes.data || [];
       setEncounters(encountersList);
       setDocumentTypes(typesRes.data.document_types || []);
       setMyDocuments(docsRes.data.documents || []);
+      setReceivedShares(receivedRes.data.shares || []);
+      setSentShares(sentRes.data.shares || []);
+      setAttorneys(attorneysRes.data.attorneys || []);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load data');
