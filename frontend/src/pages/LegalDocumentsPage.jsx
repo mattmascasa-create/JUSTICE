@@ -209,6 +209,14 @@ export default function LegalDocumentsPage() {
             <TabsTrigger value="documents" data-testid="documents-tab">
               My Documents ({myDocuments.length})
             </TabsTrigger>
+            <TabsTrigger value="received" data-testid="received-tab">
+              <Inbox className="w-4 h-4 mr-1" />
+              Received ({receivedShares.length})
+            </TabsTrigger>
+            <TabsTrigger value="sent" data-testid="sent-tab">
+              <Send className="w-4 h-4 mr-1" />
+              Sent ({sentShares.length})
+            </TabsTrigger>
           </TabsList>
 
           {/* Generate Document Tab */}
