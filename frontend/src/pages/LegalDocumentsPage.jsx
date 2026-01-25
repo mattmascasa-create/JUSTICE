@@ -12,7 +12,7 @@ import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../components/ui/dialog';
-import { encounterAPI, documentsAPI, attorneyAPI } from '../lib/api';
+import { encounterAPI, documentsAPI, attorneysAPI } from '../lib/api';
 
 export default function LegalDocumentsPage() {
   const [encounters, setEncounters] = useState([]);
