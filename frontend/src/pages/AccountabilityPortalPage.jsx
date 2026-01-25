@@ -159,8 +159,6 @@ export default function AccountabilityPortalPage() {
       setSubmitting(false);
     }
   };
-    }
-  };
 
   const getScoreColor = (score) => {
     if (score >= 80) return 'text-green-500';
