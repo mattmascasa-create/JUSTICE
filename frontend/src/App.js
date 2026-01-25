@@ -49,6 +49,8 @@ import TwoFactorSettingsPage from "./pages/TwoFactorSettingsPage";
 import RightsTrainingPage from "./pages/RightsTrainingPage";
 import LegalDocumentsPage from "./pages/LegalDocumentsPage";
 import AccountabilityPortalPage from "./pages/AccountabilityPortalPage";
+import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
+import CourtGradeAIPage from "./pages/CourtGradeAIPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
