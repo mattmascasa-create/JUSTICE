@@ -182,7 +182,93 @@ export default function Sidebar({ isMobileSheet = false }) {
     await logout();
   };
 
-  const SidebarContent = () => (
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setMobileOpen(true)}
+        className="fixed top-4 left-4 z-50 lg:hidden"
+        data-testid="mobile-menu-btn"
+      >
+        <Menu className="h-6 w-6" />
+      </Button>
+
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 lg:hidden",
+        mobileOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(false)}
+          className="absolute top-4 right-4"
+        >
+          <X className="h-5 w-5" />
+        </Button>
+        <SidebarContent 
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          setMobileOpen={setMobileOpen}
+          navItems={navItems}
+          location={location}
+          user={user}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          handleLogout={handleLogout}
+        />
+      </aside>
+
+      {/* Desktop Sidebar */}
+      <aside className={cn(
+        "hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-card border-r border-border transition-all duration-300",
+        collapsed ? "w-20" : "w-72"
+      )}>
+        <SidebarContent 
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          setMobileOpen={setMobileOpen}
+          navItems={navItems}
+          location={location}
+          user={user}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          handleLogout={handleLogout}
+        />
+      </aside>
+
+      {/* Spacer for main content */}
+      <div className={cn(
+        "hidden lg:block flex-shrink-0 transition-all duration-300",
+        collapsed ? "w-20" : "w-72"
+      )} />
+    </>
+  );
+}
+
+// Extracted SidebarContent component to avoid re-rendering issues
+function SidebarContent({ 
+  collapsed, 
+  setCollapsed, 
+  setMobileOpen, 
+  navItems, 
+  location, 
+  user, 
+  theme, 
+  toggleTheme, 
+  handleLogout 
+}) {
+  return (
     <div className="flex flex-col h-full">
       {/* Logo and Notification */}
       <div className={cn(
@@ -222,16 +308,18 @@ export default function Sidebar({ isMobileSheet = false }) {
                 "hover:bg-accent hover:text-accent-foreground",
                 isActive && "bg-primary text-primary-foreground",
                 item.emergency && !isActive && "hover:bg-red-500/10 hover:text-red-500",
+                item.highlight && !isActive && "text-primary",
                 collapsed && "justify-center px-2"
               )}
             >
               <item.icon className={cn(
                 "h-5 w-5 flex-shrink-0",
-                item.emergency && !isActive && "text-red-500"
+                item.emergency && !isActive && "text-red-500",
+                item.highlight && !isActive && "text-primary"
               )} />
               {!collapsed && (
                 <span className={cn(
-                  "font-medium",
+                  "font-medium truncate",
                   item.emergency && !isActive && "text-red-500"
                 )}>
                   {item.label}
@@ -243,48 +331,56 @@ export default function Sidebar({ isMobileSheet = false }) {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-border space-y-3">
+      <div className={cn(
+        "p-4 border-t border-border space-y-3",
+        collapsed && "p-2"
+      )}>
         {/* Theme Toggle */}
         <Button
           variant="ghost"
-          size="sm"
+          size={collapsed ? "icon" : "sm"}
           onClick={toggleTheme}
           data-testid="theme-toggle"
-          className={cn("w-full justify-start gap-3", collapsed && "justify-center")}
+          className={cn(!collapsed && "w-full justify-start gap-3")}
         >
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
         </Button>
 
         {/* User Info */}
-        <div className={cn(
-          "flex items-center gap-3 p-3 rounded-lg bg-muted",
-          collapsed && "justify-center p-2"
-        )}>
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.picture} alt={user?.name} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-            </div>
-          )}
-        </div>
+        {user && (
+          <div className={cn(
+            "flex items-center gap-3 p-2 rounded-lg bg-muted/50",
+            collapsed && "justify-center p-2"
+          )}>
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user.picture} alt={user.name} />
+              <AvatarFallback>
+                {user.name?.charAt(0).toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Logout */}
         <Button
           variant="ghost"
-          size="sm"
+          size={collapsed ? "icon" : "sm"}
           onClick={handleLogout}
           data-testid="logout-btn"
-          className={cn("w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-500/10", collapsed && "justify-center")}
+          className={cn(
+            "text-red-500 hover:text-red-600 hover:bg-red-500/10",
+            !collapsed && "w-full justify-start gap-3"
+          )}
         >
           <LogOut className="h-5 w-5" />
-          {!collapsed && <span>Sign Out</span>}
+          {!collapsed && <span>Logout</span>}
         </Button>
       </div>
 
@@ -299,58 +395,5 @@ export default function Sidebar({ isMobileSheet = false }) {
         <Menu className="h-3 w-3" />
       </Button>
     </div>
-  );
-
-  return (
-    <>
-      {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden"
-        data-testid="mobile-menu-btn"
-      >
-        <Menu className="h-6 w-6" />
-      </Button>
-
-      {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Mobile Sidebar */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 lg:hidden",
-        mobileOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileOpen(false)}
-          className="absolute top-4 right-4"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-        <SidebarContent />
-      </aside>
-
-      {/* Desktop Sidebar */}
-      <aside className={cn(
-        "hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-card border-r border-border transition-all duration-300",
-        collapsed ? "w-20" : "w-72"
-      )}>
-        <SidebarContent />
-      </aside>
-
-      {/* Spacer for main content */}
-      <div className={cn(
-        "hidden lg:block flex-shrink-0 transition-all duration-300",
-        collapsed ? "w-20" : "w-72"
-      )} />
-    </>
   );
 }
