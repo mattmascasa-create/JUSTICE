@@ -479,6 +479,14 @@ export default function LegalDocumentsPage() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => openShareDialog(doc)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleDelete(doc.document_id)}
                           className="text-destructive hover:text-destructive"
                         >
@@ -491,7 +499,195 @@ export default function LegalDocumentsPage() {
               </div>
             )}
           </TabsContent>
+
+          {/* Received Documents Tab */}
+          <TabsContent value="received">
+            {receivedShares.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Inbox className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Documents Received</h3>
+                  <p className="text-muted-foreground text-center max-w-md">
+                    You haven't received any shared documents yet. Documents shared with you by attorneys or other users will appear here.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {receivedShares.map(share => (
+                  <Card key={share.share_id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{getDocTypeIcon(share.document_type)}</span>
+                          <div>
+                            <CardTitle className="text-base">{share.document_title}</CardTitle>
+                            <CardDescription className="text-xs">
+                              From: {share.owner_name}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <Badge variant={share.status === 'pending' ? 'default' : 'secondary'} className="text-xs">
+                          {share.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {formatDate(share.shared_at)}
+                      </p>
+                      {share.message && (
+                        <p className="text-sm text-muted-foreground italic mb-3">
+                          "{share.message}"
+                        </p>
+                      )}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="w-full">
+                            View Document
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl max-h-[80vh]">
+                          <DialogHeader>
+                            <DialogTitle>{share.document_title}</DialogTitle>
+                            <DialogDescription>
+                              Shared by {share.owner_name} on {formatDate(share.shared_at)}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <ScrollArea className="h-[500px] mt-4">
+                            <SharedDocumentContent shareId={share.share_id} />
+                          </ScrollArea>
+                        </DialogContent>
+                      </Dialog>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Sent Documents Tab */}
+          <TabsContent value="sent">
+            {sentShares.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Send className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Documents Sent</h3>
+                  <p className="text-muted-foreground text-center max-w-md">
+                    You haven't shared any documents yet. Use the share button on your documents to share them with attorneys.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sentShares.map(share => (
+                  <Card key={share.share_id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{getDocTypeIcon(share.document_type)}</span>
+                          <div>
+                            <CardTitle className="text-base">{share.document_title}</CardTitle>
+                            <CardDescription className="text-xs">
+                              To: {share.recipient_name}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <Badge 
+                          variant={share.status === 'viewed' ? 'success' : 'secondary'} 
+                          className={`text-xs ${share.status === 'viewed' ? 'bg-green-500/10 text-green-600' : ''}`}
+                        >
+                          {share.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        Sent: {formatDate(share.shared_at)}
+                      </p>
+                      {share.viewed_at && (
+                        <p className="text-xs text-green-600">
+                          <CheckCircle className="w-3 h-3 inline mr-1" />
+                          Viewed: {formatDate(share.viewed_at)}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
+
+        {/* Share Dialog */}
+        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Share Document</DialogTitle>
+              <DialogDescription>
+                Share "{docToShare?.title}" with an attorney or contact
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Select Recipient</Label>
+                <Select value={shareRecipient} onValueChange={setShareRecipient}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a recipient..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {attorneys.length > 0 && (
+                      <>
+                        <SelectItem value="header-attorneys" disabled>
+                          — My Attorneys —
+                        </SelectItem>
+                        {attorneys.map(att => (
+                          <SelectItem key={att.attorney_id || att.user_id} value={att.attorney_id || att.user_id}>
+                            {att.name} ({att.email})
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {attorneys.length === 0 && (
+                      <SelectItem value="none" disabled>
+                        No attorneys connected. Find an attorney first.
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Message (Optional)</Label>
+                <Textarea
+                  placeholder="Add a message for the recipient..."
+                  value={shareMessage}
+                  onChange={(e) => setShareMessage(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={handleShare} disabled={sharing || !shareRecipient}>
+                {sharing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sharing...
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Document
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Info Banner */}
         <Card className="bg-amber-500/10 border-amber-500/20">
