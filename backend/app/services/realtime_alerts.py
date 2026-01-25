@@ -168,8 +168,8 @@ class RealTimeAlertService:
             alert["citizen_name"] = user.get("full_name", "Unknown")
             alert["attorney_id"] = user.get("linked_attorney_id")
         
-        # Store in database
-        await db.realtime_alerts.insert_one(alert)
+        # Store in database (copy to avoid _id mutation)
+        await db.realtime_alerts.insert_one({**alert})
         
         # Track in active encounter alerts
         if encounter_id not in self.active_encounter_alerts:
