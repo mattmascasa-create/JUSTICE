@@ -807,6 +807,10 @@ export default function EncounterPage() {
                 
                 if (result.data.transcription) {
                   setTranscriptions(prev => [...prev, result.data.transcription]);
+                  // Trigger AI coaching
+                  if (result.data.transcription.text) {
+                    performCoaching(result.data.transcription.text);
+                  }
                   if (result.data.transcription.violations_detected?.length > 0) {
                     setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
                     toast.warning('⚠️ Potential violation detected!', {
