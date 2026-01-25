@@ -38,6 +38,7 @@ from app.routers.training import router as training_router
 from app.routers.documents import router as documents_router
 from app.routers.incidents import router as incidents_router
 from app.routers.departments import router as departments_router
+from app.routers.accountability import router as accountability_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
