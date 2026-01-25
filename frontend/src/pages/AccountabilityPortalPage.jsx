@@ -532,6 +532,161 @@ export default function AccountabilityPortalPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Report Violation Dialog */}
+        <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileWarning className="w-5 h-5 text-red-500" />
+                Report Police Violation
+              </DialogTitle>
+              <DialogDescription>
+                Submit a report of police misconduct. Your identity will be protected.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="badge_number">Officer Badge Number *</Label>
+                  <Input
+                    id="badge_number"
+                    placeholder="e.g., 12345"
+                    value={reportForm.badge_number}
+                    onChange={(e) => setReportForm({ ...reportForm, badge_number: e.target.value })}
+                    data-testid="badge-number-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="incident_date">Incident Date *</Label>
+                  <Input
+                    id="incident_date"
+                    type="date"
+                    value={reportForm.incident_date}
+                    onChange={(e) => setReportForm({ ...reportForm, incident_date: e.target.value })}
+                    data-testid="incident-date-input"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="department_name">Department Name *</Label>
+                <Input
+                  id="department_name"
+                  placeholder="e.g., Los Angeles Police Department"
+                  value={reportForm.department_name}
+                  onChange={(e) => setReportForm({ ...reportForm, department_name: e.target.value })}
+                  data-testid="department-name-input"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="department_city">City</Label>
+                  <Input
+                    id="department_city"
+                    placeholder="e.g., Los Angeles"
+                    value={reportForm.department_city}
+                    onChange={(e) => setReportForm({ ...reportForm, department_city: e.target.value })}
+                    data-testid="department-city-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="department_state">State *</Label>
+                  <Select
+                    value={reportForm.department_state}
+                    onValueChange={(value) => setReportForm({ ...reportForm, department_state: value })}
+                  >
+                    <SelectTrigger data-testid="department-state-select">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_STATES.map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="violation_type">Violation Type *</Label>
+                <Select
+                  value={reportForm.violation_type}
+                  onValueChange={(value) => setReportForm({ ...reportForm, violation_type: value })}
+                >
+                  <SelectTrigger data-testid="violation-type-select">
+                    <SelectValue placeholder="Select violation type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VIOLATION_TYPES.map(vt => (
+                      <SelectItem key={vt.value} value={vt.value}>
+                        {vt.label} {vt.amendment && `(${vt.amendment} Amendment)`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="severity">Severity Level *</Label>
+                <Select
+                  value={reportForm.severity}
+                  onValueChange={(value) => setReportForm({ ...reportForm, severity: value })}
+                >
+                  <SelectTrigger data-testid="severity-select">
+                    <SelectValue placeholder="Select severity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEVERITY_LEVELS.map(sl => (
+                      <SelectItem key={sl.value} value={sl.value}>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${sl.color}`} />
+                          {sl.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe the incident in detail. Include what happened, when, and any witnesses present..."
+                  rows={4}
+                  value={reportForm.description}
+                  onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })}
+                  data-testid="description-textarea"
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button 
+                onClick={handleReportSubmit} 
+                disabled={submitting}
+                className="bg-red-600 hover:bg-red-700"
+                data-testid="submit-violation-btn"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit Report
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Disclaimer */}
         <Card className="bg-blue-500/10 border-blue-500/20">
           <CardContent className="flex items-start gap-4 py-4">
