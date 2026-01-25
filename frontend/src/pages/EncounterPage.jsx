@@ -1824,15 +1824,73 @@ export default function EncounterPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Officer Information</CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowOfficerForm(!showOfficerForm)}
-              >
-                {showOfficerForm ? 'Cancel' : 'Add Officer'}
-              </Button>
+              <div className="flex gap-2">
+                <QuickOfficerLookup 
+                  onOfficerFound={(officer) => {
+                    setLookedUpOfficer(officer);
+                    setOfficerInfo({
+                      name: officer.full_name,
+                      badge: officer.badge_number,
+                      department: officer.department_name
+                    });
+                    toast.success(`Found ${officer.full_name} - Score: ${officer.accountability_score}`);
+                  }}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowOfficerForm(!showOfficerForm)}
+                >
+                  {showOfficerForm ? 'Cancel' : 'Add Manual'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
+          
+          {/* Display looked up officer accountability info */}
+          {lookedUpOfficer && (
+            <CardContent className="pb-2">
+              <div className={`p-3 rounded-lg border-2 ${
+                lookedUpOfficer.warning_level?.level === 'high' ? 'bg-red-500/10 border-red-500/30' :
+                lookedUpOfficer.warning_level?.level === 'elevated' ? 'bg-orange-500/10 border-orange-500/30' :
+                lookedUpOfficer.warning_level?.level === 'medium' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                'bg-green-500/10 border-green-500/30'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="font-semibold">{lookedUpOfficer.full_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Badge #{lookedUpOfficer.badge_number} • {lookedUpOfficer.rank}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xl font-bold ${
+                      lookedUpOfficer.accountability_score >= 80 ? 'text-green-500' :
+                      lookedUpOfficer.accountability_score >= 60 ? 'text-yellow-500' :
+                      lookedUpOfficer.accountability_score >= 40 ? 'text-orange-500' :
+                      'text-red-500'
+                    }`}>
+                      {lookedUpOfficer.accountability_score}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Score</p>
+                  </div>
+                </div>
+                <p className={`text-sm font-medium ${
+                  lookedUpOfficer.warning_level?.level === 'high' ? 'text-red-600' :
+                  lookedUpOfficer.warning_level?.level === 'elevated' ? 'text-orange-600' :
+                  lookedUpOfficer.warning_level?.level === 'medium' ? 'text-yellow-600' :
+                  'text-green-600'
+                }`}>
+                  {lookedUpOfficer.warning_level?.message}
+                </p>
+                <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                  <span>Violations: {lookedUpOfficer.total_violations}</span>
+                  <span>Sustained: {lookedUpOfficer.sustained_violations}</span>
+                </div>
+              </div>
+            </CardContent>
+          )}
+          
           {showOfficerForm && (
             <CardContent className="space-y-3">
               <Input
