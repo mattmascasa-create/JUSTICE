@@ -648,7 +648,13 @@ export const documentsAPI = {
     }),
   getMyDocuments: () => api.get('/documents/my-documents'),
   getDocument: (documentId) => api.get(`/documents/${documentId}`),
-  deleteDocument: (documentId) => api.delete(`/documents/${documentId}`)
+  deleteDocument: (documentId) => api.delete(`/documents/${documentId}`),
+  // Document Sharing
+  shareDocument: (documentId, recipientId, message) => 
+    api.post(`/documents/${documentId}/share`, { recipient_id: recipientId, message }),
+  getReceivedShares: () => api.get('/documents/shared/received'),
+  getSentShares: () => api.get('/documents/shared/sent'),
+  getSharedDocument: (shareId) => api.get(`/documents/shared/${shareId}`)
 };
 
 export default api;
