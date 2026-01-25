@@ -24,7 +24,30 @@ const US_STATES = [
   "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ];
 
+const VIOLATION_TYPES = [
+  { value: "excessive_force", label: "Excessive Force", amendment: "4th" },
+  { value: "unlawful_search", label: "Unlawful Search", amendment: "4th" },
+  { value: "false_arrest", label: "False Arrest", amendment: "4th" },
+  { value: "miranda_violation", label: "Miranda Violation", amendment: "5th" },
+  { value: "recording_interference", label: "Recording Interference", amendment: "1st" },
+  { value: "racial_profiling", label: "Racial Profiling", amendment: "14th" },
+  { value: "due_process_violation", label: "Due Process Violation", amendment: "14th" },
+  { value: "intimidation", label: "Intimidation", amendment: null },
+  { value: "retaliation", label: "Retaliation", amendment: null },
+  { value: "dishonesty", label: "Dishonesty", amendment: null },
+  { value: "evidence_tampering", label: "Evidence Tampering", amendment: null },
+  { value: "policy_violation", label: "Policy Violation", amendment: null },
+];
+
+const SEVERITY_LEVELS = [
+  { value: "minor", label: "Minor (Warning-level)", color: "bg-yellow-500" },
+  { value: "moderate", label: "Moderate (Suspension-level)", color: "bg-orange-500" },
+  { value: "serious", label: "Serious (Termination-level)", color: "bg-red-500" },
+  { value: "critical", label: "Critical (Criminal-level)", color: "bg-red-700" },
+];
+
 export default function AccountabilityPortalPage() {
+  const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -35,6 +58,20 @@ export default function AccountabilityPortalPage() {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedOfficer, setSelectedOfficer] = useState(null);
   const [officerViolations, setOfficerViolations] = useState([]);
+  
+  // Violation Report Form State
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [reportForm, setReportForm] = useState({
+    badge_number: '',
+    department_name: '',
+    department_city: '',
+    department_state: '',
+    violation_type: '',
+    severity: '',
+    description: '',
+    incident_date: new Date().toISOString().split('T')[0]
+  });
 
   useEffect(() => {
     loadData();
