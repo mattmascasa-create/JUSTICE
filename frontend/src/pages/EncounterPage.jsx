@@ -11,7 +11,7 @@ import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { encounterAPI } from '../lib/api';
-import api from '../lib/api';
+import api, { encounterCoachAPI } from '../lib/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { 
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
@@ -218,6 +218,13 @@ export default function EncounterPage() {
   const [sosActive, setSosActive] = useState(false);
   const [sosSending, setSosSending] = useState(false);
   const [sosAlertId, setSosAlertId] = useState(null);
+  
+  // AI Coaching State
+  const [coachingEnabled, setCoachingEnabled] = useState(true);
+  const [coachingMessages, setCoachingMessages] = useState([]);
+  const [showCoachingPanel, setShowCoachingPanel] = useState(true);
+  const [lastCoachingTime, setLastCoachingTime] = useState(0);
+  const coachingIntervalRef = useRef(null);
 
   // Quick SOS function - sends emergency alert to all contacts
   const triggerQuickSOS = async () => {
