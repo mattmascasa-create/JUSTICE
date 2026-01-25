@@ -48,6 +48,8 @@ const getNavItems = (role) => {
     { icon: Radio, label: 'Encounter Mode', path: '/encounter', highlight: true },
     { icon: Zap, label: 'Advanced Features', path: '/advanced-features', highlight: true },
     { icon: BarChart3, label: 'Encounter Analytics', path: '/analytics', highlight: true },
+    { icon: Scale, label: 'Court-Grade AI', path: '/court-grade-ai', highlight: true },
+    { icon: BarChart3, label: 'Premium Analytics', path: '/premium-analytics', highlight: true },
     { icon: FolderOpen, label: 'My Cases', path: '/cases' },
     { icon: FileBox, label: 'Evidence', path: '/evidence' },
     { icon: Video, label: 'Recordings', path: '/recordings' },
