@@ -40,6 +40,7 @@ from app.routers.incidents import router as incidents_router
 from app.routers.departments import router as departments_router
 from app.routers.accountability import router as accountability_router
 from app.routers.evidence_integrity import router as evidence_integrity_router
+from app.routers.court_grade_ai import router as court_grade_ai_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
