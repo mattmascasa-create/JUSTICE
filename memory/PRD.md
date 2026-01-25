@@ -173,6 +173,45 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Topics: search, silence, identification, warrant, detention, miranda
 - **Integration** ✅: Works with officer detection and real-time alerts
 
+#### AI-Powered Encounter Coaching - FULLY IMPLEMENTED (Jan 25, 2026)
+- **Real-Time Coaching** ✅: Whispered guidance during live encounters
+  - Pattern-based instant coaching (no API latency)
+  - 15+ trigger situations with pre-defined responses
+  - Tone-based prioritization: urgent, alert, calm, informative
+  - Category tagging: de_escalation, rights_reminder, response_suggestion, warning, documentation, safety
+- **Quick Response Scripts** ✅: 8 pre-written responses for common scenarios
+  - refuse_search: "I do not consent to any searches"
+  - invoke_silence: "I am exercising my right to remain silent"
+  - request_attorney: "I want to speak with an attorney before answering questions"
+  - ask_if_detained: "Am I being detained, or am I free to go?"
+  - ask_reason: "May I ask why I'm being stopped?"
+  - assert_recording: "I have the right to record. I am not interfering"
+  - refuse_entry: "I do not consent to entry without a warrant"
+  - request_warrant: "Do you have a warrant? May I see it?"
+- **Situation-Specific Coaching** ✅: Context-aware guidance
+  - Traffic stop: initial approach, search requests, prolonged detention
+  - Pedestrian stop: initial contact, ID requests, frisks
+  - Home encounter: door response, entry requests, warrants
+  - Arrest: initial compliance, questioning, booking
+- **AI-Enhanced Coaching** ✅: GPT-4o fallback for complex questions
+  - Brief 1-2 sentence responses
+  - Safety-first, rights-second approach
+  - No legal jargon, stress-tested language
+- **Frontend Integration** ✅: Coaching panel in Encounter Mode
+  - Live coaching messages with priority styling
+  - Quick response buttons for instant scripts
+  - Toggle coaching on/off during recording
+  - 10-message history with auto-scroll
+- **API Endpoints** ✅:
+  - POST `/api/encounter-coach/analyze` - Analyze transcript for coaching
+  - POST `/api/encounter-coach/ask` - Ask AI coach a question
+  - GET `/api/encounter-coach/quick-response/{scenario}` - Get response script
+  - GET `/api/encounter-coach/quick-responses` - List all scenarios
+  - GET `/api/encounter-coach/encounter-types` - List encounter types
+  - GET `/api/encounter-coach/situation/{type}/{situation}` - Get situation coaching
+  - GET `/api/encounter-coach/triggers` - List coaching triggers
+  - GET `/api/encounter-coach/stats` - Get coaching statistics
+
 #### Advanced Protection Features - FULLY INTEGRATED (Jan 23, 2026)
 - **AI Rights Coach Panel** ✅: Real-time legal guidance during encounters using GPT-4o via Emergent LLM key
   - Integrated into Encounter Mode UI as a dedicated panel
