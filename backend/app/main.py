@@ -122,6 +122,7 @@ app.include_router(departments_router, prefix="/api")
 app.include_router(accountability_router, prefix="/api")
 app.include_router(evidence_integrity_router, prefix="/api")
 app.include_router(court_grade_ai_router, prefix="/api")
+app.include_router(premium_analytics_router, prefix="/api")
 
 
 # Root endpoint
