@@ -155,6 +155,24 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Background processing
   - Job status tracking
 
+#### Voice Command System - FULLY IMPLEMENTED (Jan 25, 2026)
+- **Wake Word** ✅: "Hey Justice" (also works without wake word)
+- **10 Voice Commands** ✅:
+  - **start_recording**: "Hey Justice, start recording" - Begin protection
+  - **stop_recording**: "Hey Justice, stop" - End and save recording
+  - **alert_attorney**: "Hey Justice, alert my attorney" - Send attorney alert
+  - **panic_button**: "Hey Justice, help me" / "Emergency" / "SOS" - Trigger emergency
+  - **know_rights**: "Hey Justice, what are my rights" - Contextual rights info
+  - **officer_lookup**: "Hey Justice, badge number 3803" - Accountability lookup
+  - **share_location**: "Hey Justice, share my location" - Send to contacts
+  - **add_note**: "Hey Justice, add note: [content]" - Voice notes
+  - **get_status**: "Hey Justice, status" - Recording duration & violations
+  - **help**: "Hey Justice, help" - List all commands
+- **Contextual Rights Responses** ✅: 4 encounter types, 6 topics
+  - Encounter types: traffic_stop, pedestrian_stop, home, arrest
+  - Topics: search, silence, identification, warrant, detention, miranda
+- **Integration** ✅: Works with officer detection and real-time alerts
+
 #### Advanced Protection Features - FULLY INTEGRATED (Jan 23, 2026)
 - **AI Rights Coach Panel** ✅: Real-time legal guidance during encounters using GPT-4o via Emergent LLM key
   - Integrated into Encounter Mode UI as a dedicated panel
