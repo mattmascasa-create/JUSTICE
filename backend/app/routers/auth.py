@@ -135,7 +135,7 @@ async def process_session(request: Request):
         await db.users.insert_one(user_doc)
     
     # Create JWT access token (same as regular login)
-    access_token = create_access_token(data={"sub": user_id})
+    access_token = create_access_token(user_id)
     
     # Also create session for cookie-based auth
     session_token = auth_data.get("session_token", f"sess_{uuid.uuid4().hex}")
