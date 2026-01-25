@@ -15,6 +15,13 @@ from app.models.schemas import SOSAlertCreate, SOSAlertResponse
 router = APIRouter(prefix="/sos", tags=["SOS Alerts"])
 
 
+class QuickAlertRequest(BaseModel):
+    """Request model for quick SOS alert from panic button"""
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    message: Optional[str] = None
+
+
 class EncounterSOSRequest(BaseModel):
     """Request model for encounter-based SOS"""
     encounter_id: str
@@ -22,6 +29,91 @@ class EncounterSOSRequest(BaseModel):
     longitude: Optional[float] = None
     address: Optional[str] = None
     message: Optional[str] = None
+
+
+@router.post("/quick-alert")
+async def quick_sos_alert(
+    request: QuickAlertRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Quick SOS alert from panic button.
+    Sends alert to all emergency contacts immediately.
+    """
+    alert_id = f"sos_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    user_id = current_user["user_id"]
+    user_name = current_user.get("name", "A JUSTICE user")
+    
+    # Get emergency contacts
+    contacts = await db.emergency_contacts.find(
+        {"user_id": user_id, "notify_on_sos": True},
+        {"_id": 0}
+    ).to_list(20)
+    
+    # Create alert record
+    alert = {
+        "alert_id": alert_id,
+        "user_id": user_id,
+        "user_name": user_name,
+        "type": "panic_button",
+        "latitude": request.latitude,
+        "longitude": request.longitude,
+        "message": request.message or "EMERGENCY: Panic button activated",
+        "status": "active",
+        "created_at": now.isoformat(),
+        "contacts_notified": len(contacts)
+    }
+    
+    await db.sos_alerts.insert_one(alert)
+    
+    # Notify contacts via WebSocket
+    notifications_sent = 0
+    for contact in contacts:
+        # If contact is a JUSTICE user, send in-app notification
+        if contact.get("is_justice_user") and contact.get("justice_user_id"):
+            notification = {
+                "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+                "user_id": contact["justice_user_id"],
+                "type": "sos_alert",
+                "title": "🚨 EMERGENCY SOS",
+                "message": f"{user_name} has triggered a panic alert!",
+                "data": {
+                    "alert_id": alert_id,
+                    "from_user": user_name,
+                    "latitude": request.latitude,
+                    "longitude": request.longitude,
+                    "message": request.message
+                },
+                "read": False,
+                "created_at": now.isoformat()
+            }
+            await db.notifications.insert_one(notification)
+            
+            # Try to send real-time notification
+            try:
+                await manager.send_personal_notification(
+                    contact["justice_user_id"],
+                    {
+                        "type": "sos_alert",
+                        "alert_id": alert_id,
+                        "from_user": user_name,
+                        "message": alert["message"],
+                        "latitude": request.latitude,
+                        "longitude": request.longitude
+                    }
+                )
+                notifications_sent += 1
+            except:
+                pass
+    
+    return {
+        "success": True,
+        "alert_id": alert_id,
+        "message": f"SOS alert sent to {len(contacts)} emergency contacts",
+        "contacts_notified": len(contacts),
+        "notifications_sent": notifications_sent
+    }
 
 
 @router.post("/encounter")
