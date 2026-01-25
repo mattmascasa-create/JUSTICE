@@ -315,7 +315,7 @@ class PremiumAnalyticsService:
                 {"_id": 0}
             ).to_list(1000)
             
-            dept_settlements = sum(v.get("settlement_amount", 0) for v in violations)
+            dept_settlements = sum(v.get("settlement_amount") or 0 for v in violations)
             
             total_officers += len(officers)
             total_violations += len(violations)
