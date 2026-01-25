@@ -213,10 +213,19 @@ export default function AccountabilityPortalPage() {
               Public transparency data on police departments and officers nationwide
             </p>
           </div>
-          <Select value={stateFilter} onValueChange={setStateFilter}>
-            <SelectTrigger className="w-[180px]">
-              <MapPin className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filter by state" />
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={() => setReportDialogOpen(true)}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="report-violation-btn"
+            >
+              <FileWarning className="w-4 h-4 mr-2" />
+              Report Violation
+            </Button>
+            <Select value={stateFilter} onValueChange={setStateFilter}>
+              <SelectTrigger className="w-[180px]">
+                <MapPin className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by state" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All States</SelectItem>
