@@ -134,6 +134,7 @@ function AppRouter() {
       <Route path="/hardware" element={<ProtectedRoute><HardwareIntegrationPage /></ProtectedRoute>} />
       <Route path="/security/2fa" element={<ProtectedRoute><TwoFactorSettingsPage /></ProtectedRoute>} />
       <Route path="/training" element={<ProtectedRoute><RightsTrainingPage /></ProtectedRoute>} />
+      <Route path="/legal-documents" element={<ProtectedRoute><LegalDocumentsPage /></ProtectedRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
