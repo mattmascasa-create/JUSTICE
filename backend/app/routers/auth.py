@@ -87,7 +87,7 @@ async def login(credentials: UserLogin):
 
 @router.post("/session")
 async def process_session(request: Request):
-    """Process Google OAuth session_id and return user data with session_token"""
+    """Process Google OAuth session_id and return user data with access_token"""
     body = await request.json()
     session_id = body.get("session_id")
     
@@ -134,7 +134,10 @@ async def process_session(request: Request):
         }
         await db.users.insert_one(user_doc)
     
-    # Create session
+    # Create JWT access token (same as regular login)
+    access_token = create_access_token(data={"sub": user_id})
+    
+    # Also create session for cookie-based auth
     session_token = auth_data.get("session_token", f"sess_{uuid.uuid4().hex}")
     expires_at = now + timedelta(days=7)
     
@@ -151,11 +154,15 @@ async def process_session(request: Request):
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     
     response = JSONResponse(content={
-        "user_id": user["user_id"],
-        "email": user["email"],
-        "name": user["name"],
-        "picture": user.get("picture"),
-        "role": user.get("role", "citizen")
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "user_id": user["user_id"],
+            "email": user["email"],
+            "name": user["name"],
+            "picture": user.get("picture"),
+            "role": user.get("role", "citizen")
+        }
     })
     
     response.set_cookie(
