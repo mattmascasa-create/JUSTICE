@@ -18,12 +18,13 @@ import {
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
   Eye, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX,
-  MessageCircle, Copy, ExternalLink, Siren
+  MessageCircle, Copy, ExternalLink, Siren, Search
 } from 'lucide-react';
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
 import RightsCoachPanel from '../components/RightsCoachPanel';
 import DeadMansSwitchPanel from '../components/DeadMansSwitchPanel';
+import { QuickOfficerLookup } from '../components/QuickOfficerLookup';
 
 const encounterTypes = [
   { value: 'traffic_stop', label: 'Traffic Stop' },
