@@ -141,7 +141,7 @@ async def get_state_overview(
     
     # Calculate averages
     avg_score = sum(d.get("accountability_score", 50) for d in departments) / len(departments)
-    total_settlements = sum(v.get("settlement_amount", 0) for v in violations)
+    total_settlements = sum(v.get("settlement_amount") or 0 for v in violations)
     
     # Outcome breakdown
     outcomes = {}
