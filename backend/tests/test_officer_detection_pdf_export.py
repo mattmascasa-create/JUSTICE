@@ -24,7 +24,7 @@ class TestOfficerDetection:
             "password": "password123"
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
-        self.token = response.json().get("token")
+        self.token = response.json().get("access_token")
         self.headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"
@@ -236,7 +236,7 @@ class TestPDFExport:
             "password": "password123"
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
-        self.token = response.json().get("token")
+        self.token = response.json().get("access_token")
         self.headers = {
             "Authorization": f"Bearer {self.token}"
         }
@@ -361,7 +361,7 @@ class TestFrontendAPIIntegration:
             "password": "password123"
         })
         assert login_response.status_code == 200
-        token = login_response.json().get("token")
+        token = login_response.json().get("access_token")
         headers = {"Authorization": f"Bearer {token}"}
         
         # Test stats endpoint (GET)
@@ -389,7 +389,7 @@ class TestFrontendAPIIntegration:
             "password": "password123"
         })
         assert login_response.status_code == 200
-        token = login_response.json().get("token")
+        token = login_response.json().get("access_token")
         headers = {"Authorization": f"Bearer {token}"}
         
         # Test PDF endpoint
