@@ -121,6 +121,47 @@ export default function AccountabilityPortalPage() {
     }
   };
 
+  const handleReportSubmit = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to report a violation');
+      return;
+    }
+
+    if (!reportForm.badge_number || !reportForm.department_name || !reportForm.department_state || 
+        !reportForm.violation_type || !reportForm.severity || !reportForm.description) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await api.post('/accountability/violations/report', reportForm);
+      if (response.data.success) {
+        toast.success('Violation reported successfully! Thank you for helping improve police accountability.');
+        setReportDialogOpen(false);
+        setReportForm({
+          badge_number: '',
+          department_name: '',
+          department_city: '',
+          department_state: '',
+          violation_type: '',
+          severity: '',
+          description: '',
+          incident_date: new Date().toISOString().split('T')[0]
+        });
+        // Refresh data
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error reporting violation:', error);
+      toast.error(error.response?.data?.detail || 'Failed to report violation');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+    }
+  };
+
   const getScoreColor = (score) => {
     if (score >= 80) return 'text-green-500';
     if (score >= 60) return 'text-yellow-500';
