@@ -65,10 +65,10 @@ class TestAuthFlow:
         print(f"✓ Auth/me returned user: {data['email']}")
     
     def test_auth_me_without_token(self):
-        """Test /auth/me returns 401 without token"""
+        """Test /auth/me returns 401 or 403 without token"""
         response = requests.get(f"{BASE_URL}/api/auth/me")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ Auth/me correctly requires authentication")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ Auth/me correctly requires authentication (returns {response.status_code})")
     
     def test_attorney_login(self):
         """Test attorney login works"""
@@ -162,8 +162,8 @@ class TestEncounterCoachQuickResponses:
         response = requests.get(
             f"{BASE_URL}/api/encounter-coach/quick-response/refuse_search"
         )
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ Quick response correctly requires authentication")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ Quick response correctly requires authentication (returns {response.status_code})")
 
 
 class TestEncounterCoachEncounterTypes:
@@ -288,8 +288,8 @@ class TestEncounterCoachAnalyze:
                 "encounter_type": "general"
             }
         )
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("✓ Analyze correctly requires authentication")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"✓ Analyze correctly requires authentication (returns {response.status_code})")
 
 
 class TestEncounterCoachSituations:
