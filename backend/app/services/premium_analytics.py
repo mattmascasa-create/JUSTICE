@@ -163,6 +163,14 @@ class PremiumAnalyticsService:
         """
         Analyze violation trends over time with breakdown by type and severity.
         """
+        def get_severity_num(v):
+            """Extract severity as number"""
+            sev = v.get("severity", 5)
+            if isinstance(sev, str):
+                mapping = {"minor": 2, "moderate": 4, "serious": 7, "critical": 9}
+                return mapping.get(sev.lower(), 5)
+            return float(sev) if sev else 5
+        
         query = {}
         if department_id:
             query["department_id"] = department_id
@@ -191,14 +199,14 @@ class PremiumAnalyticsService:
             if month_key not in monthly_data:
                 monthly_data[month_key] = {"count": 0, "severity_sum": 0}
             monthly_data[month_key]["count"] += 1
-            monthly_data[month_key]["severity_sum"] += v.get("severity", 5)
+            monthly_data[month_key]["severity_sum"] += get_severity_num(v)
             
             # Type breakdown
             vtype = v.get("violation_type", "unknown")
             type_breakdown[vtype] = type_breakdown.get(vtype, 0) + 1
             
             # Severity
-            severity = v.get("severity", 5)
+            severity = get_severity_num(v)
             if severity <= 3:
                 severity_distribution["minor"] += 1
             elif severity <= 5:
