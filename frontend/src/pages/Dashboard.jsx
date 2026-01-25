@@ -177,8 +177,7 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-3">
                   {recentCases.map((caseItem) => (
-                    <Link 
-                      key={caseItem.case_id} 
+                    <Link                      key={caseItem.case_id} 
                       to={`/cases/${caseItem.case_id}`}
                       className="block"
                     >
