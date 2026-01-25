@@ -67,6 +67,7 @@ export const evidenceAPI = {
 export const attorneysAPI = {
   list: (params) => api.get('/attorneys', { params }),
   get: (id) => api.get(`/attorneys/${id}`),
+  getMyAttorneys: () => api.get('/attorney/my-attorneys'),
 };
 
 // SOS API
