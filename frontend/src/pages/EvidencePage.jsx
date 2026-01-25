@@ -542,6 +542,15 @@ export default function EvidencePage() {
                       Uploaded: {formatDateTime(ev.uploaded_at)}
                     </p>
 
+                    {/* Verification Badges */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <EvidenceVerificationBadge 
+                        evidenceId={ev.evidence_id} 
+                        showDetails={true}
+                      />
+                      <CourtPackageButton evidenceId={ev.evidence_id} />
+                    </div>
+
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="icon">
                         <Download className="h-4 w-4" />
