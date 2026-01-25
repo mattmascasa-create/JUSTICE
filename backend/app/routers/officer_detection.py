@@ -162,8 +162,8 @@ async def get_detection_stats(
     ]
     match_stats = await db.officer_detections.aggregate(pipeline).to_list(10)
     
-    db_matches = sum(s["count"] for s in match_stats if s["_id"] == True)
-    no_matches = sum(s["count"] for s in match_stats if s["_id"] == False)
+    db_matches = sum(s["count"] for s in match_stats if s["_id"] is True)
+    no_matches = sum(s["count"] for s in match_stats if s["_id"] is False)
     
     return {
         "success": True,
