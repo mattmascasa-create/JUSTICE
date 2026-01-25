@@ -14,6 +14,7 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { useAuth } from '../contexts/AuthContext';
+import { QuickOfficerLookup } from '../components/QuickOfficerLookup';
 import api from '../lib/api';
 
 const US_STATES = [
