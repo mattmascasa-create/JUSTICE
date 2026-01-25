@@ -42,6 +42,7 @@ from app.routers.accountability import router as accountability_router
 from app.routers.evidence_integrity import router as evidence_integrity_router
 from app.routers.court_grade_ai import router as court_grade_ai_router
 from app.routers.premium_analytics import router as premium_analytics_router
+from app.routers.officer_detection import router as officer_detection_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
