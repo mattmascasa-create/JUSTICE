@@ -282,6 +282,19 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 ### Pending Issues
 - **SendGrid API Key**: Not configured - email functionality requires `SENDGRID_API_KEY` in backend/.env
 
+### Bug Fixes (Jan 25, 2026)
+- **P0 CRITICAL: Auth Bug (403 Forbidden) FIXED** ✅: 
+  - Improved token lifecycle management in `AuthContext.js`
+  - Added helper functions `getStoredToken()` and `setStoredToken()` for safe localStorage access
+  - Added comprehensive console logging for debugging auth flow
+  - Fixed OAuth session processing to store token when provided
+  - Improved logout to always clear auth state even if API call fails
+  - Added `authError` state for better error handling
+  - Fixed `isAuthenticated` to check both user AND token
+  - Updated `api.js` interceptor to only redirect on 401, not 403 (permissions)
+  - Added public path checking to prevent redirect loops
+  - Updated `ProtectedRoute` to check both user and token
+
 ### Bug Fixes (Jan 23, 2026)
 - **CRITICAL: 403 Forbidden Bug FIXED** ✅: Removed `withCredentials: true` from all axios calls in `AuthContext.js`. This was causing CORS issues when the backend uses `Access-Control-Allow-Origin: *`. All protected pages now load correctly.
 - **AttorneysPage.jsx**: Fixed null check for attorney name in filter function (`a.name?.toLowerCase()`)
