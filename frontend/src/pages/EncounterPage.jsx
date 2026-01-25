@@ -1645,6 +1645,127 @@ export default function EncounterPage() {
           </Alert>
         )}
 
+        {/* AI Coaching Panel */}
+        {isRecording && coachingEnabled && (
+          <Card className="border-2 border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-emerald-500" />
+                  AI Coach
+                  <Badge variant="outline" className="ml-2 text-xs bg-emerald-500/10 border-emerald-500/30">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1" />
+                    ACTIVE
+                  </Badge>
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCoachingPanel(!showCoachingPanel)}
+                    data-testid="toggle-coaching-panel"
+                  >
+                    {showCoachingPanel ? 'Hide' : 'Show'}
+                  </Button>
+                  <Switch
+                    checked={coachingEnabled}
+                    onCheckedChange={setCoachingEnabled}
+                    data-testid="coaching-toggle"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            {showCoachingPanel && (
+              <CardContent className="pt-0">
+                {coachingMessages.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Listening... Coaching will appear when relevant</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-48">
+                    <div className="space-y-2">
+                      {coachingMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`p-3 rounded-lg border transition-all duration-300 ${
+                            msg.tone === 'urgent' 
+                              ? 'bg-red-500/20 border-red-500/50 animate-pulse' 
+                              : msg.tone === 'alert'
+                              ? 'bg-yellow-500/20 border-yellow-500/50'
+                              : msg.tone === 'calm'
+                              ? 'bg-green-500/20 border-green-500/50'
+                              : 'bg-blue-500/20 border-blue-500/50'
+                          } ${msg.isNew ? 'ring-2 ring-emerald-500' : ''}`}
+                          data-testid={`coaching-message-${msg.coaching_id}`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className={`p-1 rounded ${
+                              msg.tone === 'urgent' ? 'bg-red-500' :
+                              msg.tone === 'alert' ? 'bg-yellow-500' :
+                              msg.tone === 'calm' ? 'bg-green-500' : 'bg-blue-500'
+                            }`}>
+                              {msg.tone === 'urgent' ? (
+                                <AlertTriangle className="h-3 w-3 text-white" />
+                              ) : msg.tone === 'alert' ? (
+                                <AlertCircle className="h-3 w-3 text-white" />
+                              ) : (
+                                <Shield className="h-3 w-3 text-white" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{msg.message}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs capitalize">
+                                  {msg.category?.replace(/_/g, ' ')}
+                                </Badge>
+                                {msg.trigger_phrase && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Triggered by: "{msg.trigger_phrase}"
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+                
+                {/* Quick Response Buttons */}
+                <div className="mt-3 pt-3 border-t">
+                  <p className="text-xs text-muted-foreground mb-2">Quick Responses:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['refuse_search', 'invoke_silence', 'ask_if_detained', 'request_attorney'].map(scenario => (
+                      <Button
+                        key={scenario}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={async () => {
+                          try {
+                            const resp = await encounterCoachAPI.getQuickResponse(scenario);
+                            toast.info(resp.data.response.say, {
+                              description: resp.data.response.note,
+                              duration: 10000
+                            });
+                          } catch (err) {
+                            console.error('Quick response error:', err);
+                          }
+                        }}
+                        data-testid={`quick-response-${scenario}`}
+                      >
+                        {scenario.replace(/_/g, ' ')}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        )}
+
         {/* Live Transcription */}
         <Card className="border-2 border-blue-500/30">
           <CardHeader className="pb-2">
