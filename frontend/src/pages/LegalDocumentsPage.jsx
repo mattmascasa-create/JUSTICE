@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Loader2, Trash2, ChevronDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { FileText, Download, Loader2, Trash2, AlertTriangle, CheckCircle, Share2, Send, Inbox, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { encounterAPI, documentsAPI } from '../lib/api';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../components/ui/dialog';
+import { encounterAPI, documentsAPI, attorneyAPI } from '../lib/api';
 
 export default function LegalDocumentsPage() {
   const [encounters, setEncounters] = useState([]);
