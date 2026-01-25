@@ -104,10 +104,30 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Department rankings (best/worst accountability)
   - Settlement exposure analysis
   - Automated recommendations by priority
+  - **PDF Export** ✅: Download reports for legal proceedings
 - **Additional Analytics** ✅:
   - State-level overview with department counts
   - Violation hotspots ranked by per-officer rate
   - Department comparison tool (up to 10 at once)
+
+#### Automatic Officer Detection - FULLY IMPLEMENTED (Jan 25, 2026)
+- **Pattern-Based Extraction** ✅: Fast, no API cost
+  - Badge number patterns: "badge number is X", "officer X", "my badge X", "#X"
+  - Department patterns: "X police department", "X PD", "X sheriff"
+  - Officer name patterns: "Officer X", "I'm Officer X", "my name is X"
+- **AI-Enhanced Detection** ✅: GPT-4o for nuanced extraction
+  - Natural speech understanding
+  - Partial information handling
+  - Partner/backup officer mentions
+  - Evidence quotes for each detection
+- **Database Cross-Reference** ✅: Automatic accountability lookup
+  - Matches badge numbers to accountability database
+  - Returns accountability score and warning level
+  - Enriches detection with violation history
+- **Encounter Integration** ✅: Use during active encounters
+  - Real-time detection from live transcription
+  - Stores detected officers in encounter record
+  - Re-detection for updated database matches
 
 #### Advanced Protection Features - FULLY INTEGRATED (Jan 23, 2026)
 - **AI Rights Coach Panel** ✅: Real-time legal guidance during encounters using GPT-4o via Emergent LLM key
