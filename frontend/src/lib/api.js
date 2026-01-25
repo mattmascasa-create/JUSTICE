@@ -952,4 +952,16 @@ export const encounterCoachAPI = {
   getStats: (days = 30) => api.get('/encounter-coach/stats', { params: { days } })
 };
 
+// Location Alerts API - Proactive coaching based on proximity to problematic precincts
+export const locationAlertsAPI = {
+  // Check for alerts at a location
+  check: (lat, lon) => api.get('/location-alerts/check', { params: { lat, lon } }),
+  
+  // Get user's alert history
+  getHistory: (limit = 20) => api.get('/location-alerts/history', { params: { limit } }),
+  
+  // Get monitored precincts
+  getPrecincts: () => api.get('/location-alerts/precincts')
+};
+
 export default api;
