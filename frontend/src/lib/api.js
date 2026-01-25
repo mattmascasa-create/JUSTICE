@@ -911,4 +911,45 @@ export const voiceCommandsAPI = {
   testCommand: (text) => api.post('/voice-commands/test', { text })
 };
 
+// Encounter Coaching API - Real-time AI guidance during encounters
+export const encounterCoachAPI = {
+  // Analyze transcript chunk for coaching (during live encounter)
+  analyze: (transcriptChunk, encounterType = 'general', encounterId = null) =>
+    api.post('/encounter-coach/analyze', {
+      transcript_chunk: transcriptChunk,
+      encounter_type: encounterType,
+      encounter_id: encounterId
+    }),
+  
+  // Ask the AI coach a specific question
+  askCoach: (question, transcriptContext = '', encounterType = 'general') =>
+    api.post('/encounter-coach/ask', {
+      question,
+      transcript_context: transcriptContext,
+      encounter_type: encounterType
+    }),
+  
+  // Get quick response script for a scenario
+  getQuickResponse: (scenario) => api.get(`/encounter-coach/quick-response/${scenario}`),
+  
+  // List all quick response scenarios
+  listQuickResponses: () => api.get('/encounter-coach/quick-responses'),
+  
+  // Get situation-specific coaching
+  getSituationCoaching: (encounterType, situation) =>
+    api.get(`/encounter-coach/situation/${encounterType}/${situation}`),
+  
+  // Get list of encounter types
+  getEncounterTypes: () => api.get('/encounter-coach/encounter-types'),
+  
+  // Get list of trigger keywords (debugging/info)
+  getTriggers: () => api.get('/encounter-coach/triggers'),
+  
+  // End coaching session
+  endSession: (encounterId) => api.post(`/encounter-coach/end-session/${encounterId}`),
+  
+  // Get coaching statistics
+  getStats: (days = 30) => api.get('/encounter-coach/stats', { params: { days } })
+};
+
 export default api;
