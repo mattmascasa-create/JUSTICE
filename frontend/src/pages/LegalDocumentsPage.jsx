@@ -11,7 +11,7 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { encountersAPI, documentsAPI } from '../lib/api';
+import { encounterAPI, documentsAPI } from '../lib/api';
 
 export default function LegalDocumentsPage() {
   const [encounters, setEncounters] = useState([]);
@@ -35,7 +35,7 @@ export default function LegalDocumentsPage() {
     setLoading(true);
     try {
       const [encountersRes, typesRes, docsRes] = await Promise.all([
-        encountersAPI.list(),
+        encounterAPI.list(),
         documentsAPI.getTypes(),
         documentsAPI.getMyDocuments()
       ]);
