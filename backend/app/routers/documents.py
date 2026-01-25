@@ -162,7 +162,7 @@ async def share_document(
     if recipient.get("email") and is_sendgrid_configured():
         try:
             # Build view URL
-            frontend_url = os.environ.get("FRONTEND_URL", "https://legal-shield-11.preview.emergentagent.com")
+            frontend_url = os.environ.get("FRONTEND_URL", "https://police-watch-2.preview.emergentagent.com")
             view_url = f"{frontend_url}/legal-documents?share={share_id}"
             
             email_result = await send_document_shared_email(
