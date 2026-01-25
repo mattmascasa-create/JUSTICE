@@ -56,6 +56,7 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Warning levels: low/medium/elevated/high based on accountability score
   - Shows recent violations and department info
   - Mobile-friendly dialog for quick access
+  - **Integrated into Encounter Mode** for real-time officer accountability checks
 - **Violation Reporting System** ✅: Public crowdsourcing of misconduct
   - Report Violation dialog with comprehensive form
   - Violation types: excessive force, unlawful search, false arrest, Miranda violation, recording interference, racial profiling, etc.
@@ -68,6 +69,45 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Leaderboard** ✅: Best and worst performing departments
   - Rankings by accountability score
   - Public transparency data
+
+#### Court-Grade AI with RAG & Guardrails - FULLY IMPLEMENTED (Jan 25, 2026)
+- **Legal Knowledge Base (RAG)** ✅: Comprehensive verified legal information
+  - 6 Constitutional Amendments (1st, 4th, 5th, 6th, 8th, 14th)
+  - 2 Federal Statutes (42 USC 1983, 18 USC 242)
+  - 6 Violation Type Definitions with legal elements and indicators
+  - Landmark cases with holdings and citations
+- **Guardrails System** ✅: Validation for court-grade accuracy
+  - Citation validity checker (verifies against knowledge base)
+  - Legal basis verification
+  - Bias indicator detection
+  - Confidence calibration
+  - Speculation labeling check
+  - Severity reasonableness validation
+- **Confidence Scoring** ✅: Reliability metrics for legal proceedings
+  - 5 confidence levels: very_high, high, moderate, low, very_low
+  - Breakdown factors: evidence_quality, legal_backing, guardrail_score, citation_strength
+  - Court admissibility assessment
+  - Expert review recommendations
+
+#### Premium Analytics - FULLY IMPLEMENTED (Jan 25, 2026)
+- **Predictive Risk Scoring** ✅: Anticipate future department issues
+  - Risk factors: recent violations, quarterly trends, severity scores, settlements
+  - Risk levels: critical, elevated, moderate, low
+  - Actionable recommendations per risk level
+- **Violation Trend Analysis** ✅: Track patterns over time
+  - Monthly breakdown with counts and average severity
+  - Type distribution and outcome distribution
+  - Trend direction detection (increasing/decreasing/stable)
+  - Interpretation with percentage change
+- **Audit Report Generation** ✅: For oversight committees
+  - Executive summary with aggregate statistics
+  - Department rankings (best/worst accountability)
+  - Settlement exposure analysis
+  - Automated recommendations by priority
+- **Additional Analytics** ✅:
+  - State-level overview with department counts
+  - Violation hotspots ranked by per-officer rate
+  - Department comparison tool (up to 10 at once)
 
 #### Advanced Protection Features - FULLY INTEGRATED (Jan 23, 2026)
 - **AI Rights Coach Panel** ✅: Real-time legal guidance during encounters using GPT-4o via Emergent LLM key
