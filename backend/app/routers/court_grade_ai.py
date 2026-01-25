@@ -279,6 +279,79 @@ async def batch_court_grade_analyze(
     }
 
 
+@router.post("/batch-analyze/run")
+async def run_batch_analysis(
+    encounter_ids: List[str],
+    current_user: dict = Depends(get_current_user)
+) -> Dict:
+    """
+    Run court-grade analysis on multiple encounters synchronously.
+    For smaller batches (up to 5 encounters).
+    """
+    if len(encounter_ids) > 5:
+        raise HTTPException(status_code=400, detail="Maximum 5 encounters for synchronous batch. Use /batch-analyze for larger batches.")
+    
+    from dataclasses import asdict
+    
+    results = {
+        "success": True,
+        "total": len(encounter_ids),
+        "completed": [],
+        "failed": []
+    }
+    
+    for encounter_id in encounter_ids:
+        try:
+            # Get encounter transcript
+            encounter = await db.encounters.find_one(
+                {"encounter_id": encounter_id},
+                {"_id": 0, "transcript": 1, "full_transcript": 1, "encounter_type": 1}
+            )
+            
+            if not encounter:
+                results["failed"].append({
+                    "encounter_id": encounter_id,
+                    "error": "Encounter not found"
+                })
+                continue
+            
+            transcript = encounter.get("full_transcript") or encounter.get("transcript", "")
+            
+            if len(transcript) < 50:
+                results["failed"].append({
+                    "encounter_id": encounter_id,
+                    "error": "Transcript too short"
+                })
+                continue
+            
+            # Run analysis
+            analysis = await court_grade_ai.analyze_encounter_court_grade(
+                encounter_id=encounter_id,
+                transcript=transcript,
+                encounter_type=encounter.get("encounter_type", "general")
+            )
+            
+            results["completed"].append({
+                "encounter_id": encounter_id,
+                "analysis_id": analysis.analysis_id,
+                "confidence": analysis.overall_confidence,
+                "confidence_level": analysis.confidence_level,
+                "court_admissible": analysis.court_admissible,
+                "violations_count": len(analysis.violations_detected)
+            })
+            
+        except Exception as e:
+            results["failed"].append({
+                "encounter_id": encounter_id,
+                "error": str(e)
+            })
+    
+    results["completed_count"] = len(results["completed"])
+    results["failed_count"] = len(results["failed"])
+    
+    return results
+
+
 @router.get("/batch/{job_id}")
 async def get_batch_status(
     job_id: str,
