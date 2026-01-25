@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from app.db.database import db
 from app.core.security import get_current_user
 from app.services.websocket import manager
+from app.services.email_service import send_sos_alert_email, is_sendgrid_configured
 from app.models.schemas import SOSAlertCreate, SOSAlertResponse
 
 router = APIRouter(prefix="/sos", tags=["SOS Alerts"])
