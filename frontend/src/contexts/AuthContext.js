@@ -156,10 +156,13 @@ export function AuthProvider({ children }) {
       const response = await axios.post(`${API}/auth/session`, { session_id: sessionId });
       const { access_token, user: userData } = response.data;
       
-      // Store token if provided in OAuth response
+      // Store token - OAuth now returns access_token like regular login
       if (access_token) {
         setStoredToken(access_token);
         setToken(access_token);
+        console.log('[Auth] OAuth token stored successfully');
+      } else {
+        console.warn('[Auth] No access_token in OAuth response');
       }
       
       setUser(userData || response.data);
