@@ -2,12 +2,15 @@
 Legal Document Generator Router
 Endpoints for generating legal documents
 """
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime, timezone
+import uuid
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from app.core.security import get_current_user
 from app.services.legal_documents import legal_document_service, DocumentType
+from app.db.database import db
 
 router = APIRouter(prefix="/documents", tags=["Legal Documents"])
 
@@ -18,6 +21,11 @@ class GenerateDocumentRequest(BaseModel):
     user_statement: Optional[str] = None
     injuries: Optional[str] = None
     witnesses: Optional[str] = None
+
+
+class ShareDocumentRequest(BaseModel):
+    recipient_id: str
+    message: Optional[str] = None
 
 
 @router.get("/types")
