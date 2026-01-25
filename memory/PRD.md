@@ -51,6 +51,11 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
   - Badge number, department, rank tracking
   - Accountability scores per officer
   - Violation count and outcomes
+- **Quick Officer Lookup** ✅: Instant badge number search during encounters
+  - Public API endpoint `/api/accountability/public/officers/quick-lookup`
+  - Warning levels: low/medium/elevated/high based on accountability score
+  - Shows recent violations and department info
+  - Mobile-friendly dialog for quick access
 - **Violation Reporting System** ✅: Public crowdsourcing of misconduct
   - Report Violation dialog with comprehensive form
   - Violation types: excessive force, unlawful search, false arrest, Miranda violation, recording interference, racial profiling, etc.
