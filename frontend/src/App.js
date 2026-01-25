@@ -48,6 +48,7 @@ import HardwareIntegrationPage from "./pages/HardwareIntegrationPage";
 import TwoFactorSettingsPage from "./pages/TwoFactorSettingsPage";
 import RightsTrainingPage from "./pages/RightsTrainingPage";
 import LegalDocumentsPage from "./pages/LegalDocumentsPage";
+import AccountabilityPortalPage from "./pages/AccountabilityPortalPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
