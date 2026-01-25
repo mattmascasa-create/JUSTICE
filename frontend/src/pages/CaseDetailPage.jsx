@@ -219,6 +219,7 @@ export default function CaseDetailPage() {
                             <div 
                               key={ev.evidence_id}
                               className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
+                              data-testid={`evidence-item-${ev.evidence_id}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div className="p-2 rounded bg-background">
@@ -236,9 +237,16 @@ export default function CaseDetailPage() {
                                   )}
                                 </div>
                               </div>
-                              <Button variant="ghost" size="icon">
-                                <Download className="h-4 w-4" />
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <EvidenceVerificationBadge 
+                                  evidenceId={ev.evidence_id} 
+                                  showDetails={true}
+                                />
+                                <CourtPackageButton evidenceId={ev.evidence_id} />
+                                <Button variant="ghost" size="icon">
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           );
                         })}
