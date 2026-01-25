@@ -881,4 +881,24 @@ export const realtimeAlertsAPI = {
   getKeywords: () => api.get('/realtime-alerts/keywords')
 };
 
+// Voice Commands API - Hands-free encounter control
+export const voiceCommandsAPI = {
+  // Process a voice command
+  processCommand: (text, encounterId = null) =>
+    api.post('/voice-commands/process', { text, encounter_id: encounterId }),
+  
+  // Get rights information for encounter type
+  getRights: (encounterType, topic = 'default') =>
+    api.get(`/voice-commands/rights/${encounterType}`, { params: { topic } }),
+  
+  // List available commands
+  listCommands: () => api.get('/voice-commands/commands'),
+  
+  // Get voice command stats
+  getStats: (days = 30) => api.get('/voice-commands/stats', { params: { days } }),
+  
+  // Test command parsing (no auth required)
+  testCommand: (text) => api.post('/voice-commands/test', { text })
+};
+
 export default api;
