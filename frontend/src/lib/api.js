@@ -713,6 +713,10 @@ export const accountabilityAPI = {
     api.get('/accountability/public/leaderboard', { params: { state, limit } }),
   getViolationTypes: () => api.get('/accountability/public/violation-types'),
   
+  // Quick lookup - for citizens during encounters
+  quickLookup: (badge, state = null) =>
+    api.get('/accountability/public/officers/quick-lookup', { params: { badge, state } }),
+  
   // Authenticated endpoints
   reportViolation: (violationData) => api.post('/accountability/violations/report', violationData),
   createOfficer: (officerData) => api.post('/accountability/officers', officerData),
