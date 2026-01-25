@@ -8,6 +8,7 @@ import { Separator } from '../components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import CaseTimeline from '../components/CaseTimeline';
+import { EvidenceVerificationBadge, CourtPackageButton } from '../components/EvidenceVerificationBadge';
 import { casesAPI, evidenceAPI, reportAPI } from '../lib/api';
 import { generateCaseReport, downloadCaseReport } from '../lib/reportGenerator';
 import { formatDate, formatDateTime, getStatusColor, getSeverityColor, formatFileSize } from '../lib/utils';
