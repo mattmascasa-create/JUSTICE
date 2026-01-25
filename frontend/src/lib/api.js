@@ -837,4 +837,47 @@ export const officerDetectionAPI = {
   getStats: () => api.get('/officer-detection/stats')
 };
 
+// Real-Time Violation Alerts API - Attorney notification system
+export const realtimeAlertsAPI = {
+  // Analyze transcript chunk for violations (called during live transcription)
+  analyzeChunk: (encounterId, transcriptChunk, timestamp = null) =>
+    api.post('/realtime-alerts/analyze-chunk', {
+      encounter_id: encounterId,
+      transcript_chunk: transcriptChunk,
+      timestamp
+    }),
+  
+  // Manually trigger alert to attorney
+  triggerManualAlert: (encounterId, message, severity = 'high') =>
+    api.post('/realtime-alerts/manual-alert', {
+      encounter_id: encounterId,
+      message,
+      severity
+    }),
+  
+  // Get alerts for an encounter
+  getEncounterAlerts: (encounterId) => api.get(`/realtime-alerts/encounter/${encounterId}`),
+  
+  // Get my alerts (for citizens or attorneys)
+  getMyAlerts: (limit = 50, unacknowledgedOnly = false) =>
+    api.get('/realtime-alerts/my-alerts', {
+      params: { limit, unacknowledged_only: unacknowledgedOnly }
+    }),
+  
+  // Acknowledge an alert
+  acknowledgeAlert: (alertId) => api.post('/realtime-alerts/acknowledge', { alert_id: alertId }),
+  
+  // Acknowledge all alerts
+  acknowledgeAll: (encounterId = null) =>
+    api.post('/realtime-alerts/acknowledge-all', null, {
+      params: encounterId ? { encounter_id: encounterId } : {}
+    }),
+  
+  // Get alert statistics
+  getStats: (days = 30) => api.get('/realtime-alerts/stats', { params: { days } }),
+  
+  // Get keywords that trigger alerts
+  getKeywords: () => api.get('/realtime-alerts/keywords')
+};
+
 export default api;
