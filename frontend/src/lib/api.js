@@ -789,6 +789,18 @@ export const premiumAnalyticsAPI = {
       }
     }),
   
+  // Download audit report as PDF
+  downloadAuditReportPDF: (departmentId = null, state = null, includeOfficers = true, includeSettlements = true) =>
+    api.get('/premium-analytics/audit-report/pdf', {
+      params: { 
+        department_id: departmentId, 
+        state, 
+        include_officers: includeOfficers,
+        include_settlements: includeSettlements 
+      },
+      responseType: 'blob'
+    }),
+  
   // Compare multiple departments
   compareDepartments: (departmentIds) => api.post('/premium-analytics/compare-departments', { department_ids: departmentIds }),
   
@@ -797,6 +809,32 @@ export const premiumAnalyticsAPI = {
   
   // Violation hotspots
   getHotspots: (limit = 10) => api.get('/premium-analytics/hotspots', { params: { limit } })
+};
+
+// Officer Detection API - Automatic extraction of officer info from audio/text
+export const officerDetectionAPI = {
+  // Detect from transcript text
+  detectFromText: (transcript, encounterId = null) =>
+    api.post('/officer-detection/from-text', { transcript, encounter_id: encounterId }),
+  
+  // Detect from audio file
+  detectFromAudio: (audioFile, encounterId = null) => {
+    const formData = new FormData();
+    formData.append('audio', audioFile);
+    if (encounterId) formData.append('encounter_id', encounterId);
+    return api.post('/officer-detection/from-audio', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  
+  // Get detections for an encounter
+  getEncounterDetections: (encounterId) => api.get(`/officer-detection/encounter/${encounterId}`),
+  
+  // Re-run detection on existing encounter
+  redetectEncounter: (encounterId) => api.post(`/officer-detection/encounter/${encounterId}/redetect`),
+  
+  // Get detection stats
+  getStats: () => api.get('/officer-detection/stats')
 };
 
 export default api;
