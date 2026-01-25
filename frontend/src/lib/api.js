@@ -767,4 +767,36 @@ export const courtGradeAPI = {
   getBatchStatus: (jobId) => api.get(`/court-grade/batch/${jobId}`)
 };
 
+// Premium Analytics API - Predictive analytics and trend analysis
+export const premiumAnalyticsAPI = {
+  // Risk prediction for a department
+  getRiskPrediction: (departmentId) => api.get(`/premium-analytics/risk-prediction/${departmentId}`),
+  
+  // Violation trends analysis
+  getTrends: (departmentId = null, state = null, months = 12) =>
+    api.get('/premium-analytics/trends', {
+      params: { department_id: departmentId, state, months }
+    }),
+  
+  // Generate audit report
+  generateAuditReport: (departmentId = null, state = null, includeOfficers = true, includeSettlements = true) =>
+    api.get('/premium-analytics/audit-report', {
+      params: { 
+        department_id: departmentId, 
+        state, 
+        include_officers: includeOfficers,
+        include_settlements: includeSettlements 
+      }
+    }),
+  
+  // Compare multiple departments
+  compareDepartments: (departmentIds) => api.post('/premium-analytics/compare-departments', { department_ids: departmentIds }),
+  
+  // State overview
+  getStateOverview: (state) => api.get(`/premium-analytics/state-overview/${state}`),
+  
+  // Violation hotspots
+  getHotspots: (limit = 10) => api.get('/premium-analytics/hotspots', { params: { limit } })
+};
+
 export default api;
