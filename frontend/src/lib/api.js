@@ -763,7 +763,8 @@ export const courtGradeAPI = {
   explainConfidence: () => api.get('/court-grade/confidence/explain'),
   
   // Batch processing
-  batchAnalyze: (encounterIds) => api.post('/court-grade/batch-analyze', encounterIds),
+  batchAnalyzeQueue: (encounterIds) => api.post('/court-grade/batch-analyze', encounterIds),
+  batchAnalyzeRun: (encounterIds) => api.post('/court-grade/batch-analyze/run', encounterIds),
   getBatchStatus: (jobId) => api.get(`/court-grade/batch/${jobId}`)
 };
 
