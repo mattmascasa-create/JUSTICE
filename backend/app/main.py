@@ -116,6 +116,7 @@ app.include_router(training_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
 app.include_router(incidents_router, prefix="/api")
 app.include_router(departments_router, prefix="/api")
+app.include_router(accountability_router, prefix="/api")
 
 
 # Root endpoint
