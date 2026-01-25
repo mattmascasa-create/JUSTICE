@@ -16,13 +16,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle auth errors - improved to avoid redirect loops
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Only handle 401 errors, not 403 (which might be permission-based)
     if (error.response?.status === 401) {
-      localStorage.removeItem('justice-token');
-      window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      // Don't redirect if already on login/register/public pages
+      const publicPaths = ['/', '/login', '/register', '/transparency', '/incident-map', '/accountability'];
+      const isPublicPath = publicPaths.some(path => currentPath === path || currentPath.startsWith('/live/') || currentPath.startsWith('/shared/'));
+      
+      if (!isPublicPath) {
+        console.log('[API] 401 error - clearing token and redirecting to login');
+        localStorage.removeItem('justice-token');
+        // Use replace to avoid back button issues
+        window.location.replace('/login');
+      }
     }
     return Promise.reject(error);
   }
