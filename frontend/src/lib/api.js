@@ -734,4 +734,37 @@ export const accountabilityAPI = {
     })
 };
 
+// Court-Grade AI API - Enhanced legal analysis with guardrails and confidence scoring
+export const courtGradeAPI = {
+  // Analyze encounter with court-grade standards
+  analyze: (encounterId, transcript, encounterType = 'general', useExistingAnalysis = true) =>
+    api.post('/court-grade/analyze', {
+      encounter_id: encounterId,
+      transcript,
+      encounter_type: encounterType,
+      use_existing_analysis: useExistingAnalysis
+    }),
+  
+  // Get specific analysis
+  getAnalysis: (analysisId) => api.get(`/court-grade/analysis/${analysisId}`),
+  
+  // Get all analyses for an encounter
+  getEncounterAnalyses: (encounterId) => api.get(`/court-grade/encounter/${encounterId}/analyses`),
+  
+  // Knowledge base access
+  getViolationDefinition: (violationType) => api.get(`/court-grade/knowledge-base/violation/${violationType}`),
+  getAmendmentInfo: (amendment) => api.get(`/court-grade/knowledge-base/amendment/${amendment}`),
+  listAmendments: () => api.get('/court-grade/knowledge-base/amendments'),
+  
+  // Guardrails
+  rerunGuardrails: (analysisId) => api.get(`/court-grade/guardrails/check/${analysisId}`),
+  
+  // Confidence explanations
+  explainConfidence: () => api.get('/court-grade/confidence/explain'),
+  
+  // Batch processing
+  batchAnalyze: (encounterIds) => api.post('/court-grade/batch-analyze', encounterIds),
+  getBatchStatus: (jobId) => api.get(`/court-grade/batch/${jobId}`)
+};
+
 export default api;
