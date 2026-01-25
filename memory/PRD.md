@@ -699,3 +699,37 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - ✅ 2FA Settings
 - ✅ Training
 
+
+### Additional Features Added (Jan 25, 2026 - Session 2)
+
+#### Document Sharing System ✅
+- **Backend endpoints:**
+  - `POST /api/documents/{id}/share` - Share document with recipient
+  - `GET /api/documents/shared/received` - Get documents shared with you
+  - `GET /api/documents/shared/sent` - Get documents you've shared
+  - `GET /api/documents/shared/{share_id}` - View shared document content
+- **Frontend:**
+  - Added 4 tabs: Generate, My Documents, Received, Sent
+  - Share dialog with attorney selection
+  - View shared documents inline
+  - Track share status (pending/viewed)
+- **Notifications:** Recipients receive in-app notification when document is shared
+
+#### Panic Button SOS Alert ✅
+- Added `POST /api/sos/quick-alert` endpoint
+- Sends alerts to all emergency contacts with `notify_on_sos: true`
+- Creates in-app notifications for JUSTICE user contacts
+- Real-time WebSocket notification to connected users
+- Tracks alert in database with status
+
+#### Sidebar Refactoring ✅
+- Extracted `SidebarContent` component outside main `Sidebar` function
+- Fixed React linting errors (nested component definitions)
+- Proper prop passing for better performance
+- No re-rendering issues
+
+#### API Fixes
+- Added `getMyAttorneys()` method to `attorneysAPI`
+- Added `quickAlert()` method to `sosAPI`
+- Fixed `useWebSocket` hook to return safe defaults outside provider
+
