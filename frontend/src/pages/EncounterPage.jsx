@@ -160,6 +160,7 @@ export default function EncounterPage() {
   const [currentRightsIndex, setCurrentRightsIndex] = useState(0);
   const [officerInfo, setOfficerInfo] = useState({ name: '', badge: '', department: '' });
   const [showOfficerForm, setShowOfficerForm] = useState(false);
+  const [lookedUpOfficer, setLookedUpOfficer] = useState(null); // Officer from accountability lookup
   
   // AI Analysis State
   const [aiAnalysis, setAiAnalysis] = useState(null);
