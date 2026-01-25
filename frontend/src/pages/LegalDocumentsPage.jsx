@@ -48,7 +48,7 @@ export default function LegalDocumentsPage() {
         documentsAPI.getMyDocuments(),
         documentsAPI.getReceivedShares().catch(() => ({ data: { shares: [] } })),
         documentsAPI.getSentShares().catch(() => ({ data: { shares: [] } })),
-        attorneyAPI.getMyAttorneys().catch(() => ({ data: { attorneys: [] } }))
+        attorneysAPI.getMyAttorneys().catch(() => ({ data: { attorneys: [] } }))
       ]);
       
       const encountersList = encountersRes.data.encounters || encountersRes.data || [];
