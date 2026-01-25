@@ -736,6 +736,8 @@ export default function EncounterPage() {
                   // Trigger AI analysis with new transcription
                   if (result.data.transcription.text) {
                     performAIAnalysis(result.data.transcription.text);
+                    // Trigger AI coaching
+                    performCoaching(result.data.transcription.text);
                   }
                   
                   if (result.data.transcription.violations_detected?.length > 0) {
