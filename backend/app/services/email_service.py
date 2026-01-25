@@ -405,3 +405,105 @@ async def send_dead_mans_switch_email(
     )
     
     return await send_simple_email(to_email, subject, html_content)
+
+
+def generate_document_shared_html(
+    sender_name: str,
+    document_title: str,
+    document_type: str,
+    message: str = None,
+    view_url: str = None
+) -> str:
+    """Generate HTML content for document shared notification email"""
+    
+    message_section = ""
+    if message:
+        message_section = f"""
+        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+            <p style="margin: 0; font-style: italic; color: #475569;">"{message}"</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #94a3b8;">— {sender_name}</p>
+        </div>
+        """
+    
+    view_button = ""
+    if view_url:
+        view_button = f"""
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{view_url}" 
+               style="background-color: #3b82f6; color: white; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; display: inline-block;">
+                📄 View Document
+            </a>
+        </div>
+        """
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f1f5f9;">
+        <div style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">📄 Document Shared With You</h1>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="padding: 30px;">
+                <p style="font-size: 16px; margin-bottom: 20px;">
+                    <strong>{sender_name}</strong> has shared a legal document with you on the JUSTICE platform.
+                </p>
+                
+                <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin: 0 0 10px 0; color: #1d4ed8; font-size: 18px;">📋 {document_title}</h3>
+                    <p style="margin: 0; color: #64748b; font-size: 14px;">Type: {document_type.replace('_', ' ').title()}</p>
+                </div>
+                
+                {message_section}
+                
+                {view_button}
+                
+                <p style="font-size: 14px; color: #64748b; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    Log in to your JUSTICE account to view and respond to this document. 
+                    This document may contain important legal information regarding a civil rights matter.
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8fafc; padding: 20px 30px; border-top: 1px solid #e2e8f0;">
+                <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                    <strong>Confidentiality Notice:</strong> This email and any linked documents may contain confidential 
+                    and legally privileged information. If you are not the intended recipient, please notify us immediately.
+                </p>
+                <p style="font-size: 12px; color: #94a3b8; margin: 15px 0 0 0;">
+                    <strong>JUSTICE</strong> — Civil Rights Defense System
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
+async def send_document_shared_email(
+    to_email: str,
+    sender_name: str,
+    document_title: str,
+    document_type: str,
+    message: str = None,
+    view_url: str = None
+) -> dict:
+    """Send a notification email when a document is shared."""
+    
+    subject = f"📄 {sender_name} shared a document with you"
+    html_content = generate_document_shared_html(
+        sender_name=sender_name,
+        document_title=document_title,
+        document_type=document_type,
+        message=message,
+        view_url=view_url
+    )
+    
+    return await send_simple_email(to_email, subject, html_content)
