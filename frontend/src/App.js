@@ -136,6 +136,7 @@ function AppRouter() {
       <Route path="/security/2fa" element={<ProtectedRoute><TwoFactorSettingsPage /></ProtectedRoute>} />
       <Route path="/training" element={<ProtectedRoute><RightsTrainingPage /></ProtectedRoute>} />
       <Route path="/legal-documents" element={<ProtectedRoute><LegalDocumentsPage /></ProtectedRoute>} />
+      <Route path="/accountability" element={<AccountabilityPortalPage />} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
