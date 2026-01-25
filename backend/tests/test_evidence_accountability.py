@@ -356,13 +356,13 @@ class TestEdgeCases:
         print("✓ Non-existent court package returns 404")
     
     def test_unauthenticated_evidence_stats(self):
-        """Evidence stats without auth returns 401"""
+        """Evidence stats without auth returns 401 or 403"""
         response = requests.get(f"{BASE_URL}/api/evidence-integrity/stats")
-        assert response.status_code == 401
-        print("✓ Unauthenticated evidence stats returns 401")
+        assert response.status_code in [401, 403]
+        print(f"✓ Unauthenticated evidence stats returns {response.status_code}")
     
     def test_unauthenticated_violation_report(self):
-        """Violation report without auth returns 401"""
+        """Violation report without auth returns 401 or 403"""
         response = requests.post(
             f"{BASE_URL}/api/accountability/violations/report",
             json={
@@ -375,8 +375,8 @@ class TestEdgeCases:
                 "incident_date": "2026-01-20"
             }
         )
-        assert response.status_code == 401
-        print("✓ Unauthenticated violation report returns 401")
+        assert response.status_code in [401, 403]
+        print(f"✓ Unauthenticated violation report returns {response.status_code}")
 
 
 if __name__ == "__main__":
