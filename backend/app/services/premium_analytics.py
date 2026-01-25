@@ -53,7 +53,16 @@ class PremiumAnalyticsService:
         quarterly_trend = len(recent_30_days) / max(len(recent_90_days) / 3, 1) if recent_90_days else 1
         
         # Severity score (weighted by recency)
-        severity_score = sum(v.get("severity", 5) * (1 if v in recent_30_days else 0.5 if v in recent_90_days else 0.25) 
+        def get_severity(v):
+            """Extract severity as float"""
+            sev = v.get("severity", 5)
+            if isinstance(sev, str):
+                # Map severity strings to numbers
+                mapping = {"minor": 2, "moderate": 4, "serious": 7, "critical": 9}
+                return mapping.get(sev.lower(), 5)
+            return float(sev) if sev else 5
+        
+        severity_score = sum(get_severity(v) * (1 if v in recent_30_days else 0.5 if v in recent_90_days else 0.25) 
                             for v in violations[-50:]) / max(len(violations[-50:]), 1)
         
         # Settlement trend
