@@ -4,6 +4,7 @@ import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { LocationAlertPanel } from '../components/LocationAlertPanel';
 import { analyticsAPI, casesAPI } from '../lib/api';
 import { formatDate, getStatusColor, getSeverityColor } from '../lib/utils';
 import { 
