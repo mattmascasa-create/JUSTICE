@@ -66,9 +66,10 @@ class TestLocationAlerts:
         data = response.json()
         
         assert data.get("success") is True
-        assert "alert" in data
-        # Should not have an alert for middle of ocean
-        print(f"✓ Location check returned alert={data.get('alert')}")
+        assert "alerts" in data
+        assert "alert_count" in data
+        # Should not have alerts for middle of ocean
+        print(f"✓ Location check returned {data.get('alert_count', 0)} alerts")
     
     def test_check_location_near_precinct(self):
         """Test GET /api/location-alerts/check - location near Los Angeles PD"""
@@ -83,13 +84,17 @@ class TestLocationAlerts:
         data = response.json()
         
         assert data.get("success") is True
-        assert "alert" in data
-        # Should have an alert near LA PD
-        if data.get("alert"):
-            assert "precinct" in data
-            print(f"✓ Alert triggered near {data.get('precinct', {}).get('name', 'Unknown')}")
+        assert "alerts" in data
+        assert "alert_count" in data
+        assert "has_critical" in data
+        assert "has_high" in data
+        
+        # Log the result
+        alert_count = data.get("alert_count", 0)
+        if alert_count > 0:
+            print(f"✓ {alert_count} alerts triggered near LA")
         else:
-            print("✓ No alert (may be outside radius)")
+            print("✓ No alerts (location check working, may be outside radius)")
     
     def test_get_alert_history(self):
         """Test GET /api/location-alerts/history - get user's alert history"""
