@@ -213,6 +213,7 @@ export default function AccountabilityPortalPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <QuickOfficerLookup />
             <Button 
               onClick={() => setReportDialogOpen(true)}
               className="bg-red-600 hover:bg-red-700"
