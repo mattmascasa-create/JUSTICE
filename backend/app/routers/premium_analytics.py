@@ -2,8 +2,11 @@
 Premium Analytics API - Predictive analytics, trends, and audit reports
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from pydantic import BaseModel
+from datetime import datetime
+import io
 
 from app.services.premium_analytics import premium_analytics
 from app.routers.auth import get_current_user
