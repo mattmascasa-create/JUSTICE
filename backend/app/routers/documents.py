@@ -157,10 +157,31 @@ async def share_document(
     }
     await db.notifications.insert_one(notification)
     
+    # Send email notification if recipient has email
+    email_sent = False
+    if recipient.get("email") and is_sendgrid_configured():
+        try:
+            # Build view URL
+            frontend_url = os.environ.get("FRONTEND_URL", "https://legal-shield-11.preview.emergentagent.com")
+            view_url = f"{frontend_url}/legal-documents?share={share_id}"
+            
+            email_result = await send_document_shared_email(
+                to_email=recipient["email"],
+                sender_name=current_user.get("name", "A JUSTICE user"),
+                document_title=doc.get("title", "Legal Document"),
+                document_type=doc.get("document_type", "document"),
+                message=request.message,
+                view_url=view_url
+            )
+            email_sent = email_result.get("success", False)
+        except Exception as e:
+            print(f"Failed to send share notification email: {e}")
+    
     return {
         "success": True,
         "share_id": share_id,
-        "message": f"Document shared with {recipient.get('name', 'user')}"
+        "message": f"Document shared with {recipient.get('name', 'user')}",
+        "email_sent": email_sent
     }
 
 
