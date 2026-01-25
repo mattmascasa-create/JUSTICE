@@ -125,6 +125,42 @@ export default function LegalDocumentsPage() {
     }
   };
 
+  const openShareDialog = (doc) => {
+    setDocToShare(doc);
+    setShareRecipient('');
+    setShareMessage('');
+    setShareDialogOpen(true);
+  };
+
+  const handleShare = async () => {
+    if (!docToShare || !shareRecipient) {
+      toast.error('Please select a recipient');
+      return;
+    }
+
+    setSharing(true);
+    try {
+      const response = await documentsAPI.shareDocument(
+        docToShare.document_id,
+        shareRecipient,
+        shareMessage || undefined
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message || 'Document shared successfully!');
+        setShareDialogOpen(false);
+        // Refresh sent shares
+        const sentRes = await documentsAPI.getSentShares();
+        setSentShares(sentRes.data.shares || []);
+      }
+    } catch (error) {
+      console.error('Error sharing document:', error);
+      toast.error('Failed to share document');
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
