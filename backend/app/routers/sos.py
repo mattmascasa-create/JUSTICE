@@ -68,8 +68,10 @@ async def quick_sos_alert(
     
     await db.sos_alerts.insert_one(alert)
     
-    # Notify contacts via WebSocket
+    # Notify contacts via WebSocket and Email
     notifications_sent = 0
+    emails_sent = 0
+    
     for contact in contacts:
         # If contact is a JUSTICE user, send in-app notification
         if contact.get("is_justice_user") and contact.get("justice_user_id"):
@@ -107,13 +109,35 @@ async def quick_sos_alert(
                 notifications_sent += 1
             except:
                 pass
+        
+        # Send email to contact if they have an email
+        if contact.get("email") and is_sendgrid_configured():
+            try:
+                # Build location address
+                location_address = "Location not available"
+                if request.latitude and request.longitude:
+                    location_address = f"Coordinates: {request.latitude}, {request.longitude}"
+                
+                email_result = await send_sos_alert_email(
+                    to_email=contact["email"],
+                    user_name=user_name,
+                    location_address=location_address,
+                    share_url="https://legal-shield-11.preview.emergentagent.com/dashboard",
+                    latitude=request.latitude,
+                    longitude=request.longitude
+                )
+                if email_result.get("success"):
+                    emails_sent += 1
+            except Exception as e:
+                print(f"Failed to send SOS email to {contact.get('email')}: {e}")
     
     return {
         "success": True,
         "alert_id": alert_id,
         "message": f"SOS alert sent to {len(contacts)} emergency contacts",
         "contacts_notified": len(contacts),
-        "notifications_sent": notifications_sent
+        "notifications_sent": notifications_sent,
+        "emails_sent": emails_sent
     }
 
 
