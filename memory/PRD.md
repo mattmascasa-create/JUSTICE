@@ -686,13 +686,16 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - [x] ✅ Video Call Integration - DONE Jan 22, 2026
 - [x] ✅ Live Real-Time Transcription - DONE Jan 22, 2026
 - [x] ✅ AI-Powered Transcript Summaries - DONE Jan 22, 2026
+- [x] ✅ Court-Grade Evidence System - DONE Jan 25, 2026
+- [x] ✅ Police Accountability Portal - DONE Jan 25, 2026
 
 ### P1 (Ready)
+- [ ] AI Accuracy Enhancements (RAG, guardrails for court-grade AI)
 - [ ] Real blockchain anchoring (Ethereum/Polygon)
-- [ ] Twilio SMS integration
-- [ ] AWS S3 backup storage
+- [ ] Premium Portal Features (auditing tools, predictive analytics)
 
 ### P2 (Future)
+- [ ] Premium Attorney Network
 - [ ] Video recording in Encounter Mode
 - [ ] Live streaming (YouTube/Twitch)
 - [ ] Smart glasses SDK
