@@ -102,16 +102,24 @@ class PremiumAnalyticsService:
         }
     
     def _parse_date(self, date_str: str) -> Optional[datetime]:
-        """Parse date string to datetime"""
+        """Parse date string to datetime (timezone-aware)"""
         if not date_str:
             return None
         try:
             if isinstance(date_str, datetime):
+                # Ensure timezone-aware
+                if date_str.tzinfo is None:
+                    return date_str.replace(tzinfo=timezone.utc)
                 return date_str
-            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+            # Try ISO format first
+            dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
         except:
             try:
-                return datetime.strptime(date_str, "%Y-%m-%d")
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                return dt.replace(tzinfo=timezone.utc)
             except:
                 return None
     
