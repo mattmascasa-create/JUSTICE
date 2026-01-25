@@ -5,11 +5,13 @@ Endpoints for generating legal documents
 from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
+import os
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from app.core.security import get_current_user
 from app.services.legal_documents import legal_document_service, DocumentType
+from app.services.email_service import send_document_shared_email, is_sendgrid_configured
 from app.db.database import db
 
 router = APIRouter(prefix="/documents", tags=["Legal Documents"])
