@@ -65,7 +65,7 @@ if ('serviceWorker' in navigator) {
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, token, authError } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -76,8 +76,15 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  if (!user) {
+  // Check both user and token for authentication
+  if (!user || !token) {
+    console.log('[ProtectedRoute] Not authenticated - redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Show error state if there's an auth error but we still have cached credentials
+  if (authError) {
+    console.log('[ProtectedRoute] Auth error detected:', authError);
   }
 
   return <WebSocketProvider>{children}</WebSocketProvider>;
