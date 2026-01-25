@@ -92,7 +92,7 @@ export function QuickOfficerLookup({ variant = 'button', className = '', onOffic
             <SelectValue placeholder="State" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Any</SelectItem>
+            <SelectItem value="all">Any</SelectItem>
             {US_STATES.map(s => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
