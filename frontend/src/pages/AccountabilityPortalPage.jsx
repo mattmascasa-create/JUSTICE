@@ -234,6 +234,7 @@ export default function AccountabilityPortalPage() {
               ))}
             </SelectContent>
           </Select>
+          </div>
         </div>
 
         {/* Stats Overview */}
