@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Shield, AlertTriangle, TrendingDown, TrendingUp, Building2, User, BadgeAlert, DollarSign, Scale, ChevronRight, Filter, MapPin, Loader2 } from 'lucide-react';
+import { Search, Shield, AlertTriangle, TrendingDown, TrendingUp, Building2, User, BadgeAlert, DollarSign, Scale, ChevronRight, MapPin, Loader2, Plus, FileWarning, PieChart, BarChart3, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -9,8 +9,11 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Progress } from '../components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../components/ui/dialog';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Textarea } from '../components/ui/textarea';
+import { Label } from '../components/ui/label';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 
 const US_STATES = [
