@@ -67,6 +67,7 @@ const getNavItems = (role) => {
     { icon: Map, label: 'Incident Map', path: '/incident-map' },
     { icon: BookOpen, label: 'Know Your Rights', path: '/training' },
     { icon: Building, label: 'Transparency', path: '/transparency' },
+    { icon: Shield, label: 'Accountability Portal', path: '/accountability', highlight: true },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
