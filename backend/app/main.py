@@ -132,6 +132,7 @@ app.include_router(officer_detection_router, prefix="/api")
 app.include_router(realtime_alerts_router, prefix="/api")
 app.include_router(voice_commands_router, prefix="/api")
 app.include_router(encounter_coach_router, prefix="/api")
+app.include_router(location_alerts_router, prefix="/api")
 
 
 # Root endpoint
