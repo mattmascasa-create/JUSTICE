@@ -28,7 +28,7 @@ SENDGRID_SENDER_EMAIL = os.environ.get('SENDGRID_SENDER_EMAIL')
 SENDGRID_ENABLED = bool(SENDGRID_API_KEY)
 
 # Frontend URL (for share links in SMS/email)
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://police-watch-2.preview.emergentagent.com')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://justice-rights-1.preview.emergentagent.com')
 
 # JWT Settings
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-super-secret-key-change-in-production')

@@ -79,10 +79,10 @@
       "analytics - GET /api/analytics/encounters/summary, /patterns, /hotspots, /trends"
     ],
     "frontend_pages_tested": [
-      "Homepage (https://police-watch-2.preview.emergentagent.com/)",
-      "Register (https://police-watch-2.preview.emergentagent.com/register)",
-      "Login (https://police-watch-2.preview.emergentagent.com/login)",
-      "Dashboard (https://police-watch-2.preview.emergentagent.com/dashboard)"
+      "Homepage (https://justice-rights-1.preview.emergentagent.com/)",
+      "Register (https://justice-rights-1.preview.emergentagent.com/register)",
+      "Login (https://justice-rights-1.preview.emergentagent.com/login)",
+      "Dashboard (https://justice-rights-1.preview.emergentagent.com/dashboard)"
     ]
   }
 }
