@@ -348,6 +348,58 @@ export default function EncounterPage() {
       console.error('AI analysis error:', error);
     }
   };
+  
+  // Perform real-time AI coaching on transcriptions
+  const performCoaching = useCallback(async (text) => {
+    if (!encounter || !text || text.length < 10 || !coachingEnabled) return;
+    
+    // Throttle coaching to every 3 seconds
+    const now = Date.now();
+    if (now - lastCoachingTime < 3000) return;
+    setLastCoachingTime(now);
+    
+    try {
+      const response = await encounterCoachAPI.analyze(
+        text,
+        encounterType,
+        encounter.encounter_id
+      );
+      
+      if (response.data.coaching?.length > 0) {
+        // Add new coaching messages with animation
+        setCoachingMessages(prev => {
+          const newMessages = response.data.coaching.map(msg => ({
+            ...msg,
+            id: `${msg.coaching_id}_${Date.now()}`,
+            isNew: true
+          }));
+          
+          // Keep only last 10 messages
+          const combined = [...newMessages, ...prev].slice(0, 10);
+          
+          // Announce urgent messages
+          const urgent = newMessages.find(m => m.tone === 'urgent');
+          if (urgent) {
+            toast.warning(urgent.message, { 
+              duration: 8000,
+              icon: '🛡️'
+            });
+          }
+          
+          return combined;
+        });
+        
+        // Clear "new" status after animation
+        setTimeout(() => {
+          setCoachingMessages(prev => 
+            prev.map(m => ({ ...m, isNew: false }))
+          );
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Coaching error:', error);
+    }
+  }, [encounter, encounterType, coachingEnabled, lastCoachingTime]);
 
   // Voice Command Handler
   const handleVoiceCommand = useCallback(async (command) => {
