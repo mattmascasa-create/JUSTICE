@@ -128,6 +128,7 @@ app.include_router(court_grade_ai_router, prefix="/api")
 app.include_router(premium_analytics_router, prefix="/api")
 app.include_router(officer_detection_router, prefix="/api")
 app.include_router(realtime_alerts_router, prefix="/api")
+app.include_router(voice_commands_router, prefix="/api")
 
 
 # Root endpoint
