@@ -113,6 +113,80 @@ export default function EvidencePage() {
       const selectedCase = cases.find(c => c.case_id === selectedReportCase);
       const caseTitle = selectedCase?.title?.replace(/[^a-zA-Z0-9 -_]/g, '_').slice(0, 30) || 'case';
       link.download = `JUSTICE_Evidence_${caseTitle}_${selectedReportCase}.zip`;
+  };
+
+  // Share custody access
+  const handleShareCustody = async (e) => {
+    e.preventDefault();
+    if (!shareEvidence || !shareForm.recipientEmail || !shareForm.recipientName) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    setSharing(true);
+    try {
+      const response = await custodyPortalAPI.createAccess(
+        shareEvidence.evidence_id,
+        shareEvidence.encounter_id || shareEvidence.case_id,
+        shareForm.recipientEmail,
+        shareForm.recipientName,
+        shareForm.recipientRole,
+        shareForm.accessLevel,
+        shareForm.expiresHours,
+        shareForm.notes || null
+      );
+      
+      setShareResult(response.data);
+      toast.success(`Access link created for ${shareForm.recipientName}`);
+    } catch (error) {
+      console.error('Error creating custody access:', error);
+      toast.error(error.response?.data?.detail || 'Failed to create access link');
+    } finally {
+      setSharing(false);
+    }
+  };
+  
+  const openShareDialog = (ev) => {
+    setShareEvidence(ev);
+    setShareForm({
+      recipientEmail: '',
+      recipientName: '',
+      recipientRole: 'attorney',
+      accessLevel: 'view',
+      expiresHours: 72,
+      notes: ''
+    });
+    setShareResult(null);
+    setShareDialogOpen(true);
+  };
+  
+  const copyShareLink = async () => {
+    if (shareResult?.portal_url) {
+      await navigator.clipboard.writeText(shareResult.portal_url);
+      toast.success('Link copied to clipboard');
+    }
+  };
+
+  const handleBatchExportOriginal = async () => {
+    if (!selectedReportCase) {
+      toast.error('Please select a case');
+      return;
+    }
+    
+    setGeneratingReport(true);
+    try {
+      const response = await blockchainAPI.batchExport(selectedReportCase);
+      
+      // Create download link for the ZIP file
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get case title for filename
+      const selectedCase = cases.find(c => c.case_id === selectedReportCase);
+      const caseTitle = selectedCase?.title?.replace(/[^a-zA-Z0-9 -_]/g, '_').slice(0, 30) || 'case';
+      link.download = `JUSTICE_Evidence_${caseTitle}_${selectedReportCase}.zip`;
       
       document.body.appendChild(link);
       link.click();
