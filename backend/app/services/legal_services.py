@@ -284,8 +284,11 @@ class LegalBriefGenerator:
    Timestamp: {e.get('timestamp', 'N/A')}
 """
         
-        # Generate brief using AI
+        # Generate brief using AI (optional enhancement)
+        ai_brief = None
         try:
+            from app.services.ai_service import ai_service
+            
             ai_context = f"""
             Generate a professional legal brief for a Section 1983 civil rights case.
             
@@ -309,14 +312,9 @@ class LegalBriefGenerator:
             Keep it professional and cite relevant case law.
             """
             
-            # Use AI attorney for generation
-            ai_response = await ai_attorney.chat(
-                user_id="system",
-                message=ai_context,
-                context={"case_type": "civil_rights", "generate_brief": True}
-            )
-            
-            ai_brief = ai_response.get("response", "")
+            # Use AI service for generation if available
+            ai_response = await ai_service.analyze_text(ai_context, "legal_brief_generation")
+            ai_brief = ai_response.get("analysis", "")
         except Exception as e:
             logger.error(f"AI brief generation error: {e}")
             ai_brief = None
