@@ -1344,7 +1344,11 @@ export default function EncounterPage() {
                 autoPlay 
                 muted 
                 playsInline
+                webkit-playsinline="true"
+                x5-playsinline="true"
+                x5-video-player-type="h5"
                 className="w-full h-full object-cover"
+                style={{ objectFit: 'cover' }}
               />
               <div className="absolute top-3 left-3 flex items-center gap-2">
                 <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`}>
