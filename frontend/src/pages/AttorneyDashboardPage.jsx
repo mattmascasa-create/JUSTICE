@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -9,14 +9,15 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { attorneyCollabAPI } from '../lib/api';
+import { attorneyCollabAPI, attorneyStreamAPI } from '../lib/api';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Briefcase, Users, FileText, MessageCircle, 
   Clock, CheckCircle, Shield, Award, 
   AlertTriangle, ArrowRight, Mail, Building,
-  BarChart3, UserCheck, XCircle
+  BarChart3, UserCheck, XCircle, Video,
+  Radio, MapPin, Bell, Eye, RefreshCw, ExternalLink
 } from 'lucide-react';
 
 export default function AttorneyDashboardPage() {
