@@ -474,12 +474,12 @@ async def download_court_package_for_portal(
     # Log custody event
     await evidence_integrity_service.log_custody_event(
         evidence_id=evidence_id,
-        action="exported",
-        actor_id=f"external_{token_record['recipient_role']}",
-        actor_name=token_record["recipient_name"],
+        action=CustodyAction.EXPORTED,
+        user_id=f"external_{token_record['recipient_role']}",
         details={
             "access_method": "custody_portal",
-            "export_type": "court_package"
+            "export_type": "court_package",
+            "actor_name": token_record["recipient_name"]
         }
     )
     
