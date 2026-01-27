@@ -677,11 +677,15 @@ export default function EncounterPage() {
       
       // Request media permissions based on settings
       const mediaConstraints = {
-        audio: true,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
         video: enableVideo ? {
-          facingMode: 'environment', // Use back camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          facingMode: { ideal: 'environment' }, // Use back camera, fallback to any
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 }
         } : false
       };
 
@@ -691,16 +695,53 @@ export default function EncounterPage() {
       // Show video preview if video is enabled
       if (enableVideo && videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = stream;
+        // Force play on mobile
+        try {
+          await videoPreviewRef.current.play();
+        } catch (playErr) {
+          console.log('Video autoplay blocked, user interaction needed');
+        }
       }
 
-      // Determine the correct MIME type
-      const videoMimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
-        ? 'video/webm;codecs=vp9,opus'
-        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
-        ? 'video/webm;codecs=vp8,opus'
-        : 'video/webm';
+      // Determine the correct MIME type with mobile fallbacks
+      // iOS Safari doesn't support webm, need to use mp4
+      const getSupportedMimeType = (isVideo) => {
+        if (isVideo) {
+          const videoTypes = [
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm',
+            'video/mp4;codecs=h264,aac',
+            'video/mp4'
+          ];
+          for (const type of videoTypes) {
+            if (MediaRecorder.isTypeSupported(type)) {
+              console.log('Using video MIME type:', type);
+              return type;
+            }
+          }
+          return ''; // Let browser choose default
+        } else {
+          const audioTypes = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/mp4;codecs=aac',
+            'audio/mp4',
+            'audio/aac',
+            'audio/wav'
+          ];
+          for (const type of audioTypes) {
+            if (MediaRecorder.isTypeSupported(type)) {
+              console.log('Using audio MIME type:', type);
+              return type;
+            }
+          }
+          return ''; // Let browser choose default
+        }
+      };
 
-      const audioMimeType = 'audio/webm;codecs=opus';
+      const videoMimeType = getSupportedMimeType(true);
+      const audioMimeType = getSupportedMimeType(false);
 
       // Create video/audio recorder for the full stream
       const mediaRecorder = new MediaRecorder(stream, {
