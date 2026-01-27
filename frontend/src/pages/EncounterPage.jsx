@@ -1785,9 +1785,7 @@ export default function EncounterPage() {
                 autoPlay 
                 muted 
                 playsInline
-                webkit-playsinline="true"
-                x5-playsinline="true"
-                x5-video-player-type="h5"
+                webkitPlaysInline="true"
                 className="w-full h-full object-cover"
                 style={{ objectFit: 'cover' }}
               />
