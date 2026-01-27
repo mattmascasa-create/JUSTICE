@@ -10,8 +10,9 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { encounterAPI } from '../lib/api';
-import api, { encounterCoachAPI } from '../lib/api';
+import api, { encounterCoachAPI, attorneyStreamAPI, multiCloudBackupAPI } from '../lib/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { 
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
