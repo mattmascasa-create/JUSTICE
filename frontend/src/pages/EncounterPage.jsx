@@ -2251,7 +2251,7 @@ export default function EncounterPage() {
                                 </Badge>
                                 {msg.trigger_phrase && (
                                   <span className="text-xs text-muted-foreground">
-                                    Triggered by: "{msg.trigger_phrase}"
+                                    Triggered by: &quot;{msg.trigger_phrase}&quot;
                                   </span>
                                 )}
                               </div>
