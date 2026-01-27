@@ -1093,7 +1093,7 @@ export default function EncounterPage() {
         }
       };
 
-      // If audio-only, handle transcription directly
+      // If audio-only, handle transcription directly from main recorder
       if (!enableVideo) {
         mediaRecorder.ondataavailable = async (event) => {
           if (event.data.size > 0) {
@@ -1105,7 +1105,20 @@ export default function EncounterPage() {
               const blob = new Blob(audioChunksRef.current, { type: blobType });
               audioChunksRef.current = [];
               
-              console.log('Uploading audio-only blob:', blob.size, 'bytes, type:', blobType);
+              console.log('Audio-only: Uploading blob for transcription:', blob.size, 'bytes, type:', blobType);
+              
+              // Check if offline - queue for later
+              if (!navigator.onLine) {
+                setPendingUploads(prev => [...prev, {
+                  type: 'audio',
+                  encounterId: response.data.encounter_id,
+                  blob: blob,
+                  chunkIndex: chunkIndexRef.current++,
+                  timestamp: Date.now()
+                }]);
+                console.log('Offline: Audio chunk queued for sync');
+                return;
+              }
               
               try {
                 const result = await encounterAPI.uploadAudio(
@@ -1114,10 +1127,13 @@ export default function EncounterPage() {
                   chunkIndexRef.current++
                 );
                 
+                console.log('Transcription result:', result.data);
+                
                 if (result.data.transcription) {
                   setTranscriptions(prev => [...prev, result.data.transcription]);
                   // Trigger AI coaching
                   if (result.data.transcription.text) {
+                    performAIAnalysis(result.data.transcription.text);
                     performCoaching(result.data.transcription.text);
                   }
                   if (result.data.transcription.violations_detected?.length > 0) {
@@ -1128,7 +1144,15 @@ export default function EncounterPage() {
                   }
                 }
               } catch (err) {
-                console.error('Upload error:', err);
+                console.error('Audio upload/transcription error:', err);
+                // Queue failed upload for retry
+                setPendingUploads(prev => [...prev, {
+                  type: 'audio',
+                  encounterId: response.data.encounter_id,
+                  blob: blob,
+                  chunkIndex: chunkIndexRef.current - 1,
+                  timestamp: Date.now()
+                }]);
               }
             }
           }
