@@ -579,6 +579,131 @@ export default function EncounterPage() {
     }
   }, []);
 
+  // Offline detection and auto-sync
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      toast.success('📶 Back online! Syncing data...');
+      syncOfflineData();
+    };
+    
+    const handleOffline = () => {
+      setIsOffline(true);
+      toast.warning('📴 You are offline. Recording will continue locally.');
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
+  // Sync offline data when back online
+  const syncOfflineData = async () => {
+    if (pendingUploads.length === 0) return;
+    
+    setSyncingOfflineData(true);
+    toast.info(`Syncing ${pendingUploads.length} pending uploads...`);
+    
+    let successCount = 0;
+    const failedUploads = [];
+    
+    for (const upload of pendingUploads) {
+      try {
+        if (upload.type === 'audio') {
+          await encounterAPI.uploadAudio(upload.encounterId, upload.blob, upload.chunkIndex);
+        } else if (upload.type === 'video') {
+          await encounterAPI.uploadVideo(upload.encounterId, upload.blob, upload.chunkIndex);
+        }
+        successCount++;
+      } catch (err) {
+        console.error('Sync upload failed:', err);
+        failedUploads.push(upload);
+      }
+    }
+    
+    setPendingUploads(failedUploads);
+    setSyncingOfflineData(false);
+    
+    if (successCount > 0) {
+      toast.success(`✅ Synced ${successCount} recordings`);
+    }
+    if (failedUploads.length > 0) {
+      toast.error(`${failedUploads.length} uploads still pending`);
+    }
+  };
+  
+  // Stealth mode activation - triple tap detection
+  useEffect(() => {
+    if (!isRecording) return;
+    
+    let tapCount = 0;
+    let tapTimer = null;
+    
+    const handleTripleTap = () => {
+      tapCount++;
+      
+      if (tapCount === 1) {
+        tapTimer = setTimeout(() => {
+          tapCount = 0;
+        }, 500); // Reset after 500ms
+      }
+      
+      if (tapCount === 3) {
+        clearTimeout(tapTimer);
+        tapCount = 0;
+        toggleStealthMode();
+      }
+    };
+    
+    // Also listen for volume button pattern (vol up, vol down, vol up)
+    let volumePattern = [];
+    const handleKeyDown = (e) => {
+      if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown') {
+        volumePattern.push(e.key);
+        if (volumePattern.length > 3) volumePattern.shift();
+        
+        if (volumePattern.join(',') === 'AudioVolumeUp,AudioVolumeDown,AudioVolumeUp') {
+          volumePattern = [];
+          toggleStealthMode();
+        }
+      }
+    };
+    
+    document.addEventListener('click', handleTripleTap);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('click', handleTripleTap);
+      document.removeEventListener('keydown', handleKeyDown);
+      if (tapTimer) clearTimeout(tapTimer);
+    };
+  }, [isRecording, stealthActivated]);
+  
+  const toggleStealthMode = () => {
+    setStealthActivated(prev => {
+      const newState = !prev;
+      if (newState) {
+        // Entering stealth mode
+        toast.success('🔒 Stealth mode activated', { duration: 1000 });
+        // Vibrate twice to confirm (if supported)
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 100]);
+        }
+      } else {
+        // Exiting stealth mode
+        toast.info('Stealth mode deactivated');
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+      }
+      return newState;
+    });
+  };
+
   // Rotate rights reminders
   useEffect(() => {
     if (isRecording && !isPaused) {
