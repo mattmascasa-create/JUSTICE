@@ -2615,6 +2615,94 @@ export default function EncounterPage() {
               <span className="text-xs">Know Rights</span>
             </Button>
           </div>
+          
+          {/* Attorney Live Stream */}
+          <div className="grid grid-cols-2 gap-2">
+            {attorneyStreamActive ? (
+              <Button 
+                variant="outline" 
+                className="border-green-500 text-green-500 h-12"
+                onClick={endAttorneyStream}
+                data-testid="end-attorney-stream-btn"
+              >
+                <Video className="h-4 w-4 mr-2" />
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-bold">Attorney Watching</span>
+                  <span className="text-xs opacity-70">End stream</span>
+                </div>
+              </Button>
+            ) : (
+              <Dialog open={showStreamDialog} onOpenChange={setShowStreamDialog}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="border-blue-500 text-blue-500 h-12"
+                    data-testid="stream-to-attorney-btn"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs font-bold">Stream to Attorney</span>
+                      <span className="text-xs opacity-70">Live video call</span>
+                    </div>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Stream to Your Attorney</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Your attorney will receive a secure link to watch your live encounter in real-time.
+                    </p>
+                    <div className="space-y-2">
+                      <Label>Attorney Email (optional)</Label>
+                      <Input
+                        type="email"
+                        placeholder="attorney@lawfirm.com"
+                        value={streamAttorneyEmail}
+                        onChange={(e) => setStreamAttorneyEmail(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        We'll send them a notification with the stream link
+                      </p>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={startAttorneyStream}
+                      disabled={streamingToAttorney}
+                    >
+                      {streamingToAttorney ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Starting Stream...
+                        </>
+                      ) : (
+                        <>
+                          <Video className="h-4 w-4 mr-2" />
+                          Start Live Stream
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
+            {/* Cloud Backup Button */}
+            <Button 
+              variant="outline" 
+              className="border-purple-500 text-purple-500 h-12"
+              onClick={triggerCloudBackup}
+              disabled={!encounter}
+              data-testid="cloud-backup-btn"
+            >
+              <Wifi className="h-4 w-4 mr-2" />
+              <div className="flex flex-col items-start">
+                <span className="text-xs font-bold">Cloud Backup</span>
+                <span className="text-xs opacity-70">Multi-cloud save</span>
+              </div>
+            </Button>
+          </div>
         </div>
       </div>
     </AppLayout>
