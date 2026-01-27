@@ -148,6 +148,7 @@ function AppRouter() {
       <Route path="/legal-documents" element={<ProtectedRoute><LegalDocumentsPage /></ProtectedRoute>} />
       <Route path="/premium-analytics" element={<ProtectedRoute><PremiumAnalyticsPage /></ProtectedRoute>} />
       <Route path="/court-grade-ai" element={<ProtectedRoute><CourtGradeAIPage /></ProtectedRoute>} />
+      <Route path="/legal-tools" element={<ProtectedRoute><LegalToolsPage /></ProtectedRoute>} />
       <Route path="/accountability" element={<AccountabilityPortalPage />} />
       
       {/* Auth Callback */}
