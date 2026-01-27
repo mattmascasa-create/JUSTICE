@@ -1209,44 +1209,84 @@ export default function EncounterPage() {
   };
 
   const stopRecording = async () => {
-    if (mediaRecorderRef.current) {
-      // Stop voice recognition
-      if (voiceRecognitionRef.current) {
+    // First, stop all media immediately to prevent further state changes
+    const currentEncounter = encounter;
+    const currentEncounterId = currentEncounter?.encounter_id;
+    
+    // Stop voice recognition first
+    if (voiceRecognitionRef.current) {
+      try {
         voiceRecognitionRef.current.stop();
-        voiceRecognitionRef.current = null;
+      } catch (e) {
+        console.log('Voice recognition already stopped');
       }
-      
-      // Stop all recorders
-      mediaRecorderRef.current.stop();
-      if (audioRecorderRef.current) audioRecorderRef.current.stop();
-      if (screenRecorderRef.current) {
+      voiceRecognitionRef.current = null;
+    }
+    
+    // Stop all recorders safely
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {
+        console.log('Media recorder already stopped');
+      }
+    }
+    
+    if (audioRecorderRef.current && audioRecorderRef.current.state !== 'inactive') {
+      try {
+        audioRecorderRef.current.stop();
+      } catch (e) {
+        console.log('Audio recorder already stopped');
+      }
+    }
+    
+    if (screenRecorderRef.current && screenRecorderRef.current.state !== 'inactive') {
+      try {
         screenRecorderRef.current.stop();
-        screenRecorderRef.current = null;
+      } catch (e) {
+        console.log('Screen recorder already stopped');
       }
-      
-      // Stop all tracks
-      streamRef.current?.getTracks().forEach(track => track.stop());
-      screenStreamRef.current?.getTracks().forEach(track => track.stop());
-      
-      // Clear video preview
-      if (videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = null;
-      }
-      
-      setScreenRecordingActive(false);
-      
+      screenRecorderRef.current = null;
+    }
+    
+    // Stop all media tracks
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        try { track.stop(); } catch (e) {}
+      });
+    }
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => {
+        try { track.stop(); } catch (e) {}
+      });
+    }
+    
+    // Clear video preview
+    if (videoPreviewRef.current) {
+      videoPreviewRef.current.srcObject = null;
+    }
+    
+    // Update UI state immediately
+    setIsRecording(false);
+    setIsPaused(false);
+    setScreenRecordingActive(false);
+    
+    // Now handle the API call for ending the encounter
+    if (currentEncounterId) {
       try {
         toast.info('Processing recording and generating report...');
-        const response = await encounterAPI.end(encounter.encounter_id);
+        await encounterAPI.end(currentEncounterId);
         toast.success('Recording ended. Detailed report generated!');
-        navigate(`/encounters/${encounter.encounter_id}`);
+        navigate(`/encounters/${currentEncounterId}`);
       } catch (error) {
         console.error('Error ending encounter:', error);
-        toast.error('Error ending encounter');
+        toast.error('Recording saved. Navigate to your encounters to view.');
+        // Still navigate even if the API fails
+        navigate('/encounters');
       }
-      
-      setIsRecording(false);
-      setIsPaused(false);
+    } else {
+      toast.info('Recording stopped.');
+      navigate('/encounters');
     }
   };
   
