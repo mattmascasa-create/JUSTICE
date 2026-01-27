@@ -940,6 +940,19 @@ export default function EncounterPage() {
               
               console.log('Uploading audio blob:', blob.size, 'bytes, type:', blobType);
               
+              // Check if offline - queue for later
+              if (!navigator.onLine) {
+                setPendingUploads(prev => [...prev, {
+                  type: 'audio',
+                  encounterId: response.data.encounter_id,
+                  blob: blob,
+                  chunkIndex: chunkIndexRef.current++,
+                  timestamp: Date.now()
+                }]);
+                console.log('Offline: Audio chunk queued for sync');
+                return;
+              }
+              
               try {
                 const result = await encounterAPI.uploadAudio(
                   response.data.encounter_id,
@@ -966,6 +979,14 @@ export default function EncounterPage() {
                 }
               } catch (err) {
                 console.error('Audio upload error:', err);
+                // Queue failed upload for retry
+                setPendingUploads(prev => [...prev, {
+                  type: 'audio',
+                  encounterId: response.data.encounter_id,
+                  blob: blob,
+                  chunkIndex: chunkIndexRef.current - 1,
+                  timestamp: Date.now()
+                }]);
               }
             }
           }
