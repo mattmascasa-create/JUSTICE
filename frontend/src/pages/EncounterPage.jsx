@@ -175,6 +175,15 @@ export default function EncounterPage() {
   const [videoChunkCount, setVideoChunkCount] = useState(0);
   const [uploadingChunk, setUploadingChunk] = useState(false);
   
+  // Stealth Mode State
+  const [stealthMode, setStealthMode] = useState(false);
+  const [stealthActivated, setStealthActivated] = useState(false);
+  
+  // Offline Mode State
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [pendingUploads, setPendingUploads] = useState([]);
+  const [syncingOfflineData, setSyncingOfflineData] = useState(false);
+  
   // Voice Commands State
   const [voiceCommandsEnabled, setVoiceCommandsEnabled] = useState(true);
   const [lastVoiceCommand, setLastVoiceCommand] = useState(null);
@@ -187,6 +196,10 @@ export default function EncounterPage() {
   const [viewerCount, setViewerCount] = useState(0);
   const [guidanceMessages, setGuidanceMessages] = useState([]);
   const [autoShare, setAutoShare] = useState(true);
+  
+  // Attorney Live Stream State
+  const [attorneyStreamActive, setAttorneyStreamActive] = useState(false);
+  const [connectedAttorney, setConnectedAttorney] = useState(null);
   
   // Screen Recording State
   const [enableScreenRecording, setEnableScreenRecording] = useState(false);
