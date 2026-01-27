@@ -93,28 +93,6 @@ export default function EvidencePage() {
     }
   };
 
-  const handleBatchExport = async () => {
-    if (!selectedReportCase) {
-      toast.error('Please select a case');
-      return;
-    }
-    
-    setGeneratingReport(true);
-    try {
-      const response = await blockchainAPI.batchExport(selectedReportCase);
-      
-      // Create download link for the ZIP file
-      const blob = new Blob([response.data], { type: 'application/zip' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Get case title for filename
-      const selectedCase = cases.find(c => c.case_id === selectedReportCase);
-      const caseTitle = selectedCase?.title?.replace(/[^a-zA-Z0-9 -_]/g, '_').slice(0, 30) || 'case';
-      link.download = `JUSTICE_Evidence_${caseTitle}_${selectedReportCase}.zip`;
-  };
-
   // Share custody access
   const handleShareCustody = async (e) => {
     e.preventDefault();
@@ -167,7 +145,7 @@ export default function EvidencePage() {
     }
   };
 
-  const handleBatchExportOriginal = async () => {
+  const handleBatchExport = async () => {
     if (!selectedReportCase) {
       toast.error('Please select a case');
       return;
