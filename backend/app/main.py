@@ -50,6 +50,7 @@ from app.routers.location_alerts import router as location_alerts_router
 from app.routers.legal_services import router as legal_services_router
 from app.routers.multi_cloud_backup import router as multi_cloud_backup_router
 from app.routers.attorney_stream import router as attorney_stream_router
+from app.routers.custody_portal import router as custody_portal_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
