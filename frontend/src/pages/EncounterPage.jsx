@@ -1331,10 +1331,15 @@ export default function EncounterPage() {
     setStreamingToAttorney(true);
     
     try {
+      // Use location based on settings
+      const shareLocation = attorneySettings?.shareLocationWithAttorney !== false;
+      const locationToShare = shareLocation ? (address || (location ? `${location.latitude}, ${location.longitude}` : null)) : null;
+      
       const response = await attorneyStreamAPI.createStream(
         encounter.encounter_id,
         streamAttorneyEmail || null,
-        address || null
+        locationToShare,
+        attorneySettings?.notificationMethod || 'email'
       );
       
       setStreamSession(response.data);
@@ -1347,8 +1352,9 @@ export default function EncounterPage() {
         toast.success('🎥 Attorney stream started! Link copied to clipboard.');
       }
       
+      const notifMethod = attorneySettings?.notificationMethod || 'email';
       if (streamAttorneyEmail) {
-        toast.info(`Notification sent to ${streamAttorneyEmail}`);
+        toast.info(`Notification sent via ${notifMethod} to ${streamAttorneyEmail}`);
       }
     } catch (error) {
       console.error('Attorney stream error:', error);
