@@ -1002,4 +1002,84 @@ export const legalServicesAPI = {
   getStateResources: (state) => api.get(`/legal/hotline/by-state/${state}`)
 };
 
+// Multi-Cloud Backup API - Redundant evidence storage
+export const multiCloudBackupAPI = {
+  // Get enabled providers
+  getProviders: () => api.get('/backup/providers'),
+  
+  // Backup evidence file
+  backupEvidence: (evidenceId, file, encounterId) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('encounter_id', encounterId);
+    return api.post(`/backup/evidence/${evidenceId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  
+  // Backup all encounter evidence
+  backupAllEncounter: (encounterId) => api.post(`/backup/encounter/${encounterId}/all`),
+  
+  // Get backup status
+  getStatus: (evidenceId) => api.get(`/backup/status/${evidenceId}`),
+  
+  // Verify backup integrity
+  verifyIntegrity: (evidenceId) => api.post(`/backup/verify/${evidenceId}`),
+  
+  // Get backup history
+  getHistory: (limit = 50) => api.get('/backup/history', { params: { limit } })
+};
+
+// Attorney Live Stream API - Real-time video to attorneys
+export const attorneyStreamAPI = {
+  // Create stream session
+  createStream: (encounterId, attorneyEmail = null, location = null) =>
+    api.post('/attorney-stream/create', {
+      encounter_id: encounterId,
+      attorney_email: attorneyEmail,
+      location: location
+    }),
+  
+  // Join stream (no auth needed - uses token)
+  joinStream: (streamCode, token, role) =>
+    api.post('/attorney-stream/join', {
+      stream_code: streamCode,
+      token: token,
+      role: role
+    }),
+  
+  // Get session info
+  getSession: (streamCode) => api.get(`/attorney-stream/session/${streamCode}`),
+  
+  // Send WebRTC signaling data
+  sendSignal: (streamCode, signalType, data, senderRole) =>
+    api.post('/attorney-stream/signal', {
+      stream_code: streamCode,
+      signal_type: signalType,
+      data: data,
+      sender_role: senderRole
+    }),
+  
+  // Get signaling data
+  getSignals: (streamCode, role) => api.get(`/attorney-stream/signal/${streamCode}/${role}`),
+  
+  // Send chat message
+  sendMessage: (streamCode, message, senderRole) =>
+    api.post('/attorney-stream/message', {
+      stream_code: streamCode,
+      message: message,
+      sender_role: senderRole
+    }),
+  
+  // Get messages
+  getMessages: (streamCode) => api.get(`/attorney-stream/messages/${streamCode}`),
+  
+  // End stream
+  endStream: (streamCode, endedBy = 'user') =>
+    api.post(`/attorney-stream/end/${streamCode}`, null, { params: { ended_by: endedBy } }),
+  
+  // Get stream history
+  getHistory: (limit = 20) => api.get('/attorney-stream/history', { params: { limit } })
+};
+
 export default api;
