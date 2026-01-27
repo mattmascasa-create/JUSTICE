@@ -159,66 +159,136 @@ export default function AttorneyDashboardPage() {
             </p>
           </div>
           
-          {/* Verification Badge / Button */}
-          {dashboard?.verified ? (
-            <Badge variant="secondary" className="flex items-center gap-2 text-green-600 bg-green-100">
-              <CheckCircle className="h-4 w-4" />
-              Verified Attorney
-            </Badge>
-          ) : (
-            <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline" data-testid="verify-btn">
-                  <Award className="h-4 w-4 mr-2" />
-                  Verify Credentials
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Attorney Verification</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bar-number">Bar Number *</Label>
-                    <Input
-                      id="bar-number"
-                      value={verifyForm.barNumber}
-                      onChange={(e) => setVerifyForm({ ...verifyForm, barNumber: e.target.value })}
-                      placeholder="e.g., CA123456"
-                      data-testid="bar-number-input"
-                    />
+          <div className="flex items-center gap-3">
+            {/* Refresh Button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={refreshing}
+              data-testid="refresh-dashboard-btn"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            
+            {/* Verification Badge / Button */}
+            {dashboard?.verified ? (
+              <Badge variant="secondary" className="flex items-center gap-2 text-green-600 bg-green-100">
+                <CheckCircle className="h-4 w-4" />
+                Verified Attorney
+              </Badge>
+            ) : (
+              <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" data-testid="verify-btn">
+                    <Award className="h-4 w-4 mr-2" />
+                    Verify Credentials
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Attorney Verification</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bar-number">Bar Number *</Label>
+                      <Input
+                        id="bar-number"
+                        value={verifyForm.barNumber}
+                        onChange={(e) => setVerifyForm({ ...verifyForm, barNumber: e.target.value })}
+                        placeholder="e.g., CA123456"
+                        data-testid="bar-number-input"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="firm-name">Law Firm (Optional)</Label>
+                      <Input
+                        id="firm-name"
+                        value={verifyForm.firmName}
+                        onChange={(e) => setVerifyForm({ ...verifyForm, firmName: e.target.value })}
+                        placeholder="Your law firm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="specialization">Specialization (Optional)</Label>
+                      <Input
+                        id="specialization"
+                        value={verifyForm.specialization}
+                        onChange={(e) => setVerifyForm({ ...verifyForm, specialization: e.target.value })}
+                        placeholder="e.g., Civil Rights, Criminal Defense"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="firm-name">Law Firm (Optional)</Label>
-                    <Input
-                      id="firm-name"
-                      value={verifyForm.firmName}
-                      onChange={(e) => setVerifyForm({ ...verifyForm, firmName: e.target.value })}
-                      placeholder="Your law firm"
-                    />
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowVerifyDialog(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleVerify} disabled={verifying} data-testid="submit-verify-btn">
+                      {verifying ? 'Verifying...' : 'Submit Verification'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        </div>
+
+        {/* URGENT: Active Live Streams */}
+        {activeStreams.length > 0 && (
+          <Card className="border-red-500 bg-red-500/5" data-testid="active-streams-section">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-red-500 animate-pulse">
+                  <Radio className="h-4 w-4 text-white" />
+                </div>
+                <CardTitle className="text-red-600">
+                  🚨 Active Live Streams ({activeStreams.length})
+                </CardTitle>
+              </div>
+              <CardDescription>Your clients need immediate attention</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {activeStreams.map((stream, index) => (
+                <div 
+                  key={stream.session_id}
+                  className="flex items-center justify-between p-4 rounded-lg bg-white border border-red-200 shadow-sm"
+                  data-testid={`active-stream-${index}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                      <Video className="h-6 w-6 text-red-600 animate-pulse" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Police Encounter in Progress</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {stream.location || 'Location not shared'}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Started: {new Date(stream.created_at).toLocaleTimeString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="specialization">Specialization (Optional)</Label>
-                    <Input
-                      id="specialization"
-                      value={verifyForm.specialization}
-                      onChange={(e) => setVerifyForm({ ...verifyForm, specialization: e.target.value })}
-                      placeholder="e.g., Civil Rights, Criminal Defense"
-                    />
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive" className="animate-pulse">LIVE</Badge>
+                    <a 
+                      href={`/live-stream/${stream.stream_code}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button className="bg-red-600 hover:bg-red-700" data-testid={`join-stream-${index}`}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Join Stream
+                        <ExternalLink className="h-3 w-3 ml-2" />
+                      </Button>
+                    </a>
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowVerifyDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleVerify} disabled={verifying} data-testid="submit-verify-btn">
-                    {verifying ? 'Verifying...' : 'Submit Verification'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
