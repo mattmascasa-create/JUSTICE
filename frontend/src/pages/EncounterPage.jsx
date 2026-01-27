@@ -775,8 +775,19 @@ export default function EncounterPage() {
       // Also create a separate audio recorder for transcription
       if (enableVideo) {
         const audioStream = new MediaStream(stream.getAudioTracks());
-        const audioRecorder = new MediaRecorder(audioStream, { mimeType: audioMimeType });
+        
+        let audioRecorder;
+        try {
+          const audioOptions = audioMimeType ? { mimeType: audioMimeType } : {};
+          audioRecorder = new MediaRecorder(audioStream, audioOptions);
+        } catch (e) {
+          console.warn('Audio MediaRecorder with options failed, trying default:', e);
+          audioRecorder = new MediaRecorder(audioStream);
+        }
         audioRecorderRef.current = audioRecorder;
+        
+        const audioRecorderMimeType = audioRecorder.mimeType || 'audio/webm';
+        console.log('Audio recorder using MIME type:', audioRecorderMimeType);
 
         audioRecorder.ondataavailable = async (event) => {
           if (event.data.size > 0) {
