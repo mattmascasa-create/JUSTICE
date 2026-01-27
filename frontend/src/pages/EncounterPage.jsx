@@ -795,8 +795,12 @@ export default function EncounterPage() {
             
             // Upload audio chunk for transcription
             if (audioChunksRef.current.length >= 1) {
-              const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+              // Use the actual MIME type from the recorder
+              const blobType = audioRecorder.mimeType || 'audio/webm';
+              const blob = new Blob(audioChunksRef.current, { type: blobType });
               audioChunksRef.current = [];
+              
+              console.log('Uploading audio blob:', blob.size, 'bytes, type:', blobType);
               
               try {
                 const result = await encounterAPI.uploadAudio(
