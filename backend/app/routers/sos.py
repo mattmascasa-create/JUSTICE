@@ -122,7 +122,7 @@ async def quick_sos_alert(
                     to_email=contact["email"],
                     user_name=user_name,
                     location_address=location_address,
-                    share_url="https://justice-rights-1.preview.emergentagent.com/dashboard",
+                    share_url="https://rights-guard-2.preview.emergentagent.com/dashboard",
                     latitude=request.latitude,
                     longitude=request.longitude
                 )

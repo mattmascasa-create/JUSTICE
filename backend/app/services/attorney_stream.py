@@ -75,7 +75,7 @@ class AttorneyStreamService:
         await db.attorney_streams.insert_one(session)
         
         # Generate stream URL
-        base_url = "https://justice-rights-1.preview.emergentagent.com"
+        base_url = "https://rights-guard-2.preview.emergentagent.com"
         stream_url = f"{base_url}/live-stream/{stream_code}"
         
         return {
@@ -308,13 +308,13 @@ class AttorneyStreamService:
             "type": "attorney_stream_invite",
             "attorney_email": session.get("attorney_email"),
             "attorney_id": session.get("attorney_id"),
-            "stream_url": f"https://justice-rights-1.preview.emergentagent.com/live-stream/{session['stream_code']}",
+            "stream_url": f"https://rights-guard-2.preview.emergentagent.com/live-stream/{session['stream_code']}",
             "stream_code": session["stream_code"],
             "attorney_token": session["attorney_token"],
             "encounter_id": session["encounter_id"],
             "location": encounter_location,
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "message": f"Your client is in a police encounter and has requested your presence via live stream. Join now: https://justice-rights-1.preview.emergentagent.com/live-stream/{session['stream_code']}"
+            "message": f"Your client is in a police encounter and has requested your presence via live stream. Join now: https://rights-guard-2.preview.emergentagent.com/live-stream/{session['stream_code']}"
         }
         
         # Try to send email if SendGrid is configured
