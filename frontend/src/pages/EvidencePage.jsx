@@ -37,6 +37,20 @@ export default function EvidencePage() {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedReportCase, setSelectedReportCase] = useState('');
   const fileInputRef = useRef(null);
+  
+  // Custody Portal Sharing State
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareEvidence, setShareEvidence] = useState(null);
+  const [shareForm, setShareForm] = useState({
+    recipientEmail: '',
+    recipientName: '',
+    recipientRole: 'attorney',
+    accessLevel: 'view',
+    expiresHours: 72,
+    notes: ''
+  });
+  const [sharing, setSharing] = useState(false);
+  const [shareResult, setShareResult] = useState(null);
 
   useEffect(() => {
     fetchData();
