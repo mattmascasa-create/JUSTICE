@@ -933,89 +933,109 @@ export default function EncounterPage() {
       const actualMimeType = mediaRecorder.mimeType || (enableVideo ? 'video/webm' : 'audio/webm');
       console.log('MediaRecorder using MIME type:', actualMimeType);
 
-      // Also create a separate audio recorder for transcription
+      // Also create a separate audio recorder for transcription (when video is enabled)
       if (enableVideo) {
-        const audioStream = new MediaStream(stream.getAudioTracks());
-        
-        let audioRecorder;
         try {
-          const audioOptions = audioMimeType ? { mimeType: audioMimeType } : {};
-          audioRecorder = new MediaRecorder(audioStream, audioOptions);
-        } catch (e) {
-          console.warn('Audio MediaRecorder with options failed, trying default:', e);
-          audioRecorder = new MediaRecorder(audioStream);
-        }
-        audioRecorderRef.current = audioRecorder;
-        
-        const audioRecorderMimeType = audioRecorder.mimeType || 'audio/webm';
-        console.log('Audio recorder using MIME type:', audioRecorderMimeType);
-
-        audioRecorder.ondataavailable = async (event) => {
-          if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data);
+          const audioTracks = stream.getAudioTracks();
+          if (audioTracks.length === 0) {
+            console.error('No audio tracks found in stream for transcription');
+            toast.warning('No microphone detected - transcription unavailable');
+          } else {
+            const audioStream = new MediaStream(audioTracks);
             
-            // Upload audio chunk for transcription
-            if (audioChunksRef.current.length >= 1) {
-              // Use the actual MIME type from the recorder
-              const blobType = audioRecorder.mimeType || 'audio/webm';
-              const blob = new Blob(audioChunksRef.current, { type: blobType });
-              audioChunksRef.current = [];
-              
-              console.log('Uploading audio blob:', blob.size, 'bytes, type:', blobType);
-              
-              // Check if offline - queue for later
-              if (!navigator.onLine) {
-                setPendingUploads(prev => [...prev, {
-                  type: 'audio',
-                  encounterId: response.data.encounter_id,
-                  blob: blob,
-                  chunkIndex: chunkIndexRef.current++,
-                  timestamp: Date.now()
-                }]);
-                console.log('Offline: Audio chunk queued for sync');
-                return;
-              }
-              
-              try {
-                const result = await encounterAPI.uploadAudio(
-                  response.data.encounter_id,
-                  blob,
-                  chunkIndexRef.current++
-                );
+            let audioRecorder;
+            try {
+              const audioOptions = audioMimeType ? { mimeType: audioMimeType } : {};
+              audioRecorder = new MediaRecorder(audioStream, audioOptions);
+            } catch (e) {
+              console.warn('Audio MediaRecorder with options failed, trying default:', e);
+              audioRecorder = new MediaRecorder(audioStream);
+            }
+            audioRecorderRef.current = audioRecorder;
+            
+            const audioRecorderMimeType = audioRecorder.mimeType || 'audio/webm';
+            console.log('Audio recorder for transcription using MIME type:', audioRecorderMimeType);
+
+            audioRecorder.ondataavailable = async (event) => {
+              if (event.data.size > 0) {
+                audioChunksRef.current.push(event.data);
                 
-                if (result.data.transcription) {
-                  setTranscriptions(prev => [...prev, result.data.transcription]);
+                // Upload audio chunk for transcription
+                if (audioChunksRef.current.length >= 1) {
+                  // Use the actual MIME type from the recorder
+                  const blobType = audioRecorder.mimeType || 'audio/webm';
+                  const blob = new Blob(audioChunksRef.current, { type: blobType });
+                  audioChunksRef.current = [];
                   
-                  // Trigger AI analysis with new transcription
-                  if (result.data.transcription.text) {
-                    performAIAnalysis(result.data.transcription.text);
-                    // Trigger AI coaching
-                    performCoaching(result.data.transcription.text);
+                  console.log('Transcription: Uploading audio blob:', blob.size, 'bytes, type:', blobType);
+                  
+                  // Check if offline - queue for later
+                  if (!navigator.onLine) {
+                    setPendingUploads(prev => [...prev, {
+                      type: 'audio',
+                      encounterId: response.data.encounter_id,
+                      blob: blob,
+                      chunkIndex: chunkIndexRef.current++,
+                      timestamp: Date.now()
+                    }]);
+                    console.log('Offline: Audio chunk queued for sync');
+                    return;
                   }
                   
-                  if (result.data.transcription.violations_detected?.length > 0) {
-                    setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
-                    toast.warning('⚠️ Potential violation detected!', {
-                      description: result.data.transcription.violations_detected.join(', ')
-                    });
+                  try {
+                    const result = await encounterAPI.uploadAudio(
+                      response.data.encounter_id,
+                      blob,
+                      chunkIndexRef.current++
+                    );
+                    
+                    console.log('Transcription result:', result.data);
+                    
+                    if (result.data.transcription) {
+                      setTranscriptions(prev => [...prev, result.data.transcription]);
+                      
+                      // Trigger AI analysis with new transcription
+                      if (result.data.transcription.text) {
+                        performAIAnalysis(result.data.transcription.text);
+                        // Trigger AI coaching
+                        performCoaching(result.data.transcription.text);
+                      }
+                      
+                      if (result.data.transcription.violations_detected?.length > 0) {
+                        setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+                        toast.warning('⚠️ Potential violation detected!', {
+                          description: result.data.transcription.violations_detected.join(', ')
+                        });
+                      }
+                    }
+                  } catch (err) {
+                    console.error('Audio upload/transcription error:', err);
+                    // Queue failed upload for retry
+                    setPendingUploads(prev => [...prev, {
+                      type: 'audio',
+                      encounterId: response.data.encounter_id,
+                      blob: blob,
+                      chunkIndex: chunkIndexRef.current - 1,
+                      timestamp: Date.now()
+                    }]);
                   }
                 }
-              } catch (err) {
-                console.error('Audio upload error:', err);
-                // Queue failed upload for retry
-                setPendingUploads(prev => [...prev, {
-                  type: 'audio',
-                  encounterId: response.data.encounter_id,
-                  blob: blob,
-                  chunkIndex: chunkIndexRef.current - 1,
-                  timestamp: Date.now()
-                }]);
               }
-            }
-          }
-        };
+            };
 
-        audioRecorder.start(10000); // Record audio in 10-second chunks for transcription
+            audioRecorder.onerror = (error) => {
+              console.error('Audio recorder error:', error);
+              toast.error('Audio recording error - transcription may be affected');
+            };
+
+            // Start the audio recorder for transcription (10-second chunks)
+            audioRecorder.start(10000);
+            console.log('Audio recorder for transcription started');
+          }
+        } catch (audioErr) {
+          console.error('Failed to set up audio recorder for transcription:', audioErr);
+          toast.warning('Transcription may not be available');
+        }
       }
 
       // Handle video/audio chunks
