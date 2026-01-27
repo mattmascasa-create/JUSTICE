@@ -115,7 +115,20 @@ async def upload_audio_chunk(
     enc_dir = ENCOUNTERS_DIR / encounter_id
     enc_dir.mkdir(exist_ok=True)
     
-    chunk_filename = f"audio_chunk_{chunk_index}.webm"
+    # Determine file extension based on content type
+    content_type = audio.content_type or 'audio/webm'
+    ext_map = {
+        'audio/webm': '.webm',
+        'audio/mp4': '.m4a',
+        'audio/aac': '.aac',
+        'audio/wav': '.wav',
+        'audio/mpeg': '.mp3',
+        'video/webm': '.webm',
+        'video/mp4': '.mp4'
+    }
+    ext = ext_map.get(content_type, '.webm')
+    
+    chunk_filename = f"audio_chunk_{chunk_index}{ext}"
     chunk_path = enc_dir / chunk_filename
     
     async with aiofiles.open(chunk_path, 'wb') as f:
