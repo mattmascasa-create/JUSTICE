@@ -1011,7 +1011,7 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - [x] ✅ Attorney Stream Settings (configurable notifications) - DONE Jan 27, 2026
 
 ### P1 (Ready)
-- [ ] Evidence Chain of Custody Portal - Secure attorney/court access with audit trail
+- [x] ✅ Evidence Chain of Custody Portal - DONE Jan 27, 2026
 - [ ] AI Witness Corroboration - Cross-reference evidence with public data
 - [ ] Community Incident Mapping - Public visualization of accountability data
 - [ ] Test Panic Button & Document Sharing E2E with SendGrid
