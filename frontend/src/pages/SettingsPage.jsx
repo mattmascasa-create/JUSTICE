@@ -258,6 +258,138 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Attorney Live Stream Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-serif flex items-center gap-2">
+              <Scale className="h-5 w-5 text-blue-500" />
+              Attorney Stream Settings
+            </CardTitle>
+            <CardDescription>Configure how your attorney is notified during encounters</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Default Attorney Email */}
+            <div className="space-y-2">
+              <Label htmlFor="attorney-email">Default Attorney Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="attorney-email"
+                  type="email"
+                  placeholder="attorney@lawfirm.com"
+                  value={attorneySettings.defaultAttorneyEmail}
+                  onChange={(e) => updateAttorneySetting('defaultAttorneyEmail', e.target.value)}
+                  className="pl-10"
+                  data-testid="default-attorney-email"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This email will be pre-filled when starting a live stream during encounters
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Notification Method */}
+            <div className="space-y-2">
+              <Label>Attorney Notification Method</Label>
+              <Select
+                value={attorneySettings.notificationMethod}
+                onValueChange={(value) => updateAttorneySetting('notificationMethod', value)}
+              >
+                <SelectTrigger data-testid="notification-method-select">
+                  <SelectValue placeholder="Select notification method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email Only
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sms">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      SMS Only
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="both">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4" />
+                      Email + SMS
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="in-app">
+                    <div className="flex items-center gap-2">
+                      <Video className="h-4 w-4" />
+                      In-App Only
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                How your attorney will be notified when you start a live stream
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Auto-start stream */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Auto-Start Stream</p>
+                <p className="text-sm text-muted-foreground">
+                  Automatically start streaming to your attorney when recording begins
+                </p>
+              </div>
+              <Switch
+                checked={attorneySettings.autoStartStream}
+                onCheckedChange={(checked) => updateAttorneySetting('autoStartStream', checked)}
+                data-testid="auto-start-stream-switch"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Share Location */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Share Location</p>
+                <p className="text-sm text-muted-foreground">
+                  Include your GPS location when streaming to attorney
+                </p>
+              </div>
+              <Switch
+                checked={attorneySettings.shareLocationWithAttorney}
+                onCheckedChange={(checked) => updateAttorneySetting('shareLocationWithAttorney', checked)}
+                data-testid="share-location-switch"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Share Transcript */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Share Live Transcript</p>
+                <p className="text-sm text-muted-foreground">
+                  Send real-time transcriptions to your attorney during stream
+                </p>
+              </div>
+              <Switch
+                checked={attorneySettings.shareTranscriptWithAttorney}
+                onCheckedChange={(checked) => updateAttorneySetting('shareTranscriptWithAttorney', checked)}
+                data-testid="share-transcript-switch"
+              />
+            </div>
+
+            <Button onClick={handleSaveAttorneySettings} className="w-full mt-4" data-testid="save-attorney-settings-btn">
+              <Save className="h-4 w-4 mr-2" />
+              Save Attorney Settings
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Evidence Storage Status */}
         <Card>
           <CardHeader>
