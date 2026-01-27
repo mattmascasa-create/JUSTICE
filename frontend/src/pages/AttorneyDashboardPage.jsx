@@ -417,7 +417,7 @@ export default function AttorneyDashboardPage() {
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-semibold text-lg">No Clients Yet</h3>
                   <p className="text-muted-foreground mt-2">
-                    When clients invite you to collaborate on their encounters, they'll appear here.
+                    When clients invite you to collaborate on their encounters, they&apos;ll appear here.
                   </p>
                 </CardContent>
               </Card>
@@ -472,7 +472,7 @@ function EncountersList({ encounterIds }) {
           <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="font-semibold text-lg">No Shared Encounters</h3>
           <p className="text-muted-foreground mt-2">
-            When clients share encounters with you, they'll appear here for review.
+            When clients share encounters with you, they&apos;ll appear here for review.
           </p>
         </CardContent>
       </Card>
