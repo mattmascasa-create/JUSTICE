@@ -246,12 +246,12 @@ async def get_evidence_for_portal(
     # Log custody event
     await evidence_integrity_service.log_custody_event(
         evidence_id=token_record["evidence_id"],
-        action="viewed",
-        actor_id=f"external_{token_record['recipient_role']}",
-        actor_name=token_record["recipient_name"],
+        action=CustodyAction.VIEWED,
+        user_id=f"external_{token_record['recipient_role']}",
         details={
             "access_method": "custody_portal",
-            "recipient_role": token_record["recipient_role"]
+            "recipient_role": token_record["recipient_role"],
+            "actor_name": token_record["recipient_name"]
         }
     )
     
