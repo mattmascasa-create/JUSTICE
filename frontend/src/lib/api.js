@@ -169,7 +169,11 @@ export const encounterAPI = {
   list: (status) => api.get('/encounters', { params: { status } }),
   uploadAudio: (encounterId, audioBlob, chunkIndex) => {
     const formData = new FormData();
-    formData.append('audio_file', audioBlob, `chunk_${chunkIndex}.webm`);
+    // Use the blob's actual type to determine extension
+    const ext = audioBlob.type?.includes('mp4') ? '.m4a' : 
+                audioBlob.type?.includes('aac') ? '.aac' : 
+                audioBlob.type?.includes('wav') ? '.wav' : '.webm';
+    formData.append('audio', audioBlob, `chunk_${chunkIndex}${ext}`);
     formData.append('chunk_index', chunkIndex);
     return api.post(`/encounters/${encounterId}/audio`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -177,7 +181,10 @@ export const encounterAPI = {
   },
   uploadVideo: (encounterId, videoBlob, chunkIndex) => {
     const formData = new FormData();
-    formData.append('video_file', videoBlob, `video_chunk_${chunkIndex}.webm`);
+    // Use the blob's actual type to determine extension
+    const ext = videoBlob.type?.includes('mp4') ? '.mp4' : 
+                videoBlob.type?.includes('quicktime') ? '.mov' : '.webm';
+    formData.append('video', videoBlob, `video_chunk_${chunkIndex}${ext}`);
     formData.append('chunk_index', chunkIndex);
     return api.post(`/encounters/${encounterId}/video`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -185,7 +192,8 @@ export const encounterAPI = {
   },
   uploadScreen: (encounterId, screenBlob, chunkIndex) => {
     const formData = new FormData();
-    formData.append('screen', screenBlob, `screen_chunk_${chunkIndex}.webm`);
+    const ext = screenBlob.type?.includes('mp4') ? '.mp4' : '.webm';
+    formData.append('screen', screenBlob, `screen_chunk_${chunkIndex}${ext}`);
     formData.append('chunk_index', chunkIndex);
     return api.post(`/encounters/${encounterId}/screen`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
