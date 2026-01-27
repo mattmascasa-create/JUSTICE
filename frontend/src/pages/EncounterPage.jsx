@@ -205,6 +205,7 @@ export default function EncounterPage() {
   const [showStreamDialog, setShowStreamDialog] = useState(false);
   const [streamAttorneyEmail, setStreamAttorneyEmail] = useState('');
   const [streamingToAttorney, setStreamingToAttorney] = useState(false);
+  const [attorneySettings, setAttorneySettings] = useState(null);
   
   // Multi-Cloud Backup State
   const [cloudBackupEnabled, setCloudBackupEnabled] = useState(true);
