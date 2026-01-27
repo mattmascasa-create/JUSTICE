@@ -997,17 +997,22 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - [x] ✅ AI-Powered Transcript Summaries - DONE Jan 22, 2026
 - [x] ✅ Court-Grade Evidence System - DONE Jan 25, 2026
 - [x] ✅ Police Accountability Portal - DONE Jan 25, 2026
+- [x] ✅ Multi-Cloud Evidence Backup (S3 + IPFS + Local) - DONE Jan 27, 2026
+- [x] ✅ Attorney Live Stream with WebRTC - DONE Jan 27, 2026
+- [x] ✅ Attorney Stream Settings (configurable notifications) - DONE Jan 27, 2026
 
 ### P1 (Ready)
-- [ ] AI Accuracy Enhancements (RAG, guardrails for court-grade AI)
-- [ ] Real blockchain anchoring (Ethereum/Polygon)
-- [ ] Premium Portal Features (auditing tools, predictive analytics)
+- [ ] Evidence Chain of Custody Portal - Secure attorney/court access with audit trail
+- [ ] AI Witness Corroboration - Cross-reference evidence with public data
+- [ ] Community Incident Mapping - Public visualization of accountability data
+- [ ] Test Panic Button & Document Sharing E2E with SendGrid
 
 ### P2 (Future)
-- [ ] Premium Attorney Network
-- [ ] Video recording in Encounter Mode
-- [ ] Live streaming (YouTube/Twitch)
-- [ ] Smart glasses SDK
+- [ ] Premium Attorney Network - Auto-matching with civil rights attorneys
+- [ ] Complete Hardware Integration (GoPro, Dash Cams)
+- [ ] 2FA Support with TOTP
+- [ ] "Know Your Rights" Interactive Training Modules
+- [ ] Real blockchain anchoring (Ethereum/Polygon)
 - [ ] 3D evidence reconstruction
 
 ## Test Credentials
