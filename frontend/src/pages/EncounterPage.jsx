@@ -843,11 +843,13 @@ export default function EncounterPage() {
           
           // Upload video chunk every 15 seconds
           if (videoChunksRef.current.length >= 1) {
-            const blob = new Blob(videoChunksRef.current, { 
-              type: enableVideo ? 'video/webm' : 'audio/webm' 
-            });
+            // Use actual MIME type from recorder
+            const blobType = mediaRecorder.mimeType || (enableVideo ? 'video/webm' : 'audio/webm');
+            const blob = new Blob(videoChunksRef.current, { type: blobType });
             videoChunksRef.current = [];
             const currentChunkIndex = videoChunkIndexRef.current++;
+            
+            console.log('Uploading video blob:', blob.size, 'bytes, type:', blobType);
             
             setUploadingChunk(true);
             try {
