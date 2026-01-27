@@ -1033,11 +1033,12 @@ export const multiCloudBackupAPI = {
 // Attorney Live Stream API - Real-time video to attorneys
 export const attorneyStreamAPI = {
   // Create stream session
-  createStream: (encounterId, attorneyEmail = null, location = null) =>
+  createStream: (encounterId, attorneyEmail = null, location = null, notificationMethod = 'email') =>
     api.post('/attorney-stream/create', {
       encounter_id: encounterId,
       attorney_email: attorneyEmail,
-      location: location
+      location: location,
+      notification_method: notificationMethod
     }),
   
   // Join stream (no auth needed - uses token)
