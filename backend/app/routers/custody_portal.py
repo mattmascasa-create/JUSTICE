@@ -83,14 +83,14 @@ async def create_access_token(
     # Log custody event
     await evidence_integrity_service.log_custody_event(
         evidence_id=request.evidence_id,
-        action="shared",
-        actor_id=current_user.get("user_id"),
-        actor_name=current_user.get("name"),
+        action=CustodyAction.SHARED,
+        user_id=current_user.get("user_id"),
         details={
             "shared_with": request.recipient_email,
             "recipient_role": request.recipient_role,
             "access_level": request.access_level,
-            "expires_at": expires_at.isoformat()
+            "expires_at": expires_at.isoformat(),
+            "actor_name": current_user.get("name")
         }
     )
     
