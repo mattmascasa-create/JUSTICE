@@ -7,7 +7,6 @@ from typing import Optional, List, Dict
 import uuid
 
 from app.db.database import db
-from app.services.ai_attorney import ai_attorney
 
 logger = logging.getLogger(__name__)
 
