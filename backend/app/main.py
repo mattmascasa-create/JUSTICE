@@ -137,6 +137,8 @@ app.include_router(voice_commands_router, prefix="/api")
 app.include_router(encounter_coach_router, prefix="/api")
 app.include_router(location_alerts_router, prefix="/api")
 app.include_router(legal_services_router, prefix="/api")
+app.include_router(multi_cloud_backup_router, prefix="/api")
+app.include_router(attorney_stream_router, prefix="/api")
 
 
 # Root endpoint
