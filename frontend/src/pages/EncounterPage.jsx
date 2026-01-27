@@ -744,10 +744,33 @@ export default function EncounterPage() {
       const audioMimeType = getSupportedMimeType(false);
 
       // Create video/audio recorder for the full stream
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: enableVideo ? videoMimeType : audioMimeType
-      });
+      const recorderOptions = {};
+      if (enableVideo && videoMimeType) {
+        recorderOptions.mimeType = videoMimeType;
+      } else if (!enableVideo && audioMimeType) {
+        recorderOptions.mimeType = audioMimeType;
+      }
+      
+      // Add bitrate for better mobile performance
+      if (enableVideo) {
+        recorderOptions.videoBitsPerSecond = 1500000; // 1.5 Mbps
+        recorderOptions.audioBitsPerSecond = 128000; // 128 kbps
+      } else {
+        recorderOptions.audioBitsPerSecond = 128000;
+      }
+      
+      let mediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, recorderOptions);
+      } catch (e) {
+        console.warn('MediaRecorder with options failed, trying default:', e);
+        mediaRecorder = new MediaRecorder(stream);
+      }
       mediaRecorderRef.current = mediaRecorder;
+      
+      // Get actual MIME type being used
+      const actualMimeType = mediaRecorder.mimeType || (enableVideo ? 'video/webm' : 'audio/webm');
+      console.log('MediaRecorder using MIME type:', actualMimeType);
 
       // Also create a separate audio recorder for transcription
       if (enableVideo) {
