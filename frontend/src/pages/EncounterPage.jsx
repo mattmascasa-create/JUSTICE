@@ -1785,7 +1785,6 @@ export default function EncounterPage() {
                 autoPlay 
                 muted 
                 playsInline
-                webkitPlaysInline="true"
                 className="w-full h-full object-cover"
                 style={{ objectFit: 'cover' }}
               />
