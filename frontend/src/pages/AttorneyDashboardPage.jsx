@@ -31,12 +31,14 @@ export default function AttorneyDashboardPage() {
     specialization: ''
   });
   const [verifying, setVerifying] = useState(false);
+  
+  // New state for live streams and alerts
+  const [activeStreams, setActiveStreams] = useState([]);
+  const [recentAlerts, setRecentAlerts] = useState([]);
+  const [streamHistory, setStreamHistory] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
-
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     try {
       const res = await attorneyCollabAPI.getDashboard();
       setDashboard(res.data);
@@ -50,6 +52,50 @@ export default function AttorneyDashboardPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+  
+  const fetchStreamHistory = useCallback(async () => {
+    try {
+      const res = await attorneyStreamAPI.getHistory(20);
+      const streams = res.data.streams || [];
+      
+      // Separate active vs ended streams
+      const active = streams.filter(s => s.status === 'active' || s.status === 'pending');
+      const recent = streams.filter(s => s.status === 'ended').slice(0, 5);
+      
+      setActiveStreams(active);
+      setStreamHistory(recent);
+      
+      // Create alerts from active streams
+      const alerts = active.map(s => ({
+        id: s.session_id,
+        type: 'live_stream',
+        message: `Client is streaming live from ${s.location || 'unknown location'}`,
+        timestamp: s.created_at,
+        stream_code: s.stream_code,
+        encounter_id: s.encounter_id,
+        urgent: true
+      }));
+      setRecentAlerts(alerts);
+    } catch (error) {
+      console.error('Error fetching stream history:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboard();
+    fetchStreamHistory();
+    
+    // Poll for active streams every 30 seconds
+    const pollInterval = setInterval(fetchStreamHistory, 30000);
+    return () => clearInterval(pollInterval);
+  }, [fetchDashboard, fetchStreamHistory]);
+  
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchDashboard(), fetchStreamHistory()]);
+    setRefreshing(false);
+    toast.success('Dashboard refreshed');
   };
 
   const handleVerify = async () => {
