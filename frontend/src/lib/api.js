@@ -1083,4 +1083,34 @@ export const attorneyStreamAPI = {
   getHistory: (limit = 20) => api.get('/attorney-stream/history', { params: { limit } })
 };
 
+// Custody Portal API
+export const custodyPortalAPI = {
+  // Create access token for external party
+  createAccess: (evidenceId, encounterId, recipientEmail, recipientName, recipientRole, accessLevel = 'view', expiresHours = 72, notes = null) =>
+    api.post('/custody-portal/create-access', {
+      evidence_id: evidenceId,
+      encounter_id: encounterId,
+      recipient_email: recipientEmail,
+      recipient_name: recipientName,
+      recipient_role: recipientRole,
+      access_level: accessLevel,
+      expires_hours: expiresHours,
+      notes: notes
+    }),
+  
+  // Get all access tokens created by user
+  getMyTokens: () => api.get('/custody-portal/my-tokens'),
+  
+  // Revoke access
+  revokeAccess: (evidenceId, recipientEmail) =>
+    api.post(`/custody-portal/revoke/${evidenceId}`, null, { params: { recipient_email: recipientEmail } }),
+  
+  // Public endpoints (no auth required)
+  verifyAccess: (accessToken) => api.post('/custody-portal/verify-access', { access_token: accessToken }),
+  getEvidence: (token) => api.get(`/custody-portal/evidence?token=${token}`),
+  getChainOfCustody: (token) => api.get(`/custody-portal/chain-of-custody?token=${token}`),
+  getIntegrityReport: (token) => api.get(`/custody-portal/integrity-report?token=${token}`),
+  downloadCourtPackage: (token) => api.get(`/custody-portal/download-court-package?token=${token}`)
+};
+
 export default api;
