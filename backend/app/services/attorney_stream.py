@@ -296,45 +296,57 @@ class AttorneyStreamService:
     async def notify_attorney(
         self,
         session: Dict,
-        encounter_location: Optional[str] = None
+        encounter_location: Optional[str] = None,
+        notification_method: str = "email"
     ) -> Dict:
-        """Send notification to attorney about live stream"""
+        """Send notification to attorney about live stream via configured method"""
         
-        # In production, this would send email/SMS via SendGrid/Twilio
-        # For now, we'll log and return the notification details
+        from app.core.config import (
+            SENDGRID_ENABLED, SENDGRID_API_KEY, SENDGRID_SENDER_EMAIL,
+            TWILIO_ENABLED, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER,
+            FRONTEND_URL
+        )
+        
+        base_url = FRONTEND_URL or "https://rights-guard-2.preview.emergentagent.com"
+        stream_url = f"{base_url}/live-stream/{session['stream_code']}"
         
         notification = {
             "notification_id": f"notif_{uuid.uuid4().hex[:8]}",
             "type": "attorney_stream_invite",
             "attorney_email": session.get("attorney_email"),
             "attorney_id": session.get("attorney_id"),
-            "stream_url": f"https://rights-guard-2.preview.emergentagent.com/live-stream/{session['stream_code']}",
+            "stream_url": stream_url,
             "stream_code": session["stream_code"],
             "attorney_token": session["attorney_token"],
             "encounter_id": session["encounter_id"],
             "location": encounter_location,
+            "notification_method": notification_method,
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "message": f"Your client is in a police encounter and has requested your presence via live stream. Join now: https://rights-guard-2.preview.emergentagent.com/live-stream/{session['stream_code']}"
+            "message": f"Your client is in a police encounter and has requested your presence via live stream. Join now: {stream_url}",
+            "email_sent": False,
+            "sms_sent": False
         }
         
-        # Try to send email if SendGrid is configured
-        try:
-            from app.core.config import SENDGRID_ENABLED, SENDGRID_API_KEY
-            if SENDGRID_ENABLED and session.get("attorney_email"):
+        should_send_email = notification_method in ["email", "both"]
+        should_send_sms = notification_method in ["sms", "both"]
+        
+        # Send email notification
+        if should_send_email and SENDGRID_ENABLED and session.get("attorney_email"):
+            try:
                 import sendgrid
                 from sendgrid.helpers.mail import Mail
                 
                 sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
                 
                 message = Mail(
-                    from_email="alerts@justice-app.com",
+                    from_email=SENDGRID_SENDER_EMAIL or "alerts@justice-app.com",
                     to_emails=session["attorney_email"],
                     subject="🚨 URGENT: Client Requesting Live Stream During Police Encounter",
                     html_content=f"""
                     <h2>Your client needs you NOW</h2>
                     <p>Your client has initiated a live stream during a police encounter and is requesting your presence.</p>
                     <p><strong>Location:</strong> {encounter_location or 'Not provided'}</p>
-                    <p><a href="{notification['stream_url']}" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">JOIN LIVE STREAM NOW</a></p>
+                    <p><a href="{stream_url}" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">JOIN LIVE STREAM NOW</a></p>
                     <p>Stream Code: {session['stream_code']}</p>
                     <p><small>This link expires in {self.STREAM_TTL_HOURS} hours.</small></p>
                     """
@@ -342,9 +354,42 @@ class AttorneyStreamService:
                 
                 response = sg.send(message)
                 notification["email_sent"] = response.status_code == 202
-        except Exception as e:
-            logger.error(f"Failed to send attorney notification email: {e}")
-            notification["email_sent"] = False
+                logger.info(f"Email notification sent to {session['attorney_email']}: {response.status_code}")
+            except Exception as e:
+                logger.error(f"Failed to send attorney notification email: {e}")
+                notification["email_sent"] = False
+        
+        # Send SMS notification
+        if should_send_sms and TWILIO_ENABLED:
+            try:
+                from twilio.rest import Client
+                
+                # Attorney phone could be stored in user profile or passed separately
+                # For now, we'll try to extract from email domain or use a placeholder
+                attorney_phone = session.get("attorney_phone")
+                
+                if attorney_phone:
+                    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+                    
+                    sms_body = f"🚨 URGENT: Your client needs you NOW! Police encounter in progress. Location: {encounter_location or 'Unknown'}. Join live stream: {stream_url}"
+                    
+                    message = client.messages.create(
+                        body=sms_body,
+                        from_=TWILIO_PHONE_NUMBER,
+                        to=attorney_phone
+                    )
+                    
+                    notification["sms_sent"] = message.status in ["queued", "sent"]
+                    notification["sms_sid"] = message.sid
+                    logger.info(f"SMS notification sent to attorney: {message.status}")
+                else:
+                    logger.warning("SMS requested but no attorney phone number available")
+                    notification["sms_sent"] = False
+                    notification["sms_error"] = "No attorney phone number configured"
+            except Exception as e:
+                logger.error(f"Failed to send attorney SMS notification: {e}")
+                notification["sms_sent"] = False
+                notification["sms_error"] = str(e)
         
         return notification
 
