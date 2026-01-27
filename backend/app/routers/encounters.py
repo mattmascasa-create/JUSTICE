@@ -273,7 +273,18 @@ async def upload_video_chunk(
     enc_dir = ENCOUNTERS_DIR / encounter_id
     enc_dir.mkdir(exist_ok=True)
     
-    chunk_filename = f"video_chunk_{chunk_index}.webm"
+    # Determine file extension based on content type
+    content_type = video.content_type or 'video/webm'
+    ext_map = {
+        'video/webm': '.webm',
+        'video/mp4': '.mp4',
+        'video/quicktime': '.mov',
+        'audio/webm': '.webm',
+        'audio/mp4': '.m4a'
+    }
+    ext = ext_map.get(content_type, '.webm')
+    
+    chunk_filename = f"video_chunk_{chunk_index}{ext}"
     chunk_path = enc_dir / chunk_filename
     
     async with aiofiles.open(chunk_path, 'wb') as f:
