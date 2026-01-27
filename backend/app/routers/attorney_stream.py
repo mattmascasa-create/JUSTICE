@@ -18,6 +18,7 @@ class CreateStreamRequest(BaseModel):
     attorney_id: Optional[str] = None
     attorney_email: Optional[str] = None
     location: Optional[str] = None
+    notification_method: Optional[str] = "email"  # email, sms, both, in-app
 
 
 class JoinStreamRequest(BaseModel):
