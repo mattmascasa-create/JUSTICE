@@ -10,7 +10,7 @@ import secrets
 import hashlib
 
 from app.routers.auth import get_current_user
-from app.services.evidence_integrity import evidence_integrity_service
+from app.services.evidence_integrity import evidence_integrity_service, CustodyAction
 from app.db.database import db
 
 router = APIRouter(prefix="/custody-portal", tags=["Chain of Custody Portal"])
