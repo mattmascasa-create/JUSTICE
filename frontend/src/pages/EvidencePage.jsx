@@ -619,6 +619,15 @@ export default function EvidencePage() {
                     </div>
 
                     <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openShareDialog(ev)}
+                        data-testid={`share-custody-${ev.evidence_id}`}
+                      >
+                        <Share2 className="h-4 w-4 mr-1" />
+                        Share Custody
+                      </Button>
                       <Button variant="ghost" size="icon">
                         <Download className="h-4 w-4" />
                       </Button>
@@ -637,6 +646,168 @@ export default function EvidencePage() {
             })}
           </div>
         )}
+        
+        {/* Share Custody Dialog */}
+        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-blue-500" />
+                Share Chain of Custody
+              </DialogTitle>
+              <DialogDescription>
+                Create a secure access link for attorneys, courts, or other authorized parties to view this evidence and its complete audit trail.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {!shareResult ? (
+              <form onSubmit={handleShareCustody} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="recipient-name">Recipient Name *</Label>
+                  <Input
+                    id="recipient-name"
+                    placeholder="Attorney John Doe"
+                    value={shareForm.recipientName}
+                    onChange={(e) => setShareForm({...shareForm, recipientName: e.target.value})}
+                    required
+                    data-testid="share-recipient-name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="recipient-email">Recipient Email *</Label>
+                  <Input
+                    id="recipient-email"
+                    type="email"
+                    placeholder="attorney@lawfirm.com"
+                    value={shareForm.recipientEmail}
+                    onChange={(e) => setShareForm({...shareForm, recipientEmail: e.target.value})}
+                    required
+                    data-testid="share-recipient-email"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Recipient Role</Label>
+                    <Select 
+                      value={shareForm.recipientRole} 
+                      onValueChange={(v) => setShareForm({...shareForm, recipientRole: v})}
+                    >
+                      <SelectTrigger data-testid="share-role-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="attorney">Attorney</SelectItem>
+                        <SelectItem value="court">Court</SelectItem>
+                        <SelectItem value="expert_witness">Expert Witness</SelectItem>
+                        <SelectItem value="insurance">Insurance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Access Level</Label>
+                    <Select 
+                      value={shareForm.accessLevel} 
+                      onValueChange={(v) => setShareForm({...shareForm, accessLevel: v})}
+                    >
+                      <SelectTrigger data-testid="share-access-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="view">View Only</SelectItem>
+                        <SelectItem value="download">View + Download</SelectItem>
+                        <SelectItem value="full">Full Access</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Expires In</Label>
+                  <Select 
+                    value={String(shareForm.expiresHours)} 
+                    onValueChange={(v) => setShareForm({...shareForm, expiresHours: parseInt(v)})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24">24 hours</SelectItem>
+                      <SelectItem value="72">3 days</SelectItem>
+                      <SelectItem value="168">1 week</SelectItem>
+                      <SelectItem value="720">30 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="share-notes">Notes (Optional)</Label>
+                  <Input
+                    id="share-notes"
+                    placeholder="For case #12345 review"
+                    value={shareForm.notes}
+                    onChange={(e) => setShareForm({...shareForm, notes: e.target.value})}
+                  />
+                </div>
+                
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setShareDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={sharing} data-testid="create-share-link-btn">
+                    {sharing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Link2 className="h-4 w-4 mr-2" />}
+                    Create Access Link
+                  </Button>
+                </DialogFooter>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700 mb-2">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium">Access Link Created!</span>
+                  </div>
+                  <p className="text-sm text-green-600">
+                    Share this link with {shareResult.recipient?.name}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Portal URL</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={shareResult.portal_url} 
+                      readOnly 
+                      className="font-mono text-xs"
+                    />
+                    <Button variant="outline" onClick={copyShareLink} data-testid="copy-share-link-btn">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="text-sm text-muted-foreground">
+                  <p>Access Level: <Badge variant="outline">{shareResult.access_level}</Badge></p>
+                  <p>Expires: {new Date(shareResult.expires_at).toLocaleString()}</p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setShareDialogOpen(false)} className="flex-1">
+                    Close
+                  </Button>
+                  <a href={shareResult.portal_url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                    <Button className="w-full">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open Portal
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
