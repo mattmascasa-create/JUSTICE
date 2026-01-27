@@ -534,3 +534,86 @@ function EncountersList({ encounterIds }) {
     </div>
   );
 }
+
+
+// Sub-component for stream history
+function StreamHistoryList({ streams }) {
+  if (!streams || streams.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <Video className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="font-semibold text-lg">No Stream History</h3>
+          <p className="text-muted-foreground mt-2">
+            When clients stream encounters to you, the history will appear here.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid gap-4">
+      {streams.map((stream, index) => (
+        <Card key={stream.session_id} data-testid={`stream-history-${index}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                  stream.status === 'ended' ? 'bg-gray-100' : 'bg-green-100'
+                }`}>
+                  <Video className={`h-6 w-6 ${
+                    stream.status === 'ended' ? 'text-gray-600' : 'text-green-600'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Stream Session</h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    {stream.location || 'Location not shared'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Encounter: {stream.encounter_id}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <Badge variant={stream.status === 'ended' ? 'secondary' : 'default'}>
+                    {stream.status}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stream.messages?.length || 0} message(s)
+                  </p>
+                </div>
+                <Link to={`/attorney/encounter/${stream.encounter_id}`}>
+                  <Button variant="outline" size="sm">
+                    View Encounter <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Started: {new Date(stream.created_at).toLocaleString()}
+              </span>
+              {stream.ended_at && (
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  Ended: {new Date(stream.ended_at).toLocaleString()}
+                </span>
+              )}
+              {stream.attorney_connected && (
+                <Badge variant="outline" className="text-green-600">
+                  <Eye className="h-3 w-3 mr-1" />
+                  You watched this stream
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
