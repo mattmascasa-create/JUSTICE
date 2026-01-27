@@ -67,13 +67,16 @@ async def create_stream(
         attorney_email=request.attorney_email
     )
     
-    # Notify attorney if email provided
+    # Notify attorney based on notification method preference
+    notification_result = {"email_sent": False, "sms_sent": False}
     if request.attorney_email:
-        notification = await attorney_stream_service.notify_attorney(
+        notification_result = await attorney_stream_service.notify_attorney(
             session=await attorney_stream_service.get_session(session["session_id"]),
-            encounter_location=request.location
+            encounter_location=request.location,
+            notification_method=request.notification_method or "email"
         )
-        session["notification_sent"] = notification.get("email_sent", False)
+        session["notification_sent"] = notification_result.get("email_sent", False) or notification_result.get("sms_sent", False)
+        session["notification_method"] = request.notification_method
     
     return {
         "success": True,
