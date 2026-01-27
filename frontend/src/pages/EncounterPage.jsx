@@ -1296,12 +1296,12 @@ export default function EncounterPage() {
     // Stop all media tracks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
-        try { track.stop(); } catch (e) {}
+        try { track.stop(); } catch (e) { /* ignore */ }
       });
     }
     if (screenStreamRef.current) {
       screenStreamRef.current.getTracks().forEach(track => {
-        try { track.stop(); } catch (e) {}
+        try { track.stop(); } catch (e) { /* ignore */ }
       });
     }
     
