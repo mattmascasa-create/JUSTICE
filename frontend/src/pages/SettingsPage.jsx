@@ -60,6 +60,12 @@ export default function SettingsPage() {
       setIpfsStatus(ipfsRes.data);
       setBlockchainStatus(blockchainRes.data);
       setBackupStatus(backupRes.data);
+      
+      // Load attorney settings from localStorage
+      const savedAttorneySettings = localStorage.getItem('justice_attorney_settings');
+      if (savedAttorneySettings) {
+        setAttorneySettings(JSON.parse(savedAttorneySettings));
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
     }
