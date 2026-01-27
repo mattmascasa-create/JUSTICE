@@ -77,6 +77,26 @@ JUSTICE is a revolutionary **Civil Rights Defense System** - the most comprehens
 - **Refresh Button**: Manual refresh for instant updates
 - **Route**: `/attorney-dashboard`
 
+##### 9. Evidence Chain of Custody Portal ✅
+- **Public Portal**: Secure access for attorneys/courts via token-based access (no account needed)
+- **Token Management**: Evidence owners create time-limited access tokens
+- **Recipient Roles**: Attorney, Court, Expert Witness, Insurance
+- **Access Levels**: View Only, View + Download, Full Access
+- **Complete Audit Trail**: All access logged to chain of custody
+- **Three Tabs**: Overview, Chain of Custody (timeline), Integrity Verification
+- **Court Package Download**: One-click download of court-grade evidence package
+- **FRE 901/707 Compliant**: Legal standard compliance badge
+- **Share from Evidence Page**: "Share Custody" button on each evidence card
+- **API Endpoints**:
+  - `POST /api/custody-portal/create-access` - Create access token (authenticated)
+  - `GET /api/custody-portal/my-tokens` - Get user's tokens (authenticated)
+  - `POST /api/custody-portal/verify-access` - Verify token (public)
+  - `GET /api/custody-portal/evidence` - Get evidence details (public, token)
+  - `GET /api/custody-portal/chain-of-custody` - Get custody chain (public, token)
+  - `GET /api/custody-portal/integrity-report` - Get integrity report (public, token)
+  - `GET /api/custody-portal/download-court-package` - Download package (public, token)
+- **Routes**: `/custody-portal` (public portal), `/evidence` (share dialog)
+
 #### Critical Protection Features - FULLY IMPLEMENTED (Jan 27, 2026)
 
 ##### 1. Stealth Recording Mode ✅
