@@ -355,7 +355,7 @@ export default function AttorneyDashboardPage() {
           </Card>
         </div>
 
-        {/* Tabs for Clients & Encounters */}
+        {/* Tabs for Clients, Encounters & Streams */}
         <Tabs defaultValue="clients" className="space-y-4">
           <TabsList>
             <TabsTrigger value="clients" data-testid="tab-clients">
@@ -365,6 +365,13 @@ export default function AttorneyDashboardPage() {
             <TabsTrigger value="encounters" data-testid="tab-encounters">
               <FileText className="h-4 w-4 mr-2" />
               Shared Encounters
+            </TabsTrigger>
+            <TabsTrigger value="streams" data-testid="tab-streams">
+              <Video className="h-4 w-4 mr-2" />
+              Stream History
+              {streamHistory.length > 0 && (
+                <Badge variant="secondary" className="ml-2">{streamHistory.length}</Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
