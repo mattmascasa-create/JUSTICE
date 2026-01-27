@@ -972,4 +972,34 @@ export const locationAlertsAPI = {
   getPrecincts: () => api.get('/location-alerts/precincts')
 };
 
+// Legal Services API - FOIA, Legal Briefs, Miranda Detection
+export const legalServicesAPI = {
+  // FOIA Request Generation
+  generateFOIA: (data) => api.post('/legal/foia/generate', data),
+  getFOIALaws: () => api.get('/legal/foia/laws'),
+  getMyFOIARequests: () => api.get('/legal/foia/my-requests'),
+  
+  // Miranda Rights Detection
+  analyzeMiranda: (transcript, encounterType, encounterId = null) =>
+    api.post('/legal/miranda/analyze', {
+      transcript,
+      encounter_type: encounterType,
+      encounter_id: encounterId
+    }),
+  analyzeEncounterMiranda: (encounterId) =>
+    api.post(`/legal/miranda/analyze-encounter/${encounterId}`),
+  
+  // Legal Brief Generation
+  generateBrief: (data) => api.post('/legal/brief/generate', data),
+  generateBriefFromEncounter: (encounterId, plaintiffName) =>
+    api.post(`/legal/brief/from-encounter/${encounterId}`, null, {
+      params: { plaintiff_name: plaintiffName }
+    }),
+  getMyBriefs: () => api.get('/legal/brief/my-briefs'),
+  
+  // Legal Hotlines
+  getHotlines: () => api.get('/legal/hotline/numbers'),
+  getStateResources: (state) => api.get(`/legal/hotline/by-state/${state}`)
+};
+
 export default api;
