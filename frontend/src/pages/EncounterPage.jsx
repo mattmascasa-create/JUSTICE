@@ -17,8 +17,8 @@ import {
   Shield, AlertTriangle, Mic, MicOff, Video, VideoOff, 
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
-  Eye, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX,
-  MessageCircle, Copy, ExternalLink, Siren, Search
+  Eye, EyeOff, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX,
+  MessageCircle, Copy, ExternalLink, Siren, Search, Loader2, Wifi, WifiOff
 } from 'lucide-react';
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
