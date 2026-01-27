@@ -376,7 +376,7 @@ async def get_integrity_report_for_portal(
         raise HTTPException(status_code=404, detail="Evidence not found")
     
     # Get integrity verification
-    integrity = await evidence_integrity_service.get_evidence_integrity(evidence_id)
+    integrity = await evidence_integrity_service.verify_evidence(evidence_id)
     
     # Get chain of custody
     chain = await evidence_integrity_service.get_custody_chain(evidence_id)
