@@ -291,7 +291,21 @@ export default function AttorneyDashboardPage() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card data-testid="stat-streams" className={activeStreams.length > 0 ? 'border-red-300 bg-red-50' : ''}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Active Streams</p>
+                  <p className={`text-3xl font-bold ${activeStreams.length > 0 ? 'text-red-600' : ''}`}>
+                    {activeStreams.length}
+                  </p>
+                </div>
+                <Radio className={`h-10 w-10 opacity-50 ${activeStreams.length > 0 ? 'text-red-500 animate-pulse' : 'text-gray-400'}`} />
+              </div>
+            </CardContent>
+          </Card>
+          
           <Card data-testid="stat-clients">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
