@@ -47,6 +47,7 @@ from app.routers.realtime_alerts import router as realtime_alerts_router
 from app.routers.voice_commands import router as voice_commands_router
 from app.routers.encounter_coach import router as encounter_coach_router
 from app.routers.location_alerts import router as location_alerts_router
+from app.routers.legal_services import router as legal_services_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
