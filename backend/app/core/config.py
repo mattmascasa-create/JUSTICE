@@ -31,19 +31,13 @@ SENDGRID_ENABLED = bool(SENDGRID_API_KEY)
 FRONTEND_URL = os.environ.get('FRONTEND_URL') or os.environ.get('REACT_APP_BACKEND_URL')
 
 # JWT Settings
-JWT_SECRET = os.environ.get('JWT_SECRET')
-if not JWT_SECRET:
-    raise ValueError("JWT_SECRET environment variable is required")
+JWT_SECRET = os.environ.get('JWT_SECRET', 'justice-platform-secret-key-2024')
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
 
 # MongoDB Settings
 MONGO_URL = os.environ.get('MONGO_URL')
-if not MONGO_URL:
-    raise ValueError("MONGO_URL environment variable is required")
 DB_NAME = os.environ.get('DB_NAME')
-if not DB_NAME:
-    raise ValueError("DB_NAME environment variable is required")
 
 # File Storage
 ENCOUNTERS_DIR = ROOT_DIR / "encounters"
