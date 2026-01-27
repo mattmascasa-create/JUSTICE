@@ -8,6 +8,7 @@ import { Switch } from '../components/ui/switch';
 import { Separator } from '../components/ui/separator';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getInitials } from '../lib/utils';
@@ -16,7 +17,8 @@ import {
   User, Bell, Shield, Moon, Sun, Phone, Mail, 
   LogOut, Trash2, Save, Users, Plus, X,
   Database, Globe, CheckCircle, AlertCircle, Link2,
-  Cloud, CloudOff, RefreshCw, History, Loader2, ChevronRight
+  Cloud, CloudOff, RefreshCw, History, Loader2, ChevronRight,
+  Scale, Video, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +34,15 @@ export default function SettingsPage() {
   const [backupStatus, setBackupStatus] = useState(null);
   const [backupLoading, setBackupLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Attorney Settings State
+  const [attorneySettings, setAttorneySettings] = useState({
+    defaultAttorneyEmail: '',
+    notificationMethod: 'email', // email, sms, both, in-app
+    autoStartStream: false,
+    shareLocationWithAttorney: true,
+    shareTranscriptWithAttorney: true
+  });
 
   useEffect(() => {
     loadSettings();
