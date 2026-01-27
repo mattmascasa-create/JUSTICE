@@ -90,6 +90,19 @@ export default function SettingsPage() {
   const handleSave = () => {
     toast.success('Settings saved successfully');
   };
+  
+  const handleSaveAttorneySettings = () => {
+    localStorage.setItem('justice_attorney_settings', JSON.stringify(attorneySettings));
+    toast.success('Attorney settings saved');
+  };
+  
+  const updateAttorneySetting = (key, value) => {
+    setAttorneySettings(prev => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem('justice_attorney_settings', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const handleLogout = async () => {
     await logout();
