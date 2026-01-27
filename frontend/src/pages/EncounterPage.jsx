@@ -1010,6 +1010,20 @@ export default function EncounterPage() {
             
             console.log('Uploading video blob:', blob.size, 'bytes, type:', blobType);
             
+            // Check if offline - queue for later
+            if (!navigator.onLine) {
+              setPendingUploads(prev => [...prev, {
+                type: 'video',
+                encounterId: response.data.encounter_id,
+                blob: blob,
+                chunkIndex: currentChunkIndex,
+                timestamp: Date.now()
+              }]);
+              setVideoChunkCount(prev => prev + 1);
+              console.log('Offline: Video chunk queued for sync');
+              return;
+            }
+            
             setUploadingChunk(true);
             try {
               await encounterAPI.uploadVideo(
@@ -1021,6 +1035,14 @@ export default function EncounterPage() {
             } catch (err) {
               console.error('Video upload error:', err);
               toast.error('Failed to save video chunk');
+              // Queue failed upload for retry
+              setPendingUploads(prev => [...prev, {
+                type: 'video',
+                encounterId: response.data.encounter_id,
+                blob: blob,
+                chunkIndex: currentChunkIndex,
+                timestamp: Date.now()
+              }]);
             } finally {
               setUploadingChunk(false);
             }
