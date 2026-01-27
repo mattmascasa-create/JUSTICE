@@ -1306,6 +1306,71 @@ export default function EncounterPage() {
   
   // Assign to ref for voice commands
   shareStreamLinkRef.current = shareStreamLink;
+  
+  // Start Attorney Live Stream
+  const startAttorneyStream = async () => {
+    if (!encounter) {
+      toast.error('Start recording first');
+      return;
+    }
+    
+    setStreamingToAttorney(true);
+    
+    try {
+      const response = await attorneyStreamAPI.createStream(
+        encounter.encounter_id,
+        streamAttorneyEmail || null,
+        address || null
+      );
+      
+      setStreamSession(response.data);
+      setAttorneyStreamActive(true);
+      setShowStreamDialog(false);
+      
+      // Copy stream link to clipboard
+      if (response.data.stream_url) {
+        await navigator.clipboard.writeText(response.data.stream_url);
+        toast.success('🎥 Attorney stream started! Link copied to clipboard.');
+      }
+      
+      if (streamAttorneyEmail) {
+        toast.info(`Notification sent to ${streamAttorneyEmail}`);
+      }
+    } catch (error) {
+      console.error('Attorney stream error:', error);
+      toast.error('Failed to start attorney stream');
+    } finally {
+      setStreamingToAttorney(false);
+    }
+  };
+  
+  // End Attorney Stream
+  const endAttorneyStream = async () => {
+    if (!streamSession) return;
+    
+    try {
+      await attorneyStreamAPI.endStream(streamSession.stream_code, 'user');
+      setStreamSession(null);
+      setAttorneyStreamActive(false);
+      toast.info('Attorney stream ended');
+    } catch (error) {
+      console.error('End stream error:', error);
+    }
+  };
+  
+  // Trigger multi-cloud backup for current encounter
+  const triggerCloudBackup = async () => {
+    if (!encounter) return;
+    
+    try {
+      const response = await multiCloudBackupAPI.backupAllEncounter(encounter.encounter_id);
+      setBackupStatus(response.data);
+      toast.success(`☁️ Backed up to ${response.data.successful_backups} cloud providers`);
+    } catch (error) {
+      console.error('Cloud backup error:', error);
+      toast.error('Cloud backup failed');
+    }
+  };
 
   // Not recording yet - show setup screen
   if (!isRecording) {
