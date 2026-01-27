@@ -427,6 +427,10 @@ export default function AttorneyDashboardPage() {
           <TabsContent value="encounters" className="space-y-4">
             <EncountersList encounterIds={dashboard?.encounter_ids || []} />
           </TabsContent>
+
+          <TabsContent value="streams" className="space-y-4">
+            <StreamHistoryList streams={streamHistory} />
+          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
