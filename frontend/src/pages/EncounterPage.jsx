@@ -1513,9 +1513,91 @@ export default function EncounterPage() {
   }
 
   // Recording in progress
+  // Stealth Mode - completely black screen with hidden recording
+  if (stealthActivated && isRecording) {
+    return (
+      <div 
+        className="fixed inset-0 bg-black z-50 cursor-default"
+        onClick={(e) => {
+          // Triple tap to exit stealth mode
+          e.stopPropagation();
+        }}
+        data-testid="stealth-mode-screen"
+      >
+        {/* Completely black screen - looks like phone is off */}
+        {/* Tiny indicator in corner - barely visible */}
+        <div className="absolute bottom-2 right-2 opacity-5">
+          <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />
+        </div>
+        
+        {/* Hidden info - only visible if you know where to look */}
+        <div className="absolute top-4 left-4 opacity-0 hover:opacity-10 transition-opacity">
+          <p className="text-white text-xs">
+            Recording: {formatDuration(duration)} | Triple-tap to exit
+          </p>
+        </div>
+        
+        {/* Emergency exit button - very subtle */}
+        <button
+          className="absolute bottom-4 left-4 w-12 h-12 opacity-0 active:opacity-5"
+          onClick={() => setStealthActivated(false)}
+          aria-label="Exit stealth mode"
+        />
+        
+        {/* Status bar faker - makes it look more like phone is off */}
+        <div className="absolute top-0 left-0 right-0 h-6 bg-black" />
+      </div>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto space-y-4" data-testid="encounter-recording">
+        {/* Offline Mode Banner */}
+        {isOffline && (
+          <Alert className="border-yellow-500/50 bg-yellow-500/10">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            <AlertDescription>
+              <span className="font-bold">Offline Mode</span> - Recording locally. Data will sync when connected.
+              {pendingUploads.length > 0 && (
+                <span className="ml-2">({pendingUploads.length} pending uploads)</span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Syncing Banner */}
+        {syncingOfflineData && (
+          <Alert className="border-blue-500/50 bg-blue-500/10">
+            <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+            <AlertDescription>
+              Syncing offline recordings...
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Stealth Mode Toggle (when recording) */}
+        {isRecording && (
+          <Card className="border-gray-800 bg-gray-900/50">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm font-medium">Stealth Mode</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Triple-tap or Vol↑↓↑</span>
+                  <Switch
+                    checked={stealthActivated}
+                    onCheckedChange={setStealthActivated}
+                    data-testid="stealth-mode-toggle"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Video Preview (if video enabled) */}
         {enableVideo && (
           <Card className="overflow-hidden">
