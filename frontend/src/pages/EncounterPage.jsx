@@ -201,6 +201,14 @@ export default function EncounterPage() {
   // Attorney Live Stream State
   const [attorneyStreamActive, setAttorneyStreamActive] = useState(false);
   const [connectedAttorney, setConnectedAttorney] = useState(null);
+  const [streamSession, setStreamSession] = useState(null);
+  const [showStreamDialog, setShowStreamDialog] = useState(false);
+  const [streamAttorneyEmail, setStreamAttorneyEmail] = useState('');
+  const [streamingToAttorney, setStreamingToAttorney] = useState(false);
+  
+  // Multi-Cloud Backup State
+  const [cloudBackupEnabled, setCloudBackupEnabled] = useState(true);
+  const [backupStatus, setBackupStatus] = useState(null);
   
   // Screen Recording State
   const [enableScreenRecording, setEnableScreenRecording] = useState(false);
