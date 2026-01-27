@@ -2767,7 +2767,7 @@ export default function EncounterPage() {
                         onChange={(e) => setStreamAttorneyEmail(e.target.value)}
                       />
                       <p className="text-xs text-muted-foreground">
-                        We'll send them a notification with the stream link
+                        We&apos;ll send them a notification with the stream link
                       </p>
                     </div>
                     <Button 
