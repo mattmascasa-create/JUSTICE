@@ -22,8 +22,10 @@ class TestAuth:
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "token" in data
-        return data["token"]
+        # API returns access_token, not token
+        token = data.get("access_token") or data.get("token")
+        assert token, f"No token in response: {data}"
+        return token
     
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
@@ -38,7 +40,9 @@ class TestAuth:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        # API returns access_token, not token
+        token = data.get("access_token") or data.get("token")
+        assert token, f"No token in response: {data}"
         assert "user" in data
         print(f"✓ Login successful, user_id: {data['user'].get('user_id')}")
 
@@ -54,7 +58,8 @@ class TestMultiCloudBackup:
             "password": "password123"
         })
         assert response.status_code == 200
-        return response.json()["token"]
+        data = response.json()
+        return data.get("access_token") or data.get("token")
     
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
@@ -197,7 +202,8 @@ class TestAttorneyStream:
             "password": "password123"
         })
         assert response.status_code == 200
-        return response.json()["token"]
+        data = response.json()
+        return data.get("access_token") or data.get("token")
     
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
@@ -545,7 +551,8 @@ class TestFrontendIntegration:
             "email": "test@example.com",
             "password": "password123"
         })
-        token = login_response.json().get("token")
+        data = login_response.json()
+        token = data.get("access_token") or data.get("token")
         headers = {"Authorization": f"Bearer {token}"}
         
         for method, endpoint in endpoints:
@@ -565,7 +572,8 @@ class TestFrontendIntegration:
             "email": "test@example.com",
             "password": "password123"
         })
-        token = login_response.json().get("token")
+        data = login_response.json()
+        token = data.get("access_token") or data.get("token")
         headers = {"Authorization": f"Bearer {token}"}
         
         # Test endpoints that don't require specific data
