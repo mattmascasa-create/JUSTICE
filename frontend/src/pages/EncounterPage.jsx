@@ -516,6 +516,19 @@ export default function EncounterPage() {
     return false;
   }, [encounter, location, duration, isPaused]);
 
+  // Load attorney settings from localStorage
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('justice_attorney_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setAttorneySettings(settings);
+      // Pre-fill attorney email if configured
+      if (settings.defaultAttorneyEmail) {
+        setStreamAttorneyEmail(settings.defaultAttorneyEmail);
+      }
+    }
+  }, []);
+
   // Initialize Voice Recognition
   useEffect(() => {
     if (!isRecording || !voiceCommandsEnabled) return;
