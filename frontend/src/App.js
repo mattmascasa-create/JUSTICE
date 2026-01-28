@@ -24,7 +24,7 @@ import MessagesPage from "./pages/MessagesPage";
 import TransparencyPage from "./pages/TransparencyPage";
 import IncidentMapPage from "./pages/IncidentMapPage";
 import SettingsPage from "./pages/SettingsPage";
-import EncounterPage from "./pages/EncounterPage";
+import { EncounterPageWithErrorBoundary } from "./pages/EncounterPage";
 import EncounterReportPage from "./pages/EncounterReportPage";
 import LiveStreamPage from "./pages/LiveStreamPage";
 import DocumentAnalysisPage from "./pages/DocumentAnalysisPage";
@@ -117,7 +117,7 @@ function AppRouter() {
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/encounter" element={<ProtectedRoute><EncounterPage /></ProtectedRoute>} />
+      <Route path="/encounter" element={<ProtectedRoute><EncounterPageWithErrorBoundary /></ProtectedRoute>} />
       <Route path="/encounters/:encounterId" element={<ProtectedRoute><EncounterReportPage /></ProtectedRoute>} />
       <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
       <Route path="/cases/new" element={<ProtectedRoute><NewCasePage /></ProtectedRoute>} />
