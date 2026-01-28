@@ -246,7 +246,9 @@ async def upload_audio_chunk(
                     "timestamp": now.isoformat()
                 })
         except Exception as e:
-            print(f"Transcription error: {e}")
+            import traceback
+            print(f"Transcription error for {chunk_path}: {e}")
+            traceback.print_exc()
     
     return {
         "success": True,
