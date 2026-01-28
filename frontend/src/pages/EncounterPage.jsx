@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -26,6 +26,48 @@ import { toast } from 'sonner';
 import RightsCoachPanel from '../components/RightsCoachPanel';
 import DeadMansSwitchPanel from '../components/DeadMansSwitchPanel';
 import { QuickOfficerLookup } from '../components/QuickOfficerLookup';
+
+// Error Boundary to catch runtime errors
+class EncounterErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Encounter Mode Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <AppLayout>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] p-6">
+            <AlertTriangle className="h-16 w-16 text-yellow-500 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
+            <p className="text-muted-foreground mb-4 text-center max-w-md">
+              An error occurred in Encounter Mode. Your recording data has been saved.
+            </p>
+            <div className="flex gap-4">
+              <Button onClick={() => window.location.href = '/encounters'}>
+                View Encounters
+              </Button>
+              <Button variant="outline" onClick={() => this.setState({ hasError: false, error: null })}>
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </AppLayout>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const encounterTypes = [
   { value: 'traffic_stop', label: 'Traffic Stop' },
