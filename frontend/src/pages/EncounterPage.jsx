@@ -2851,3 +2851,12 @@ export default function EncounterPage() {
     </AppLayout>
   );
 }
+
+// Wrap with error boundary for production safety
+export function EncounterPageWithErrorBoundary() {
+  return (
+    <EncounterErrorBoundary>
+      <EncounterPage />
+    </EncounterErrorBoundary>
+  );
+}
