@@ -146,7 +146,9 @@ async def upload_audio_chunk(
     # Transcribe if STT service available
     if stt_service:
         try:
-            response = await stt_service.transcribe(str(chunk_path))
+            # Pass Path object instead of string
+            from pathlib import Path
+            response = await stt_service.transcribe(Path(chunk_path))
             
             if response and response.text:
                 segment_id = f"seg_{uuid.uuid4().hex[:12]}"
