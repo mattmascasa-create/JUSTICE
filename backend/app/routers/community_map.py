@@ -2,11 +2,12 @@
 Community Incident Mapping Router
 Public-facing API for incident visualization and community awareness
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, HTTPException
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 
 from app.db.database import db
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/community-map", tags=["Community Incident Map"])
 
