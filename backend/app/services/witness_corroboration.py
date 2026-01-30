@@ -10,8 +10,12 @@ import uuid
 import math
 
 from app.db.database import db
-from app.services.ai_service import generate_response
 from app.core.config import EMERGENT_LLM_KEY
+
+# Import LLM utilities
+if EMERGENT_LLM_KEY:
+    from emergentintegrations.llm.openai import LlmChat
+    from emergentintegrations.llm.chat import UserMessage
 
 
 class WitnessCorroborationService:
