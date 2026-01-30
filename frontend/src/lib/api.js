@@ -1113,4 +1113,19 @@ export const custodyPortalAPI = {
   downloadCourtPackage: (token) => api.get(`/custody-portal/download-court-package?token=${token}`)
 };
 
+// Witness Corroboration API
+export const corroborationAPI = {
+  // Analyze encounter for corroborating evidence
+  analyze: (encounterId) => api.post(`/corroboration/analyze/${encounterId}`),
+  
+  // Get corroboration history
+  getHistory: (limit = 10) => api.get('/corroboration/history', { params: { limit } }),
+  
+  // Get specific corroboration details
+  getDetails: (corroborationId) => api.get(`/corroboration/${corroborationId}`),
+  
+  // Get summary for an encounter
+  getSummary: (encounterId) => api.get(`/corroboration/encounter/${encounterId}/summary`)
+};
+
 export default api;
