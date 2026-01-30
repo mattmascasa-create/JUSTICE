@@ -214,8 +214,9 @@ class TestCorroborationAuthenticatedEndpoints:
         if encounters_response.status_code != 200:
             pytest.skip("Could not get encounters")
         
-        encounters = encounters_response.json().get("encounters", [])
-        if not encounters:
+        # API returns list directly
+        encounters = encounters_response.json()
+        if not encounters or not isinstance(encounters, list):
             pytest.skip("No encounters found for user")
         
         encounter_id = encounters[0].get("encounter_id")
