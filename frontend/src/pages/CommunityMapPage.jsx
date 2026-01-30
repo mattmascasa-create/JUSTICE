@@ -101,7 +101,7 @@ export default function CommunityMapPage() {
     setError(null);
     
     try {
-      const [incidentsRes, hotspotsRes, statsRes] = await Promise.all([
+      const [incidentsRes, hotspotsRes, statsRes, reportsRes] = await Promise.all([
         api.get('/community-map/incidents', { 
           params: { 
             radius_miles: radiusMiles, 
@@ -110,12 +110,14 @@ export default function CommunityMapPage() {
           } 
         }),
         api.get('/community-map/hotspots', { params: { days: daysFilter } }),
-        api.get('/community-map/statistics')
+        api.get('/community-map/statistics'),
+        api.get('/community-map/reports', { params: { days: daysFilter } })
       ]);
       
       setIncidents(incidentsRes.data.incidents || []);
       setHotspots(hotspotsRes.data.hotspots || []);
       setStatistics(statsRes.data.statistics || null);
+      setCommunityReports(reportsRes.data.reports || []);
       
       // Center map on first incident if available
       if (incidentsRes.data.incidents?.length > 0) {
