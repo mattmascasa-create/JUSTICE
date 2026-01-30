@@ -1050,7 +1050,7 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 ### P1 (Ready)
 - [x] ✅ Evidence Chain of Custody Portal - DONE Jan 27, 2026
 - [x] ✅ AI Witness Corroboration - DONE Jan 30, 2026
-- [ ] Community Incident Mapping - Public visualization of accountability data
+- [x] ✅ Community Incident Mapping - DONE Jan 30, 2026
 - [ ] Test Panic Button & Document Sharing E2E with SendGrid
 
 ### P2 (Future)
@@ -1060,6 +1060,7 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - [ ] "Know Your Rights" Interactive Training Modules
 - [ ] Real blockchain anchoring (Ethereum/Polygon)
 - [ ] 3D evidence reconstruction
+- [ ] Refactor EncounterPage.jsx (large file - technical debt)
 
 ## Test Credentials
 - Citizen: encounter_test@example.com / password123
