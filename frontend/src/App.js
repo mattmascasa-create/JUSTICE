@@ -54,6 +54,7 @@ import CourtGradeAIPage from "./pages/CourtGradeAIPage";
 import LegalToolsPage from "./pages/LegalToolsPage";
 import CustodyPortalPage from "./pages/CustodyPortalPage";
 import CommunityMapPage from "./pages/CommunityMapPage";
+import ModerationDashboardPage from "./pages/ModerationDashboardPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
