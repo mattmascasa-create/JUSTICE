@@ -322,6 +322,156 @@ async def get_officer_incident_locations(
     }
 
 
+# ============== Community Reporting ==============
+
+@router.post("/report")
+async def submit_community_report(
+    report_type: str = Query(..., description="Type: safety_tip, incident, concern, positive"),
+    description: str = Query(..., min_length=10, max_length=1000),
+    latitude: Optional[float] = Query(None),
+    longitude: Optional[float] = Query(None),
+    address: Optional[str] = Query(None, max_length=200),
+    anonymous: bool = Query(default=True),
+    contact_email: Optional[str] = Query(None)
+):
+    """
+    Submit a community report or safety tip.
+    Can be anonymous or with contact info for follow-up.
+    """
+    import uuid
+    import random
+    
+    report_id = f"report_{uuid.uuid4().hex[:12]}"
+    
+    # Slightly randomize location for privacy if provided
+    if latitude and longitude:
+        latitude += random.uniform(-0.002, 0.002)
+        longitude += random.uniform(-0.002, 0.002)
+    
+    report = {
+        "report_id": report_id,
+        "report_type": report_type,
+        "description": description,
+        "location": {
+            "latitude": round(latitude, 4) if latitude else None,
+            "longitude": round(longitude, 4) if longitude else None,
+            "address": address
+        },
+        "anonymous": anonymous,
+        "contact_email": contact_email if not anonymous else None,
+        "status": "pending",  # pending, approved, rejected
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "votes": 0,
+        "verified": False
+    }
+    
+    await db.community_reports.insert_one(report)
+    
+    return {
+        "success": True,
+        "report_id": report_id,
+        "message": "Thank you for your report. It will be reviewed and added to the map if approved.",
+        "status": "pending"
+    }
+
+
+@router.get("/reports")
+async def get_community_reports(
+    status: str = Query(default="approved", description="Filter by status"),
+    report_type: Optional[str] = Query(None),
+    days: int = Query(default=90, le=365),
+    limit: int = Query(default=100, le=500)
+):
+    """
+    Get approved community reports for map display.
+    """
+    
+    query = {"status": status}
+    
+    if report_type:
+        query["report_type"] = report_type
+    
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    reports = []
+    cursor = db.community_reports.find(
+        query,
+        {"_id": 0, "contact_email": 0}  # Exclude sensitive data
+    ).sort("created_at", -1).limit(limit)
+    
+    async for report in cursor:
+        # Only include reports with location
+        if report.get("location", {}).get("latitude"):
+            reports.append({
+                "report_id": report.get("report_id"),
+                "report_type": report.get("report_type"),
+                "description": report.get("description")[:200],  # Truncate for privacy
+                "lat": report.get("location", {}).get("latitude"),
+                "lon": report.get("location", {}).get("longitude"),
+                "area": report.get("location", {}).get("address"),
+                "date": report.get("created_at"),
+                "votes": report.get("votes", 0),
+                "verified": report.get("verified", False)
+            })
+    
+    return {
+        "success": True,
+        "reports": reports,
+        "count": len(reports)
+    }
+
+
+@router.post("/reports/{report_id}/vote")
+async def vote_community_report(report_id: str):
+    """
+    Upvote a community report to increase visibility.
+    No auth required - simple community validation.
+    """
+    
+    result = await db.community_reports.update_one(
+        {"report_id": report_id, "status": "approved"},
+        {"$inc": {"votes": 1}}
+    )
+    
+    if result.modified_count == 0:
+        return {"success": False, "message": "Report not found or not approved"}
+    
+    return {"success": True, "message": "Vote recorded"}
+
+
+@router.get("/report-types")
+async def get_report_types():
+    """Get available report types with descriptions"""
+    return {
+        "types": [
+            {
+                "value": "safety_tip",
+                "label": "Safety Tip",
+                "description": "Share safety advice for a specific area",
+                "icon": "shield"
+            },
+            {
+                "value": "incident",
+                "label": "Incident Report",
+                "description": "Report a police encounter or civil rights concern",
+                "icon": "alert-triangle"
+            },
+            {
+                "value": "concern",
+                "label": "Area Concern",
+                "description": "Flag an area with known issues or patterns",
+                "icon": "map-pin"
+            },
+            {
+                "value": "positive",
+                "label": "Positive Interaction",
+                "description": "Share a positive experience with law enforcement",
+                "icon": "thumbs-up"
+            }
+        ]
+    }
+
+
 def _get_area_name(address: Optional[str]) -> Optional[str]:
     """Extract general area name from address for privacy"""
     if not address:
@@ -332,3 +482,4 @@ def _get_area_name(address: Optional[str]) -> Optional[str]:
     if len(parts) >= 2:
         return parts[-2].strip()  # Usually city
     return None
+
