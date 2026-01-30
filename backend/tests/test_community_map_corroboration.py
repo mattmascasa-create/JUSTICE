@@ -126,7 +126,8 @@ class TestCorroborationAuthenticatedEndpoints:
         if login_response.status_code != 200:
             pytest.skip(f"Login failed: {login_response.status_code}")
         
-        self.token = login_response.json().get("token")
+        # API returns access_token, not token
+        self.token = login_response.json().get("access_token")
         self.headers = {"Authorization": f"Bearer {self.token}"}
         self.user_id = login_response.json().get("user", {}).get("user_id")
     
