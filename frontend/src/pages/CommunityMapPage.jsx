@@ -516,6 +516,33 @@ export default function CommunityMapPage() {
           {/* Community Reports Summary */}
           {communityReports.length > 0 && (
             <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Community Reports ({communityReports.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 max-h-48 overflow-y-auto">
+                {communityReports.slice(0, 5).map((report) => (
+                  <div key={report.report_id} className="p-2 bg-muted/30 rounded text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs">
+                        {getReportTypeLabel(report.report_type)}
+                      </Badge>
+                      <span className="text-muted-foreground">{formatDate(report.date)}</span>
+                    </div>
+                    <p className="text-muted-foreground line-clamp-2">{report.description}</p>
+                    {report.votes > 0 && (
+                      <div className="flex items-center gap-1 mt-1 text-green-600">
+                        <ThumbsUp className="h-3 w-3" />
+                        <span>{report.votes}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Info */}
           <div className="mt-4 p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
