@@ -246,6 +246,115 @@ export default function CommunityMapPage() {
             </div>
             
             <div className="flex items-center gap-4">
+              <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700" data-testid="submit-report-btn">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Submit Report
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Submit Community Report
+                    </DialogTitle>
+                    <DialogDescription>
+                      Share safety tips, report incidents, or flag areas of concern. All reports are reviewed before publication.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Report Type</Label>
+                      <Select value={reportForm.report_type} onValueChange={(v) => setReportForm(p => ({...p, report_type: v}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="incident">Incident Report</SelectItem>
+                          <SelectItem value="safety_tip">Safety Tip</SelectItem>
+                          <SelectItem value="concern">Area Concern</SelectItem>
+                          <SelectItem value="positive">Positive Interaction</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Description *</Label>
+                      <Textarea 
+                        placeholder="Describe the incident, tip, or concern..."
+                        value={reportForm.description}
+                        onChange={(e) => setReportForm(p => ({...p, description: e.target.value}))}
+                        rows={4}
+                        maxLength={1000}
+                      />
+                      <p className="text-xs text-muted-foreground">{reportForm.description.length}/1000 characters</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Location (optional)</Label>
+                      <Input 
+                        placeholder="Street, City, State"
+                        value={reportForm.address}
+                        onChange={(e) => setReportForm(p => ({...p, address: e.target.value}))}
+                      />
+                      <div className="flex items-center gap-2 mt-2">
+                        <Checkbox 
+                          id="use-location"
+                          checked={reportForm.useCurrentLocation}
+                          onCheckedChange={(checked) => {
+                            setReportForm(p => ({...p, useCurrentLocation: checked}));
+                            if (checked && !userLocation) centerOnUser();
+                          }}
+                        />
+                        <Label htmlFor="use-location" className="text-sm font-normal cursor-pointer">
+                          Use my current location (slightly randomized for privacy)
+                        </Label>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="anonymous"
+                          checked={reportForm.anonymous}
+                          onCheckedChange={(checked) => setReportForm(p => ({...p, anonymous: checked}))}
+                        />
+                        <Label htmlFor="anonymous" className="text-sm font-normal cursor-pointer">
+                          Submit anonymously
+                        </Label>
+                      </div>
+                      
+                      {!reportForm.anonymous && (
+                        <div className="space-y-2 mt-2">
+                          <Label>Contact Email (for follow-up)</Label>
+                          <Input 
+                            type="email"
+                            placeholder="your@email.com"
+                            value={reportForm.contact_email}
+                            onChange={(e) => setReportForm(p => ({...p, contact_email: e.target.value}))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setReportDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSubmitReport} disabled={submittingReport} data-testid="submit-report-confirm">
+                      {submittingReport ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Submitting...</>
+                      ) : (
+                        <><Send className="h-4 w-4 mr-2" />Submit Report</>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
               <Button variant="outline" size="sm" onClick={centerOnUser}>
                 <Crosshair className="h-4 w-4 mr-2" />
                 My Location
