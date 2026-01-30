@@ -68,7 +68,7 @@ const getNavItems = (role) => {
     { icon: Scale, label: 'Find Attorney', path: '/attorneys' },
     { icon: MessageCircle, label: 'Messages', path: '/messages' },
     { icon: Map, label: 'Incident Map', path: '/incident-map' },
-    { icon: Map, label: 'Community Map', path: '/community-map', highlight: true },
+    { icon: Users, label: 'Community Map', path: '/community-map', highlight: true },
     { icon: BookOpen, label: 'Know Your Rights', path: '/training' },
     { icon: Building, label: 'Transparency', path: '/transparency' },
     { icon: Shield, label: 'Accountability Portal', path: '/accountability', highlight: true },
