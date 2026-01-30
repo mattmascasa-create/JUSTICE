@@ -647,6 +647,53 @@ export default function CommunityMapPage() {
                   </Popup>
                 </Marker>
               ))}
+
+              {/* Community Report markers */}
+              {showReports && communityReports.map((report, idx) => (
+                <Marker
+                  key={`report-${idx}`}
+                  position={[report.lat, report.lon]}
+                  icon={getIncidentIcon(report.report_type)}
+                >
+                  <Popup>
+                    <div className="text-sm min-w-[220px]">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="outline" className="text-xs">
+                          {getReportTypeLabel(report.report_type)}
+                        </Badge>
+                        {report.verified && (
+                          <Badge className="bg-green-500 text-xs">Verified</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs mb-2">{report.description}</p>
+                      <p className="text-muted-foreground text-xs mb-2">
+                        {formatDate(report.date)}
+                      </p>
+                      {report.area && (
+                        <p className="text-xs mb-2">
+                          <MapPin className="h-3 w-3 inline mr-1" />
+                          {report.area}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <ThumbsUp className="h-3 w-3" />
+                          <span>{report.votes || 0} votes</span>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 text-xs"
+                          onClick={() => handleVoteReport(report.report_id)}
+                        >
+                          <ThumbsUp className="h-3 w-3 mr-1" />
+                          Helpful
+                        </Button>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
             </MapContainer>
           )}
         </main>
