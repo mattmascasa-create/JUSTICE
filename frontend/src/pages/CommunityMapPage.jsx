@@ -461,12 +461,16 @@ export default function CommunityMapPage() {
                   <Label className="text-xs">Show Hotspots</Label>
                   <Switch checked={showHotspots} onCheckedChange={setShowHotspots} />
                 </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Show Community Reports</Label>
+                  <Switch checked={showReports} onCheckedChange={setShowReports} />
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Legend */}
-          <Card>
+          <Card className="mb-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Layers className="h-4 w-4" />
@@ -474,6 +478,7 @@ export default function CommunityMapPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-xs">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Encounters</p>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-red-500 rounded-full" />
                 <span>Traffic Stop</span>
@@ -491,12 +496,26 @@ export default function CommunityMapPage() {
                 <span>Complaint</span>
               </div>
               <Separator className="my-2" />
+              <p className="text-xs font-medium text-muted-foreground mb-2">Community Reports</p>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full" />
+                <span>Safety Tip / Positive</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full" />
+                <span>Area Concern</span>
+              </div>
+              <Separator className="my-2" />
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-red-500/30 rounded-full border-2 border-red-500" />
                 <span>Hotspot (high activity)</span>
               </div>
             </CardContent>
           </Card>
+
+          {/* Community Reports Summary */}
+          {communityReports.length > 0 && (
+            <Card>
 
           {/* Info */}
           <div className="mt-4 p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
