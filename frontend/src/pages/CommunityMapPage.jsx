@@ -7,15 +7,17 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Separator } from '../components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '../components/ui/dialog';
+import { Checkbox } from '../components/ui/checkbox';
 import api from '../lib/api';
 import { 
   MapPin, AlertTriangle, Shield, Filter, Loader2, 
   RefreshCw, BarChart3, TrendingUp, Eye, EyeOff,
-  Crosshair, Layers, Info
+  Crosshair, Layers, Info, Plus, ThumbsUp, Send, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 
