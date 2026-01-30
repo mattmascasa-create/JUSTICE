@@ -155,6 +155,7 @@ function AppRouter() {
       <Route path="/accountability" element={<AccountabilityPortalPage />} />
       <Route path="/custody-portal" element={<CustodyPortalPage />} />
       <Route path="/community-map" element={<CommunityMapPage />} />
+      <Route path="/moderation" element={<ModerationDashboardPage />} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
