@@ -453,8 +453,14 @@ Provide a 2-3 sentence assessment of:
 2. Key patterns that support the user's account
 3. Recommended next steps for building the case"""
 
-            analysis = await generate_response(prompt, max_tokens=200)
-            return analysis
+            llm = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"corroboration_{uuid.uuid4().hex[:8]}",
+                system_message="You are a legal analyst specializing in civil rights cases."
+            )
+            
+            response = await llm.send_message(UserMessage(text=prompt))
+            return response.text if response else None
         except Exception as e:
             print(f"AI analysis error: {e}")
             return None
