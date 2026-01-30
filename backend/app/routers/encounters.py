@@ -144,15 +144,43 @@ async def upload_audio_chunk(
     transcription_result = None
     
     # Transcribe if STT service available
-    print(f"STT Service available: {stt_service is not None}")
-    print(f"Audio chunk saved at: {chunk_path}, exists: {chunk_path.exists()}, size: {chunk_path.stat().st_size if chunk_path.exists() else 0}")
-    
     if stt_service:
         try:
-            # Pass Path object instead of string
-            from pathlib import Path
-            print(f"Calling transcribe with path: {chunk_path}")
-            response = await stt_service.transcribe(chunk_path)
+            # Convert audio to a format Whisper supports (mp3)
+            import subprocess
+            import shutil
+            
+            converted_path = chunk_path.with_suffix('.mp3')
+            
+            # Try to convert using ffmpeg if available
+            ffmpeg_path = shutil.which('ffmpeg')
+            if ffmpeg_path:
+                try:
+                    subprocess.run([
+                        'ffmpeg', '-y', '-i', str(chunk_path),
+                        '-acodec', 'libmp3lame', '-ar', '16000', '-ac', '1',
+                        str(converted_path)
+                    ], capture_output=True, check=True, timeout=30)
+                    transcribe_path = converted_path
+                    print(f"Converted audio to MP3: {converted_path}")
+                except Exception as conv_err:
+                    print(f"FFmpeg conversion failed: {conv_err}, using original")
+                    transcribe_path = chunk_path
+            else:
+                # Try pydub as fallback
+                try:
+                    from pydub import AudioSegment
+                    audio_segment = AudioSegment.from_file(str(chunk_path))
+                    audio_segment = audio_segment.set_frame_rate(16000).set_channels(1)
+                    audio_segment.export(str(converted_path), format='mp3')
+                    transcribe_path = converted_path
+                    print(f"Converted audio using pydub: {converted_path}")
+                except Exception as pydub_err:
+                    print(f"Pydub conversion failed: {pydub_err}, using original")
+                    transcribe_path = chunk_path
+            
+            print(f"Transcribing: {transcribe_path}")
+            response = await stt_service.transcribe(transcribe_path)
             print(f"Transcription response: {response}")
             
             if response and response.text:
