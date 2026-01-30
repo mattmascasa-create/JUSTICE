@@ -484,3 +484,222 @@ def _get_area_name(address: Optional[str]) -> Optional[str]:
         return parts[-2].strip()  # Usually city
     return None
 
+
+# ============== Admin Moderation Endpoints ==============
+
+async def check_admin_access(current_user: dict = Depends(get_current_user)):
+    """Check if user has admin/moderator access"""
+    user = await db.users.find_one({"user_id": current_user["user_id"]})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_role = user.get("role", "citizen")
+    if user_role not in ["admin", "moderator", "attorney"]:
+        raise HTTPException(status_code=403, detail="Admin or moderator access required")
+    
+    return user
+
+
+@router.get("/admin/reports")
+async def get_reports_for_moderation(
+    status: str = Query(default="pending", description="Filter by status: pending, approved, rejected, all"),
+    limit: int = Query(default=50, le=200),
+    skip: int = Query(default=0),
+    current_user: dict = Depends(check_admin_access)
+):
+    """
+    Get reports for moderation (Admin/Moderator only)
+    """
+    query = {}
+    if status != "all":
+        query["status"] = status
+    
+    reports = []
+    cursor = db.community_reports.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).skip(skip).limit(limit)
+    
+    async for report in cursor:
+        reports.append({
+            "report_id": report.get("report_id"),
+            "report_type": report.get("report_type"),
+            "description": report.get("description"),
+            "location": report.get("location"),
+            "anonymous": report.get("anonymous", True),
+            "contact_email": report.get("contact_email") if not report.get("anonymous") else None,
+            "status": report.get("status"),
+            "created_at": report.get("created_at"),
+            "votes": report.get("votes", 0),
+            "verified": report.get("verified", False),
+            "moderated_by": report.get("moderated_by"),
+            "moderated_at": report.get("moderated_at"),
+            "moderation_notes": report.get("moderation_notes")
+        })
+    
+    # Get counts
+    total = await db.community_reports.count_documents(query)
+    pending_count = await db.community_reports.count_documents({"status": "pending"})
+    approved_count = await db.community_reports.count_documents({"status": "approved"})
+    rejected_count = await db.community_reports.count_documents({"status": "rejected"})
+    
+    return {
+        "success": True,
+        "reports": reports,
+        "total": total,
+        "stats": {
+            "pending": pending_count,
+            "approved": approved_count,
+            "rejected": rejected_count
+        }
+    }
+
+
+@router.put("/admin/reports/{report_id}/approve")
+async def approve_report(
+    report_id: str,
+    notes: Optional[str] = Query(None, max_length=500),
+    current_user: dict = Depends(check_admin_access)
+):
+    """Approve a pending report (Admin/Moderator only)"""
+    
+    result = await db.community_reports.update_one(
+        {"report_id": report_id},
+        {
+            "$set": {
+                "status": "approved",
+                "moderated_by": current_user.get("user_id"),
+                "moderated_at": datetime.now(timezone.utc).isoformat(),
+                "moderation_notes": notes
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    return {
+        "success": True,
+        "message": "Report approved and now visible on the community map",
+        "report_id": report_id
+    }
+
+
+@router.put("/admin/reports/{report_id}/reject")
+async def reject_report(
+    report_id: str,
+    reason: str = Query(..., min_length=5, max_length=500),
+    current_user: dict = Depends(check_admin_access)
+):
+    """Reject a report with reason (Admin/Moderator only)"""
+    
+    result = await db.community_reports.update_one(
+        {"report_id": report_id},
+        {
+            "$set": {
+                "status": "rejected",
+                "moderated_by": current_user.get("user_id"),
+                "moderated_at": datetime.now(timezone.utc).isoformat(),
+                "rejection_reason": reason
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    return {
+        "success": True,
+        "message": "Report rejected",
+        "report_id": report_id
+    }
+
+
+@router.put("/admin/reports/{report_id}/verify")
+async def verify_report(
+    report_id: str,
+    current_user: dict = Depends(check_admin_access)
+):
+    """Mark an approved report as verified (Admin/Moderator only)"""
+    
+    result = await db.community_reports.update_one(
+        {"report_id": report_id, "status": "approved"},
+        {
+            "$set": {
+                "verified": True,
+                "verified_by": current_user.get("user_id"),
+                "verified_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Report not found or not approved")
+    
+    return {
+        "success": True,
+        "message": "Report marked as verified",
+        "report_id": report_id
+    }
+
+
+@router.delete("/admin/reports/{report_id}")
+async def delete_report(
+    report_id: str,
+    current_user: dict = Depends(check_admin_access)
+):
+    """Permanently delete a report (Admin only)"""
+    
+    # Only admins can delete
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can delete reports")
+    
+    result = await db.community_reports.delete_one({"report_id": report_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    return {
+        "success": True,
+        "message": "Report permanently deleted",
+        "report_id": report_id
+    }
+
+
+@router.get("/admin/stats")
+async def get_moderation_stats(
+    current_user: dict = Depends(check_admin_access)
+):
+    """Get moderation statistics (Admin/Moderator only)"""
+    
+    pending = await db.community_reports.count_documents({"status": "pending"})
+    approved = await db.community_reports.count_documents({"status": "approved"})
+    rejected = await db.community_reports.count_documents({"status": "rejected"})
+    verified = await db.community_reports.count_documents({"verified": True})
+    
+    # Reports by type
+    type_counts = {}
+    cursor = db.community_reports.aggregate([
+        {"$group": {"_id": "$report_type", "count": {"$sum": 1}}}
+    ])
+    async for doc in cursor:
+        type_counts[doc["_id"]] = doc["count"]
+    
+    # Recent activity (last 7 days)
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    recent_count = await db.community_reports.count_documents({
+        "created_at": {"$gte": week_ago.isoformat()}
+    })
+    
+    return {
+        "success": True,
+        "stats": {
+            "pending": pending,
+            "approved": approved,
+            "rejected": rejected,
+            "verified": verified,
+            "total": pending + approved + rejected,
+            "by_type": type_counts,
+            "last_7_days": recent_count
+        }
+    }
