@@ -133,3 +133,4 @@ twilio==9.10.0
 pillow==12.1.0
 pyotp==2.9.0
 qrcode==8.2
+pydub==0.25.1
