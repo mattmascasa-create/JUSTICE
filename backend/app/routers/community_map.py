@@ -653,10 +653,16 @@ async def get_reports_for_moderation(
 @router.put("/admin/reports/{report_id}/approve")
 async def approve_report(
     report_id: str,
+    background_tasks: BackgroundTasks,
     notes: Optional[str] = Query(None, max_length=500),
     current_user: dict = Depends(check_admin_access)
 ):
     """Approve a pending report (Admin/Moderator only)"""
+    
+    # Get the report first to check for contact email
+    report = await db.community_reports.find_one({"report_id": report_id}, {"_id": 0})
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
     
     result = await db.community_reports.update_one(
         {"report_id": report_id},
@@ -673,20 +679,39 @@ async def approve_report(
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Report not found")
     
+    # Send email notification if contact email exists
+    email_sent = False
+    contact_email = report.get("contact_email")
+    if contact_email and not report.get("anonymous", True):
+        background_tasks.add_task(
+            send_report_notification_email,
+            contact_email,
+            report.get("report_type", "report"),
+            "approved"
+        )
+        email_sent = True
+    
     return {
         "success": True,
         "message": "Report approved and now visible on the community map",
-        "report_id": report_id
+        "report_id": report_id,
+        "notification_sent": email_sent
     }
 
 
 @router.put("/admin/reports/{report_id}/reject")
 async def reject_report(
     report_id: str,
+    background_tasks: BackgroundTasks,
     reason: str = Query(..., min_length=5, max_length=500),
     current_user: dict = Depends(check_admin_access)
 ):
     """Reject a report with reason (Admin/Moderator only)"""
+    
+    # Get the report first to check for contact email
+    report = await db.community_reports.find_one({"report_id": report_id}, {"_id": 0})
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
     
     result = await db.community_reports.update_one(
         {"report_id": report_id},
@@ -703,10 +728,24 @@ async def reject_report(
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Report not found")
     
+    # Send email notification if contact email exists
+    email_sent = False
+    contact_email = report.get("contact_email")
+    if contact_email and not report.get("anonymous", True):
+        background_tasks.add_task(
+            send_report_notification_email,
+            contact_email,
+            report.get("report_type", "report"),
+            "rejected",
+            reason
+        )
+        email_sent = True
+    
     return {
         "success": True,
         "message": "Report rejected",
-        "report_id": report_id
+        "report_id": report_id,
+        "notification_sent": email_sent
     }
 
 
