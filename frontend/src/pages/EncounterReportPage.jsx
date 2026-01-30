@@ -525,6 +525,9 @@ export default function EncounterReportPage() {
           </CardContent>
         </Card>
 
+        {/* AI Witness Corroboration Panel */}
+        <CorroborationPanel encounterId={encounterId} />
+
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
           <Button className="flex-1">
