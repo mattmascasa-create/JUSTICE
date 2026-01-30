@@ -66,6 +66,7 @@ export default function CommunityMapPage() {
   // State
   const [incidents, setIncidents] = useState([]);
   const [hotspots, setHotspots] = useState([]);
+  const [communityReports, setCommunityReports] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,11 +75,25 @@ export default function CommunityMapPage() {
   const [center, setCenter] = useState([39.8283, -98.5795]); // US center
   const [showHotspots, setShowHotspots] = useState(true);
   const [showIncidents, setShowIncidents] = useState(true);
+  const [showReports, setShowReports] = useState(true);
   
   // Filters
   const [radiusMiles, setRadiusMiles] = useState(50);
   const [daysFilter, setDaysFilter] = useState(90);
   const [typeFilter, setTypeFilter] = useState('all');
+  
+  // Report dialog state
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportForm, setReportForm] = useState({
+    report_type: 'incident',
+    description: '',
+    address: '',
+    anonymous: true,
+    contact_email: '',
+    useCurrentLocation: false
+  });
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
 
   // Load data
   const loadData = useCallback(async () => {
