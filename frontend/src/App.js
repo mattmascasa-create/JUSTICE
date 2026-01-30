@@ -153,6 +153,7 @@ function AppRouter() {
       <Route path="/legal-tools" element={<ProtectedRoute><LegalToolsPage /></ProtectedRoute>} />
       <Route path="/accountability" element={<AccountabilityPortalPage />} />
       <Route path="/custody-portal" element={<CustodyPortalPage />} />
+      <Route path="/community-map" element={<CommunityMapPage />} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
