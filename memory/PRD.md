@@ -1202,3 +1202,26 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 #### Navigation Updates
 - Added "Community Map" link to sidebar with `Users` icon and highlight badge
 
+
+
+##### Report Moderation Dashboard ✅
+- **Admin Access**: Available to admin, moderator, and attorney roles
+- **Stats Overview**: Cards showing Pending, Approved, Rejected, Verified counts + Last 7 Days
+- **Tabs**: Filter by Pending, Approved, Rejected, or All reports
+- **Search**: Filter reports by description or location
+- **Report Actions**:
+  - View: See full report details in modal
+  - Approve: Make report visible on community map (with optional notes)
+  - Reject: Decline report with required reason
+  - Verify: Mark approved reports as verified (trusted source)
+  - Delete: Permanently remove report (admin only)
+- **Pagination**: Handle large volumes of reports
+- **Moderation Tracking**: Records who moderated and when
+- **API Endpoints**:
+  - `GET /api/community-map/admin/reports` - List reports with filters
+  - `GET /api/community-map/admin/stats` - Moderation statistics
+  - `PUT /api/community-map/admin/reports/{id}/approve` - Approve report
+  - `PUT /api/community-map/admin/reports/{id}/reject` - Reject report
+  - `PUT /api/community-map/admin/reports/{id}/verify` - Mark as verified
+  - `DELETE /api/community-map/admin/reports/{id}` - Delete report (admin only)
+- **Route**: `/moderation` (sidebar link for admin/moderator/attorney)
