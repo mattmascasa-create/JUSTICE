@@ -175,12 +175,31 @@ export default function EncounterReportPage() {
     );
   }
 
-  const { report, transcriptions, media_files } = reportData || {};
-  const videoFiles = media_files?.filter(f => f.type === 'video') || [];
-  const audioFiles = media_files?.filter(f => f.type === 'audio') || [];
+  // API returns flat structure with encounter data directly
+  const report = reportData ? {
+    encounter_id: reportData.encounter_id,
+    encounter_type: reportData.encounter_type,
+    status: reportData.status,
+    location: reportData.location,
+    duration_seconds: reportData.duration_seconds,
+    started_at: reportData.started_at,
+    ended_at: reportData.ended_at,
+    transcript: reportData.transcript,
+    violations: reportData.violations,
+    ai_analysis: reportData.ai_analysis,
+    officers: reportData.officers,
+    manual_marks: reportData.manual_marks
+  } : null;
+  const transcriptions = reportData?.transcription_segments || [];
+  const media_files = reportData?.media?.files?.map(f => ({
+    filename: f,
+    type: f.startsWith('video_') ? 'video' : f.startsWith('audio_') ? 'audio' : 'other'
+  })) || [];
+  const videoFiles = media_files.filter(f => f.type === 'video');
+  const audioFiles = media_files.filter(f => f.type === 'audio');
 
   // If report is not available, show error
-  if (!report) {
+  if (!report || !reportData?.encounter_id) {
     return (
       <AppLayout>
         <div className="max-w-2xl mx-auto">
