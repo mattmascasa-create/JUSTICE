@@ -9,7 +9,7 @@ import os
 import io
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rights-guard-2.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://justice-civil-rights.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "encounter_test@example.com"

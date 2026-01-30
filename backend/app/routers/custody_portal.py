@@ -95,7 +95,7 @@ async def create_access_token(
     )
     
     # Generate portal URL
-    portal_url = f"https://rights-guard-2.preview.emergentagent.com/custody-portal?token={access_token}"
+    portal_url = f"https://justice-civil-rights.preview.emergentagent.com/custody-portal?token={access_token}"
     
     return {
         "success": True,
