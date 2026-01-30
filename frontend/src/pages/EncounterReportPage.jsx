@@ -8,6 +8,7 @@ import { Separator } from '../components/ui/separator';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { encounterAPI, API_URL } from '../lib/api';
+import CorroborationPanel from '../components/CorroborationPanel';
 import { 
   Shield, MapPin, Clock, Video, Mic, FileText, AlertTriangle,
   CheckCircle, ExternalLink, Download, Scale, Users, ArrowLeft,
