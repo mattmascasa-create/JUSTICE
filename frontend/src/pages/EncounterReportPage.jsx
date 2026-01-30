@@ -178,6 +178,7 @@ export default function EncounterReportPage() {
   // API returns flat structure with encounter data directly
   const report = reportData ? {
     encounter_id: reportData.encounter_id,
+    report_id: reportData.encounter_id, // Use encounter_id as report_id
     encounter_type: reportData.encounter_type,
     status: reportData.status,
     location: reportData.location,
@@ -185,10 +186,23 @@ export default function EncounterReportPage() {
     started_at: reportData.started_at,
     ended_at: reportData.ended_at,
     transcript: reportData.transcript,
-    violations: reportData.violations,
+    violations: reportData.violations || [],
+    violations_count: (reportData.violations || []).length,
     ai_analysis: reportData.ai_analysis,
     officers: reportData.officers,
-    manual_marks: reportData.manual_marks
+    manual_marks: reportData.manual_marks,
+    summary: reportData.transcript ? `Incident recorded on ${new Date(reportData.started_at).toLocaleDateString()}. ${(reportData.violations || []).length} potential violations detected.` : null,
+    court_admissible: true,
+    encounter_details: {
+      duration_seconds: reportData.duration_seconds || 0,
+      location: reportData.location?.address || 'Location not recorded',
+      encounter_type: reportData.encounter_type
+    },
+    evidence: {
+      total_size_mb: 0 // Placeholder
+    },
+    recommendations: [],
+    legal_resources: []
   } : null;
   const transcriptions = reportData?.transcription_segments || [];
   const media_files = reportData?.media?.files?.map(f => ({
