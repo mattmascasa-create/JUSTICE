@@ -144,13 +144,19 @@ async def upload_audio_chunk(
     transcription_result = None
     
     # Transcribe if STT service available
+    print(f"STT Service available: {stt_service is not None}")
+    print(f"Audio chunk saved at: {chunk_path}, exists: {chunk_path.exists()}, size: {chunk_path.stat().st_size if chunk_path.exists() else 0}")
+    
     if stt_service:
         try:
             # Pass Path object instead of string
             from pathlib import Path
-            response = await stt_service.transcribe(Path(chunk_path))
+            print(f"Calling transcribe with path: {chunk_path}")
+            response = await stt_service.transcribe(chunk_path)
+            print(f"Transcription response: {response}")
             
             if response and response.text:
+                print(f"Transcription text: {response.text}")
                 segment_id = f"seg_{uuid.uuid4().hex[:12]}"
                 now = datetime.now(timezone.utc)
                 
