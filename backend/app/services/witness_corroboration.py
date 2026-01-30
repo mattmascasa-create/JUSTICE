@@ -160,15 +160,16 @@ class WitnessCorroborationService:
             if isinstance(encounter_time, str):
                 try:
                     enc_dt = datetime.fromisoformat(encounter_time.replace('Z', '+00:00'))
-                except:
+                except ValueError:
                     enc_dt = datetime.now(timezone.utc)
             else:
                 enc_dt = encounter_time
         else:
             enc_dt = datetime.now(timezone.utc)
         
-        time_start = enc_dt - timedelta(hours=self.TIME_WINDOW_HOURS)
-        time_end = enc_dt + timedelta(hours=self.TIME_WINDOW_HOURS)
+        # Time window for filtering (not currently used but kept for future)
+        _ = enc_dt - timedelta(hours=self.TIME_WINDOW_HOURS)  # time_start
+        _ = enc_dt + timedelta(hours=self.TIME_WINDOW_HOURS)  # time_end
         
         # Find all encounters in the time window
         nearby = []
