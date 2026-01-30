@@ -86,6 +86,16 @@ const getNavItems = (role) => {
     });
   }
 
+  // Add moderation dashboard for admin/moderator/attorney
+  if (['admin', 'moderator', 'attorney'].includes(role)) {
+    baseItems.push({
+      icon: Shield,
+      label: 'Moderation',
+      path: '/moderation',
+      highlight: true
+    });
+  }
+
   return baseItems;
 };
 
