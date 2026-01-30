@@ -2,14 +2,109 @@
 Community Incident Mapping Router
 Public-facing API for incident visualization and community awareness
 """
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Depends, HTTPException, BackgroundTasks
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
+import os
 
 from app.db.database import db
 from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/community-map", tags=["Community Incident Map"])
+
+# SendGrid setup
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL", "noreply@justice.app")
+SENDGRID_FROM_NAME = os.environ.get("SENDGRID_FROM_NAME", "JUSTICE Platform")
+
+
+async def send_report_notification_email(
+    to_email: str,
+    report_type: str,
+    status: str,
+    reason: str = None
+):
+    """Send email notification about report status change"""
+    if not SENDGRID_API_KEY or not to_email:
+        return False
+    
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To, Content
+        
+        report_type_labels = {
+            "safety_tip": "Safety Tip",
+            "incident": "Incident Report",
+            "concern": "Area Concern",
+            "positive": "Positive Interaction"
+        }
+        type_label = report_type_labels.get(report_type, report_type)
+        
+        if status == "approved":
+            subject = f"✅ Your {type_label} Has Been Approved - JUSTICE"
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0;">Report Approved</h1>
+                </div>
+                <div style="padding: 30px; background: #f9fafb;">
+                    <p style="font-size: 16px; color: #374151;">Good news! Your <strong>{type_label}</strong> has been reviewed and approved by our moderation team.</p>
+                    <p style="font-size: 16px; color: #374151;">Your report is now visible on the <strong>JUSTICE Community Map</strong>, helping others stay informed and safe.</p>
+                    <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+                        <p style="margin: 0; color: #065f46;"><strong>What happens next?</strong></p>
+                        <p style="margin: 10px 0 0 0; color: #065f46;">Community members can now view and upvote your report. High-quality reports may be marked as "Verified" by our team.</p>
+                    </div>
+                    <p style="font-size: 14px; color: #6b7280;">Thank you for contributing to community safety and transparency.</p>
+                </div>
+                <div style="background: #1f2937; padding: 20px; text-align: center;">
+                    <p style="color: #9ca3af; margin: 0; font-size: 12px;">JUSTICE - Civil Rights Defense System</p>
+                </div>
+            </div>
+            """
+        else:  # rejected
+            subject = f"Update on Your {type_label} - JUSTICE"
+            reason_html = f'<p style="margin: 10px 0 0 0; color: #991b1b;"><em>"{reason}"</em></p>' if reason else ""
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0;">Report Update</h1>
+                </div>
+                <div style="padding: 30px; background: #f9fafb;">
+                    <p style="font-size: 16px; color: #374151;">Thank you for submitting your <strong>{type_label}</strong> to the JUSTICE Community Map.</p>
+                    <p style="font-size: 16px; color: #374151;">After careful review, our moderation team was unable to approve your report at this time.</p>
+                    <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0;">
+                        <p style="margin: 0; color: #991b1b;"><strong>Reason:</strong></p>
+                        {reason_html}
+                    </div>
+                    <p style="font-size: 14px; color: #6b7280;">Common reasons for non-approval include:</p>
+                    <ul style="font-size: 14px; color: #6b7280;">
+                        <li>Insufficient detail or unclear location</li>
+                        <li>Duplicate of existing report</li>
+                        <li>Unable to verify information</li>
+                        <li>Content policy concerns</li>
+                    </ul>
+                    <p style="font-size: 14px; color: #374151;">You're welcome to submit a new report with additional details.</p>
+                </div>
+                <div style="background: #1f2937; padding: 20px; text-align: center;">
+                    <p style="color: #9ca3af; margin: 0; font-size: 12px;">JUSTICE - Civil Rights Defense System</p>
+                </div>
+            </div>
+            """
+        
+        message = Mail(
+            from_email=Email(SENDGRID_FROM_EMAIL, SENDGRID_FROM_NAME),
+            to_emails=To(to_email),
+            subject=subject,
+            html_content=Content("text/html", html_content)
+        )
+        
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        return response.status_code in [200, 201, 202]
+        
+    except Exception as e:
+        print(f"Error sending report notification email: {e}")
+        return False
 
 
 @router.get("/incidents")
