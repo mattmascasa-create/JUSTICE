@@ -44,6 +44,10 @@ const icons = {
   pedestrian_stop: createIcon('orange'),
   arrest: createIcon('violet'),
   complaint: createIcon('blue'),
+  safety_tip: createIcon('green'),
+  incident: createIcon('red'),
+  concern: createIcon('yellow'),
+  positive: createIcon('green'),
   default: createIcon('grey')
 };
 
