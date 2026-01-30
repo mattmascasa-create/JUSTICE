@@ -1173,6 +1173,28 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
   - `GET /api/corroboration/{corroboration_id}` - Specific analysis details
   - `GET /api/corroboration/encounter/{encounter_id}/summary` - Quick summary
 
+##### Community Reporting ✅
+- **Submit Report Dialog**: Users can submit safety tips, incident reports, area concerns, or positive interactions
+- **Report Types**: safety_tip, incident, concern, positive - each with unique icon and description
+- **Anonymous Submissions**: Option to submit anonymously (default) or with contact email
+- **Location Support**: Enter address or use current GPS location (randomized for privacy)
+- **Community Voting**: Users can upvote helpful reports to increase visibility
+- **Moderation Workflow**: Reports start as "pending" and require approval before display
+- **Community Reports Panel**: Shows recent approved reports in sidebar
+- **Toggle Visibility**: "Show Community Reports" switch to filter reports on map
+- **Green Markers**: Community reports displayed with green/yellow markers
+- **API Endpoints**:
+  - `POST /api/community-map/report` - Submit new report
+  - `GET /api/community-map/reports` - Get approved reports
+  - `POST /api/community-map/reports/{id}/vote` - Upvote a report
+  - `GET /api/community-map/report-types` - Get available report types
+
+##### Panic Button SOS - E2E Verified ✅
+- **SendGrid Integration**: Confirmed working with real email delivery
+- **Quick Alert API**: `POST /api/sos/quick-alert` sends emails to emergency contacts
+- **Test Result**: 1 email sent successfully to emergency contact
+- **In-App Notifications**: Also creates notifications for JUSTICE user contacts
+
 #### Bug Fixes
 - **EncounterReportPage.jsx API Mismatch**: Fixed data structure mismatch where frontend expected `reportData.report` but API returns flat structure. Report page now correctly displays encounter data, transcriptions, and evidence.
 
