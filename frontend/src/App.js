@@ -53,6 +53,7 @@ import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
 import CourtGradeAIPage from "./pages/CourtGradeAIPage";
 import LegalToolsPage from "./pages/LegalToolsPage";
 import CustodyPortalPage from "./pages/CustodyPortalPage";
+import CommunityMapPage from "./pages/CommunityMapPage";
 
 // Register service worker
 if ('serviceWorker' in navigator) {
