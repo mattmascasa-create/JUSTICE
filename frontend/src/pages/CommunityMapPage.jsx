@@ -142,11 +142,71 @@ export default function CommunityMapPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setCenter([pos.coords.latitude, pos.coords.longitude]);
+          const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          setUserLocation(loc);
+          setCenter([loc.lat, loc.lon]);
           toast.success('Centered on your location');
         },
         () => toast.error('Could not get your location')
       );
+    }
+  };
+
+  // Submit community report
+  const handleSubmitReport = async () => {
+    if (!reportForm.description || reportForm.description.length < 10) {
+      toast.error('Please provide a description (at least 10 characters)');
+      return;
+    }
+    
+    setSubmittingReport(true);
+    try {
+      const params = new URLSearchParams({
+        report_type: reportForm.report_type,
+        description: reportForm.description,
+        anonymous: reportForm.anonymous.toString()
+      });
+      
+      if (reportForm.useCurrentLocation && userLocation) {
+        params.append('latitude', userLocation.lat.toString());
+        params.append('longitude', userLocation.lon.toString());
+      }
+      
+      if (reportForm.address) {
+        params.append('address', reportForm.address);
+      }
+      
+      if (!reportForm.anonymous && reportForm.contact_email) {
+        params.append('contact_email', reportForm.contact_email);
+      }
+      
+      await api.post(`/community-map/report?${params.toString()}`);
+      toast.success('Report submitted! It will be reviewed before appearing on the map.');
+      setReportDialogOpen(false);
+      setReportForm({
+        report_type: 'incident',
+        description: '',
+        address: '',
+        anonymous: true,
+        contact_email: '',
+        useCurrentLocation: false
+      });
+    } catch (err) {
+      console.error('Error submitting report:', err);
+      toast.error('Failed to submit report');
+    } finally {
+      setSubmittingReport(false);
+    }
+  };
+
+  // Vote on a report
+  const handleVoteReport = async (reportId) => {
+    try {
+      await api.post(`/community-map/reports/${reportId}/vote`);
+      toast.success('Vote recorded!');
+      loadData(); // Refresh to show updated votes
+    } catch (err) {
+      toast.error('Failed to vote');
     }
   };
 
@@ -157,6 +217,16 @@ export default function CommunityMapPage() {
   const formatDate = (dateStr) => {
     if (!dateStr) return 'Unknown date';
     return new Date(dateStr).toLocaleDateString();
+  };
+
+  const getReportTypeLabel = (type) => {
+    const labels = {
+      safety_tip: 'Safety Tip',
+      incident: 'Incident Report',
+      concern: 'Area Concern',
+      positive: 'Positive Interaction'
+    };
+    return labels[type] || type;
   };
 
   return (
