@@ -175,9 +175,29 @@ export default function EncounterReportPage() {
     );
   }
 
-  const { report, transcriptions, media_files } = reportData;
+  const { report, transcriptions, media_files } = reportData || {};
   const videoFiles = media_files?.filter(f => f.type === 'video') || [];
   const audioFiles = media_files?.filter(f => f.type === 'audio') || [];
+
+  // If report is not available, show error
+  if (!report) {
+    return (
+      <AppLayout>
+        <div className="max-w-2xl mx-auto">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>Report data not available. The encounter may still be processing.</AlertDescription>
+          </Alert>
+          <Link to="/encounters">
+            <Button variant="outline" className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Encounters
+            </Button>
+          </Link>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
