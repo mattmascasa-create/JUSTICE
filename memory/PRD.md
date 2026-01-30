@@ -1226,3 +1226,12 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
   - `PUT /api/community-map/admin/reports/{id}/verify` - Mark as verified
   - `DELETE /api/community-map/admin/reports/{id}` - Delete report (admin only)
 - **Route**: `/moderation` (sidebar link for admin/moderator/attorney)
+
+
+##### Report Email Notifications ✅
+- **SendGrid Integration**: Uses existing SendGrid config for email delivery
+- **Approval Email**: Green-themed email notifying user their report is now live
+- **Rejection Email**: Neutral-themed email with rejection reason and guidelines
+- **Non-Anonymous Only**: Emails only sent when user provided contact_email and anonymous=false
+- **Background Tasks**: Emails sent asynchronously via FastAPI BackgroundTasks
+- **Response Flag**: API returns `notification_sent: true/false` to indicate email status
