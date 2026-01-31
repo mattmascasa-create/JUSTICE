@@ -63,7 +63,7 @@ async def dismiss_suggestion(
     """
     Dismiss a suggestion so it won't be shown again (for this session or permanently).
     """
-    user_id = str(current_user["_id"])
+    user_id = current_user["user_id"]
     
     # Store dismissed suggestions
     db.user_preferences.update_one(
