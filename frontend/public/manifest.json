@@ -5,7 +5,7 @@
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0F172A",
-  "theme_color": "#3B82F6",
+  "theme_color": "#DC2626",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -61,6 +61,13 @@
   "screenshots": [],
   "shortcuts": [
     {
+      "name": "🔴 RECORD NOW",
+      "short_name": "Record",
+      "description": "Start recording immediately",
+      "url": "/quick-record",
+      "icons": [{ "src": "/icons/record-icon.png", "sizes": "96x96" }]
+    },
+    {
       "name": "Emergency SOS",
       "short_name": "SOS",
       "description": "Activate emergency alert",
@@ -74,5 +81,25 @@
       "url": "/ai-attorney",
       "icons": [{ "src": "/icons/ai-icon.png", "sizes": "96x96" }]
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["video/*", "audio/*", "image/*"]
+        }
+      ]
+    }
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-new"
+  }
 }
