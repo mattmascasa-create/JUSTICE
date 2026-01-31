@@ -576,6 +576,28 @@ export default function EncounterPage() {
     return false;
   }, [encounter, location, duration, isPaused]);
 
+  // Subscribe to upload manager for tracking upload progress
+  useEffect(() => {
+    const unsubscribe = uploadManager.subscribe((event, data) => {
+      if (event === 'uploaded') {
+        setChunksUploaded(prev => prev + 1);
+      } else if (event === 'transcription' && encounter && data.encounterId === encounter.encounter_id) {
+        // Handle transcription from background upload
+        if (data.transcription && !deferAnalysis) {
+          setTranscriptions(prev => [...prev, data.transcription]);
+          if (data.transcription.text) {
+            performAIAnalysis(data.transcription.text);
+            performCoaching(data.transcription.text);
+          }
+        }
+      } else if (event === 'failed') {
+        console.warn('Upload failed for chunk:', data.chunkId);
+      }
+    });
+
+    return unsubscribe;
+  }, [encounter, deferAnalysis]);
+
   // Load attorney settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem('justice_attorney_settings');
