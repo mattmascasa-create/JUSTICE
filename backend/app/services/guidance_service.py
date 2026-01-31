@@ -4,9 +4,7 @@ Smart Guidance System - Backend Service
 Analyzes user state and provides contextual next-step recommendations
 """
 
-from datetime import datetime, timezone
 from typing import Optional, List
-from bson import ObjectId
 
 # Priority levels for guidance
 PRIORITY_CRITICAL = "critical"
@@ -22,11 +20,11 @@ CATEGORY_EVIDENCE = "evidence"
 CATEGORY_ACTION = "action"
 
 
-def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> dict:
+async def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> dict:
     """
     Analyze user state and return contextual guidance suggestions.
     """
-    user = db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
     if not user:
         return {"suggestions": [], "completion_score": 0}
     
@@ -36,7 +34,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     # ===== PROFILE & SETUP CHECKS =====
     
     # Check emergency contacts
-    contacts_count = db.emergency_contacts.count_documents({"user_id": user_id})
+    contacts_count = await db.emergency_contacts.count_documents({"user_id": user_id})
     if contacts_count == 0:
         suggestions.append({
             "id": "add_emergency_contacts",
@@ -69,7 +67,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
         completion_items.append("email_verified")
     
     # Check attorney connection
-    attorney_connections = db.attorney_connections.count_documents({
+    attorney_connections = await db.attorney_connections.count_documents({
         "user_id": user_id,
         "status": "active"
     })
@@ -91,7 +89,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     # ===== KNOWLEDGE & TRAINING =====
     
     # Check rights training completion
-    training_progress = db.training_progress.find_one({"user_id": user_id})
+    training_progress = await db.training_progress.find_one({"user_id": user_id})
     modules_completed = training_progress.get("completed_modules", []) if training_progress else []
     
     if len(modules_completed) < 3:
@@ -113,10 +111,11 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     # ===== ENCOUNTER & EVIDENCE CHECKS =====
     
     # Check recent encounters
-    recent_encounters = list(db.encounters.find(
+    recent_encounters_cursor = db.encounters.find(
         {"user_id": user_id},
         {"_id": 0, "encounter_id": 1, "status": 1, "created_at": 1, "ai_analysis": 1}
-    ).sort("created_at", -1).limit(5))
+    ).sort("created_at", -1).limit(5)
+    recent_encounters = await recent_encounters_cursor.to_list(length=5)
     
     # Check for encounters needing review
     for enc in recent_encounters:
@@ -135,13 +134,13 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
             break  # Only show one
     
     # Check for incomplete cases
-    incomplete_cases = db.cases.count_documents({
+    incomplete_cases = await db.cases.count_documents({
         "user_id": user_id,
         "status": {"$in": ["open", "in_progress"]}
     })
     
     if incomplete_cases > 0:
-        case = db.cases.find_one(
+        case = await db.cases.find_one(
             {"user_id": user_id, "status": {"$in": ["open", "in_progress"]}},
             {"_id": 0, "case_id": 1, "title": 1}
         )
@@ -162,7 +161,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     # ===== CONTEXTUAL PAGE-SPECIFIC GUIDANCE =====
     
     if current_page:
-        page_suggestions = get_page_specific_guidance(db, user_id, current_page, user)
+        page_suggestions = await get_page_specific_guidance(db, user_id, current_page, user)
         suggestions.extend(page_suggestions)
     
     # ===== PROACTIVE SUGGESTIONS =====
@@ -182,8 +181,8 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
         })
     
     # Evidence backup reminder
-    evidence_count = db.evidence.count_documents({"user_id": user_id})
-    backed_up_count = db.evidence.count_documents({"user_id": user_id, "cloud_backup": True})
+    evidence_count = await db.evidence.count_documents({"user_id": user_id})
+    backed_up_count = await db.evidence.count_documents({"user_id": user_id, "cloud_backup": True})
     
     if evidence_count > 0 and backed_up_count < evidence_count:
         not_backed_up = evidence_count - backed_up_count
@@ -222,7 +221,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     }
 
 
-def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) -> List[dict]:
+async def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) -> List[dict]:
     """
     Get guidance specific to the current page the user is viewing.
     """
@@ -234,7 +233,7 @@ def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) 
     
     elif current_page == "encounter":
         # Pre-encounter checklist
-        contacts_count = db.emergency_contacts.count_documents({"user_id": user_id})
+        contacts_count = await db.emergency_contacts.count_documents({"user_id": user_id})
         if contacts_count == 0:
             suggestions.append({
                 "id": "encounter_add_contacts",
@@ -251,9 +250,9 @@ def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) 
     
     elif current_page == "cases":
         # Suggest creating first case if none exist
-        cases_count = db.cases.count_documents({"user_id": user_id})
+        cases_count = await db.cases.count_documents({"user_id": user_id})
         if cases_count == 0:
-            encounters_count = db.encounters.count_documents({"user_id": user_id})
+            encounters_count = await db.encounters.count_documents({"user_id": user_id})
             if encounters_count > 0:
                 suggestions.append({
                     "id": "create_first_case",
@@ -270,7 +269,7 @@ def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) 
     
     elif current_page == "evidence":
         # Suggest organizing evidence
-        untagged_evidence = db.evidence.count_documents({
+        untagged_evidence = await db.evidence.count_documents({
             "user_id": user_id,
             "tags": {"$size": 0}
         })
@@ -306,10 +305,30 @@ def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) 
     return suggestions
 
 
-def get_onboarding_checklist(db, user_id: str) -> dict:
+async def get_onboarding_checklist(db, user_id: str) -> dict:
     """
     Get a comprehensive onboarding checklist for new users.
     """
+    # Run checks
+    contacts_count = await db.emergency_contacts.count_documents({"user_id": user_id})
+    training_count = await db.training_progress.count_documents({
+        "user_id": user_id,
+        "completed_modules.0": {"$exists": True}
+    })
+    attorney_count = await db.attorney_connections.count_documents({
+        "user_id": user_id,
+        "status": "active"
+    })
+    encounters_count = await db.encounters.count_documents({"user_id": user_id})
+    
+    check_results = {
+        "profile": True,  # Assumed complete on registration
+        "contacts": contacts_count > 0,
+        "training": training_count > 0,
+        "attorney": attorney_count > 0,
+        "encounter": encounters_count > 0
+    }
+    
     checklist_items = [
         {
             "id": "profile",
@@ -347,26 +366,6 @@ def get_onboarding_checklist(db, user_id: str) -> dict:
             "check_fn": "encounter"
         }
     ]
-    
-    # Run checks
-    contacts_count = db.emergency_contacts.count_documents({"user_id": user_id})
-    training_count = db.training_progress.count_documents({
-        "user_id": user_id,
-        "completed_modules.0": {"$exists": True}
-    })
-    attorney_count = db.attorney_connections.count_documents({
-        "user_id": user_id,
-        "status": "active"
-    })
-    encounters_count = db.encounters.count_documents({"user_id": user_id})
-    
-    check_results = {
-        "profile": True,  # Assumed complete on registration
-        "contacts": contacts_count > 0,
-        "training": training_count > 0,
-        "attorney": attorney_count > 0,
-        "encounter": encounters_count > 0
-    }
     
     completed = []
     pending = []
