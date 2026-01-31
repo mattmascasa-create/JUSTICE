@@ -1,8 +1,16 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
+import { FloatingGuidanceButton } from '../SmartGuidancePanel';
 
 export default function AppLayout({ children }) {
+  const location = useLocation();
+  const currentPage = location.pathname.replace('/', '') || 'dashboard';
+  
+  // Don't show floating button on encounter page (it has its own guidance)
+  const showFloatingGuide = !location.pathname.includes('/encounter');
+  
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -12,6 +20,7 @@ export default function AppLayout({ children }) {
         </div>
       </main>
       <MobileNav />
+      {showFloatingGuide && <FloatingGuidanceButton currentPage={currentPage} />}
     </div>
   );
 }
