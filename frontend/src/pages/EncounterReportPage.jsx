@@ -9,11 +9,12 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { encounterAPI, API_URL } from '../lib/api';
 import CorroborationPanel from '../components/CorroborationPanel';
+import IntegrityBadge from '../components/IntegrityBadge';
 import { 
   Shield, MapPin, Clock, Video, Mic, FileText, AlertTriangle,
   CheckCircle, ExternalLink, Download, Scale, Users, ArrowLeft,
   Loader2, Play, AlertCircle, Gavel, Share2, Copy, SkipBack, SkipForward,
-  Pause, Volume2, Maximize
+  Pause, Volume2, Maximize, Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
 
