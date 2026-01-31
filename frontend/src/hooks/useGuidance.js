@@ -42,7 +42,7 @@ export function useGuidance(currentPage = null) {
 
   const dismissSuggestion = useCallback(async (suggestionId) => {
     try {
-      await api.post(`/api/guidance/dismiss/${suggestionId}`);
+      await api.post(`/guidance/dismiss/${suggestionId}`);
       setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
       setAllSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (err) {
