@@ -1640,6 +1640,52 @@ export default function EncounterPage() {
                   </AlertDescription>
                 </Alert>
               )}
+              
+              {/* Recording Quality Settings */}
+              <div className="pt-2 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium">Recording Quality</Label>
+                  <Badge variant="outline" className="text-xs">
+                    {qualityPresets[recordingQuality]?.icon} {qualityPresets[recordingQuality]?.label?.split(' ')[0]}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(qualityPresets).map(([key, preset]) => (
+                    <button
+                      key={key}
+                      onClick={() => setRecordingQuality(key)}
+                      className={`w-full flex items-center gap-3 p-2 rounded-lg border text-left text-sm transition-all ${
+                        recordingQuality === key 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:bg-muted'
+                      }`}
+                    >
+                      <span className="text-lg">{preset.icon}</span>
+                      <div className="flex-1">
+                        <p className="font-medium">{preset.label}</p>
+                        <p className="text-xs text-muted-foreground">{preset.desc}</p>
+                      </div>
+                      {recordingQuality === key && (
+                        <CheckCircle className="h-4 w-4 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Performance Mode Toggle */}
+              <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                <div>
+                  <p className="text-sm font-medium">Defer AI Analysis</p>
+                  <p className="text-xs text-muted-foreground">
+                    Faster recording, analyze after encounter
+                  </p>
+                </div>
+                <Switch 
+                  checked={deferAnalysis} 
+                  onCheckedChange={setDeferAnalysis}
+                />
+              </div>
             </CardContent>
           </Card>
 
