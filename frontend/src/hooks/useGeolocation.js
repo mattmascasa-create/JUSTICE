@@ -18,10 +18,6 @@ export function useGeolocation(options = {}) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const hasInitializedRef = useRef(false);
-  const optionsRef = useRef({ enableHighAccuracy, showErrors });
-  
-  // Keep options ref updated
-  optionsRef.current = { enableHighAccuracy, showErrors };
 
   // Initial position fetch
   useEffect(() => {
@@ -50,13 +46,13 @@ export function useGeolocation(options = {}) {
         setError(err.message);
         setLoading(false);
         
-        if (optionsRef.current.showErrors) {
+        if (showErrors) {
           toast.error('Could not get your location. Please enable location services.');
         }
       },
-      { enableHighAccuracy: optionsRef.current.enableHighAccuracy }
+      { enableHighAccuracy }
     );
-  }, []);
+  }, [enableHighAccuracy, showErrors]);
 
   // Manual refresh function
   const refresh = useCallback(() => {
