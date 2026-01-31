@@ -229,7 +229,7 @@ class BlockchainAnchoringService:
                 try:
                     data_bytes = bytes.fromhex(data_hex[2:])
                     anchor_data = json.loads(data_bytes.decode())
-                except:
+                except (ValueError, json.JSONDecodeError):
                     anchor_data = {"raw": data_hex}
             else:
                 anchor_data = None
