@@ -75,7 +75,7 @@ class AttorneyStreamService:
         await db.attorney_streams.insert_one(session)
         
         # Generate stream URL
-        base_url = "https://rights-shield-2.preview.emergentagent.com"
+        base_url = "https://civil-rights-shield.preview.emergentagent.com"
         stream_url = f"{base_url}/live-stream/{stream_code}"
         
         return {
@@ -307,7 +307,7 @@ class AttorneyStreamService:
             FRONTEND_URL
         )
         
-        base_url = FRONTEND_URL or "https://rights-shield-2.preview.emergentagent.com"
+        base_url = FRONTEND_URL or "https://civil-rights-shield.preview.emergentagent.com"
         stream_url = f"{base_url}/live-stream/{session['stream_code']}"
         
         notification = {
