@@ -333,21 +333,71 @@ export default function EncounterPage() {
         quality: recordingQuality
       });
 
-      // Get media stream
+      // ===== CAPTURE PRE-BUFFER (last 30 seconds) =====
+      let preBuffer = null;
+      if (preRecordingBuffer.isActive) {
+        preBuffer = await preRecordingBuffer.getBufferAndClear();
+        if (preBuffer && preBuffer.blob.size > 0) {
+          setPreBufferIncluded(true);
+          console.log(`Pre-buffer captured: ${preBuffer.duration}ms, ${preBuffer.chunkCount} chunks`);
+          
+          // Save pre-buffer as first chunk (fire and forget)
+          evidenceStorage.saveChunk(response.data.encounter_id, preBuffer.blob, 'video', -1, { isPreBuffer: true })
+            .then(() => {
+              setChunksSaved(prev => prev + 1);
+              toast.success(`📹 +${Math.round(preBuffer.duration / 1000)}s pre-buffer captured!`);
+            })
+            .catch(err => console.log('Pre-buffer save error:', err));
+        }
+      }
+
+      // Get media stream - try to reuse pre-buffer stream first
+      let stream = preRecordingBuffer.getStream();
       const preset = qualityPresets[recordingQuality];
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-        video: enableVideo ? {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: preset.video?.width || 1280 },
-          height: { ideal: preset.video?.height || 720 }
-        } : false
-      });
+      
+      if (!stream || !stream.active) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+          video: enableVideo ? {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: preset.video?.width || 1280 },
+            height: { ideal: preset.video?.height || 720 }
+          } : false
+        });
+      }
       
       streamRef.current = stream;
       if (enableVideo && videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = stream;
         videoPreviewRef.current.play().catch(() => {});
+      }
+
+      // ===== START BROWSER SPEECH RECOGNITION =====
+      if (useBrowserTranscription && browserSpeechRecognition.isSupported) {
+        browserSpeechRecognition.clearTranscript();
+        
+        browserSpeechRecognition.on('result', (result) => {
+          // Add final transcript
+          setTranscriptions(prev => [...prev, {
+            text: result.text,
+            timestamp: result.timestamp,
+            confidence: result.confidence,
+            source: 'browser'
+          }]);
+          setInterimTranscript('');
+          
+          // Send to AI analysis if enabled
+          if (!deferAnalysis && result.text) {
+            analysis.processTranscription(result.text);
+          }
+        });
+        
+        browserSpeechRecognition.on('interim', (result) => {
+          setInterimTranscript(result.text);
+        });
+        
+        browserSpeechRecognition.start();
+        console.log('Browser speech recognition started');
       }
 
       // Setup media recorder
