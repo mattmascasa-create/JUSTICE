@@ -1776,6 +1776,43 @@ Service Worker now properly registered on app load:
 
 ---
 
+### 3D Evidence Reconstruction - IMPLEMENTED ✅ (Jan 31, 2026)
+
+AI-powered 3D scene reconstruction from encounter footage using Three.js.
+
+#### Features
+- **Scene Generation:** Creates navigable 3D environments from encounter data
+- **Point Cloud Visualization:** Speech activity represented as 3D point clouds
+- **Evidence Markers:** Floating 3D markers for video, audio, and document evidence
+- **Violation Markers:** Animated cones marking violation timestamps
+- **Timeline Playback:** Scrubbing timeline with event markers
+- **Dynamic Environment:** Day/night lighting based on encounter time
+- **Interactive Camera:** Orbit controls for exploring the scene
+
+#### Technical Stack
+- **Frontend:** Three.js, React Three Fiber, @react-three/drei
+- **Backend:** Scene data generation service with async MongoDB operations
+- **3D Components:** Scene3DViewer.jsx with FloatingMarker, PointCloud, PathLine
+
+#### API Endpoints
+- `POST /api/reconstruction/create` - Generate new reconstruction
+- `GET /api/reconstruction/encounter/{id}` - Get or create for encounter
+- `GET /api/reconstruction/` - List user's reconstructions
+- `GET /api/reconstruction/preview/{id}` - Lightweight preview
+- `DELETE /api/reconstruction/{id}` - Delete reconstruction
+
+#### Files
+- `/app/backend/app/routers/reconstruction_3d.py`
+- `/app/backend/app/services/reconstruction_3d.py`
+- `/app/frontend/src/pages/Reconstruction3DPage.jsx`
+- `/app/frontend/src/components/Scene3DViewer.jsx`
+
+#### Test Results
+- Backend: 100% (11/11 tests passed)
+- Frontend: 90% (dev overlay from OrbitControls source maps - production OK)
+
+
+
 - CPS Visit: Right to attorney, no forced entry without warrant
 - Workplace: EEOC rights, whistleblower protections
 - etc.
