@@ -1144,43 +1144,29 @@ export default function EncounterPage() {
             videoChunksRef.current = [];
             const currentChunkIndex = videoChunkIndexRef.current++;
             
-            console.log('Uploading video blob:', blob.size, 'bytes, type:', blobType);
+            console.log('Video chunk ready:', blob.size, 'bytes');
             
-            // Check if offline - queue for later
-            if (!navigator.onLine) {
-              setPendingUploads(prev => [...prev, {
-                type: 'video',
-                encounterId: response.data.encounter_id,
-                blob: blob,
-                chunkIndex: currentChunkIndex,
-                timestamp: Date.now()
-              }]);
-              setVideoChunkCount(prev => prev + 1);
-              console.log('Offline: Video chunk queued for sync');
-              return;
-            }
-            
-            setUploadingChunk(true);
+            // LOCAL-FIRST: Save to IndexedDB immediately (non-blocking)
             try {
-              await encounterAPI.uploadVideo(
+              const chunkId = await evidenceStorage.saveChunk(
                 response.data.encounter_id,
                 blob,
+                'video',
                 currentChunkIndex
               );
+              setChunksSaved(prev => prev + 1);
               setVideoChunkCount(prev => prev + 1);
-            } catch (err) {
-              console.error('Video upload error:', err);
-              toast.error('Failed to save video chunk');
-              // Queue failed upload for retry
-              setPendingUploads(prev => [...prev, {
-                type: 'video',
-                encounterId: response.data.encounter_id,
-                blob: blob,
-                chunkIndex: currentChunkIndex,
-                timestamp: Date.now()
-              }]);
-            } finally {
-              setUploadingChunk(false);
+              
+              // Queue for background upload (don't wait)
+              uploadManager.queueUpload(
+                response.data.encounter_id, 
+                chunkId, 
+                'video', 
+                'normal'
+              );
+            } catch (saveErr) {
+              console.error('Failed to save video chunk locally:', saveErr);
+              toast.error('Failed to save evidence locally');
             }
           }
         }
