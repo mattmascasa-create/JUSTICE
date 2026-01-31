@@ -1,8 +1,8 @@
-/**
- * Smart Guidance System - Backend Service
- * 
- * Analyzes user state and provides contextual next-step recommendations
- */
+"""
+Smart Guidance System - Backend Service
+
+Analyzes user state and provides contextual next-step recommendations
+"""
 
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -20,6 +20,7 @@ CATEGORY_SAFETY = "safety"
 CATEGORY_LEGAL = "legal"
 CATEGORY_EVIDENCE = "evidence"
 CATEGORY_ACTION = "action"
+
 
 def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> dict:
     """
@@ -97,7 +98,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
         suggestions.append({
             "id": "complete_training",
             "title": "Complete Rights Training",
-            "description": f"You've completed {len(modules_completed)}/5 training modules. Knowledge is your best protection.",
+            "description": f"You have completed {len(modules_completed)}/5 training modules. Knowledge is your best protection.",
             "action_url": "/training",
             "action_label": "Continue Training",
             "priority": PRIORITY_MEDIUM,
@@ -123,7 +124,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
             suggestions.append({
                 "id": f"review_encounter_{enc['encounter_id']}",
                 "title": "Review Recent Encounter",
-                "description": "Your recent encounter hasn't been analyzed yet. Review the AI analysis for potential violations.",
+                "description": "Your recent encounter has not been analyzed yet. Review the AI analysis for potential violations.",
                 "action_url": f"/encounters/{enc['encounter_id']}",
                 "action_label": "Review Now",
                 "priority": PRIORITY_HIGH,
@@ -145,9 +146,10 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
             {"_id": 0, "case_id": 1, "title": 1}
         )
         if case:
+            case_title = case.get("title", "Untitled")[:30]
             suggestions.append({
                 "id": f"continue_case_{case.get('case_id', '')}",
-                "title": f"Continue Case: {case.get('title', 'Untitled')[:30]}",
+                "title": f"Continue Case: {case_title}",
                 "description": f"You have {incomplete_cases} open case(s). Continue building your evidence.",
                 "action_url": f"/cases/{case.get('case_id', '')}",
                 "action_label": "Open Case",
@@ -184,10 +186,11 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     backed_up_count = db.evidence.count_documents({"user_id": user_id, "cloud_backup": True})
     
     if evidence_count > 0 and backed_up_count < evidence_count:
+        not_backed_up = evidence_count - backed_up_count
         suggestions.append({
             "id": "backup_evidence",
             "title": "Backup Your Evidence",
-            "description": f"{evidence_count - backed_up_count} evidence file(s) need cloud backup for safety.",
+            "description": f"{not_backed_up} evidence file(s) need cloud backup for safety.",
             "action_url": "/evidence",
             "action_label": "Manage Evidence",
             "priority": PRIORITY_MEDIUM,
@@ -235,8 +238,8 @@ def get_page_specific_guidance(db, user_id: str, current_page: str, user: dict) 
         if contacts_count == 0:
             suggestions.append({
                 "id": "encounter_add_contacts",
-                "title": "⚠️ No Emergency Contacts Set",
-                "description": "Add contacts before starting - they'll be notified if you trigger SOS.",
+                "title": "No Emergency Contacts Set",
+                "description": "Add contacts before starting - they will be notified if you trigger SOS.",
                 "action_url": "/emergency-contacts",
                 "action_label": "Add Now",
                 "priority": PRIORITY_CRITICAL,
@@ -307,71 +310,86 @@ def get_onboarding_checklist(db, user_id: str) -> dict:
     """
     Get a comprehensive onboarding checklist for new users.
     """
-    checklist = [
+    checklist_items = [
         {
             "id": "profile",
             "title": "Complete Your Profile",
             "description": "Add your basic information",
-            "check": lambda: True,  # Assuming profile is created on registration
-            "url": "/settings"
+            "url": "/settings",
+            "check_fn": "profile"
         },
         {
             "id": "emergency_contacts",
             "title": "Add Emergency Contacts",
             "description": "People to notify during emergencies",
-            "check": lambda: db.emergency_contacts.count_documents({"user_id": user_id}) > 0,
-            "url": "/emergency-contacts"
+            "url": "/emergency-contacts",
+            "check_fn": "contacts"
         },
         {
             "id": "know_rights",
             "title": "Learn Your Rights",
             "description": "Complete at least one training module",
-            "check": lambda: db.training_progress.count_documents({
-                "user_id": user_id,
-                "completed_modules.0": {"$exists": True}
-            }) > 0,
-            "url": "/training"
+            "url": "/training",
+            "check_fn": "training"
         },
         {
             "id": "connect_attorney",
             "title": "Connect with an Attorney",
             "description": "Have legal support on standby",
-            "check": lambda: db.attorney_connections.count_documents({
-                "user_id": user_id,
-                "status": "active"
-            }) > 0,
-            "url": "/attorneys"
+            "url": "/attorneys",
+            "check_fn": "attorney"
         },
         {
             "id": "test_encounter",
             "title": "Try Encounter Mode",
             "description": "Familiarize yourself with the recording system",
-            "check": lambda: db.encounters.count_documents({"user_id": user_id}) > 0,
-            "url": "/encounter"
+            "url": "/encounter",
+            "check_fn": "encounter"
         }
     ]
+    
+    # Run checks
+    contacts_count = db.emergency_contacts.count_documents({"user_id": user_id})
+    training_count = db.training_progress.count_documents({
+        "user_id": user_id,
+        "completed_modules.0": {"$exists": True}
+    })
+    attorney_count = db.attorney_connections.count_documents({
+        "user_id": user_id,
+        "status": "active"
+    })
+    encounters_count = db.encounters.count_documents({"user_id": user_id})
+    
+    check_results = {
+        "profile": True,  # Assumed complete on registration
+        "contacts": contacts_count > 0,
+        "training": training_count > 0,
+        "attorney": attorney_count > 0,
+        "encounter": encounters_count > 0
+    }
     
     completed = []
     pending = []
     
-    for item in checklist:
+    for item in checklist_items:
         item_data = {
             "id": item["id"],
             "title": item["title"],
             "description": item["description"],
             "url": item["url"]
         }
-        if item["check"]():
+        if check_results.get(item["check_fn"], False):
             item_data["completed"] = True
             completed.append(item_data)
         else:
             item_data["completed"] = False
             pending.append(item_data)
     
+    total = len(checklist_items)
     return {
         "completed": completed,
         "pending": pending,
-        "progress": len(completed) / len(checklist) * 100,
-        "total": len(checklist),
+        "progress": len(completed) / total * 100 if total > 0 else 0,
+        "total": total,
         "completed_count": len(completed)
     }
