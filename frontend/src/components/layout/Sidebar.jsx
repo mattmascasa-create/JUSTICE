@@ -38,7 +38,9 @@ import {
   Camera,
   FileText,
   HelpCircle,
-  ShieldAlert
+  ShieldAlert,
+  Timer,
+  Mic
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 import ConnectionIndicator from '../ConnectionIndicator';
