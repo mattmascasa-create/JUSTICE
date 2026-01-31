@@ -79,10 +79,10 @@
       "analytics - GET /api/analytics/encounters/summary, /patterns, /hotspots, /trends"
     ],
     "frontend_pages_tested": [
-      "Homepage (https://civil-rights-shield.preview.emergentagent.com/)",
-      "Register (https://civil-rights-shield.preview.emergentagent.com/register)",
-      "Login (https://civil-rights-shield.preview.emergentagent.com/login)",
-      "Dashboard (https://civil-rights-shield.preview.emergentagent.com/dashboard)"
+      "Homepage (https://rights-guardian-6.preview.emergentagent.com/)",
+      "Register (https://rights-guardian-6.preview.emergentagent.com/register)",
+      "Login (https://rights-guardian-6.preview.emergentagent.com/login)",
+      "Dashboard (https://rights-guardian-6.preview.emergentagent.com/dashboard)"
     ]
   }
 }

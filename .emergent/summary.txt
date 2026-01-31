@@ -4,193 +4,195 @@ The user's vision is to create JUSTICE, a comprehensive Civil Rights Defense Sys
 **PRODUCT REQUIREMENTS:**
 - **Core Features:** User Authentication, Case/Evidence Management, AI Attorney Chat, SOS Alerts, Know Your Rights section.
 - **Encounter Mode:** Real-time legal shield with geolocation, live audio/video recording, transcription, and AI analysis.
-- **Police Accountability Portal:** A comprehensive system for tracking officer/department violations and generating accountability scores. This data should be publicly accessible.
-- **Court-Grade Evidence & AI:** All evidence must be cryptographically verifiable, and the AI analysis must be highly accurate and legally defensible.
-- **Recent User Requests:**
-    1.  Make the solution bulletproof to end abuse by law enforcement.
-    2.  Provide users with instant knowledge and access to legal assistance.
-    3.  Ensure evidence is acquired to prove innocence in court.
-    4.  Implement a user-approved list of high-impact enhancements, including Stealth Recording, an Evidence Chain of Custody portal, Multi-Cloud Backup, and a Live Stream to an attorney.
+- **Police Accountability Portal:** A comprehensive system for tracking officer/department violations and generating accountability scores.
+- **Recent User Requests from this session:**
+    1.  Fix performance issues (lagging, freezing) during Encounter Mode recording and transcription.
+    2.  Create an **Admin Portal** with a wizard to solve issues and manage user-submitted service tickets.
+    3.  Implement a **Dead Man's Switch** to auto-publish evidence if the user doesn't check-in.
+    4.  Implement a **Pattern-Based Class Action Finder** to identify systemic legal violations.
+    5.  Implement **Voice-Only Mode** for hands-free app operation.
+    6.  Implement **Panic Gesture Recording** for discreetly starting a recording.
+    7.  Implement a **Witness Network Proximity Alert** to notify nearby users to also record an incident.
+- **Previous User Requests:**
+    1.  Expand Encounter Mode into a **Universal Documentation Tool** for any encounter with authority figures (e.g., CPS, home visits). (Completed this session)
+    2.  Implement a **Pre-Recording Buffer** and a **PWA-based One-Tap Emergency Widget**. (Still Pending)
+    3.  Implement **Real Blockchain Anchoring** for evidence. (Blocked)
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack platform with a React frontend, FastAPI backend, and MongoDB database. This session successfully resolved a critical, long-standing authentication bug and delivered a significant number of user-requested features. The platform is now stable and has a greatly expanded feature set, including advanced legal tools, enhanced encounter mode capabilities, and new analytics dashboards.
+The application is a full-stack platform (React, FastAPI, MongoDB). In this session, a significant number of features were added in response to user requests.
 
-- **Completed Features this session:**
-    - **Critical Auth Bug Fix:** Resolved recurring  errors and fixed the broken Google Sign-in flow.
-    - **AI-Powered Encounter Coaching:** Integrated a real-time AI coaching panel into the .
-    - **UI for New Backend Services:** Deployed functional frontend pages for Premium Analytics and Court-Grade AI Analysis.
-    - **Mobile Encounter Mode Fixes:** Addressed video/audio recording and upload issues on mobile devices (especially iOS).
-    - **Stealth Recording & Offline Mode:** Implemented a stealth UI for discreet recording and an offline mode to queue evidence uploads.
-    - **Legal Tools Suite:** Launched a new Legal Tools page with a FOIA Request Generator, Legal Brief Generator, Miranda Rights Detector, and a directory of Legal Hotlines.
-    - **Contextual Location Alerts:** Added a panel to the user dashboard that warns them when they are near police precincts with high complaint rates.
-    - ** Integration:** The badge is now displayed on the  and .
+1.  **Admin Portal & Support System:** A complete backend and frontend for an admin dashboard was built. Admins can view platform stats (users, encounters), manage users, and view/respond to support tickets submitted by users via a new Support page. The test user  has been granted admin privileges.
+2.  **Performance Enhancements:** To address the critical recording lag, several user-configurable options were added to the Encounter Setup screen: a Performance Mode toggle to defer AI analysis and a Browser Transcription toggle to use the faster, on-device Web Speech API. A foundation for offloading transcription to a Web Worker was also created.
+3.  **Universal Documentation Tool:** The work from the previous session was completed. A new  component was created and integrated, allowing users to choose from various encounter types (e.g., Traffic Stop, CPS visit), with context-specific legal rights displayed.
+4.  **Critical Safety & Legal Features:** Three major user-requested features were implemented with both backend and frontend components:
+    *   **Dead Man's Switch:** A page where users can configure an automatic evidence-release trigger if they fail to check in after a set time.
+    *   **Class Action Finder:** An AI-powered tool to analyze a user's case and find patterns of similar violations across the platform, facilitating group legal action.
+    *   **Panic Gesture:** A page to configure a discreet gesture (e.g., phone shake, triple button press) to start a stealth recording.
+5.  **Voice Control:** The backend for voice commands was confirmed to exist, and a new frontend  component was created (though not yet integrated).
 
 **Last working item**:
-    - Last item agent was working: Fixing a backend startup failure () that occurred after creating services for Multi-Cloud Backup and Live Attorney Streaming. The agent added the missing  variable to .
-    - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? backend testing agent
+    - Last item agent was working: Implementing the **Panic Gesture** and **Witness Network** features. The agent created the backend routers and frontend pages, integrated the routes, fixed linting errors, and successfully tested the implementation using API calls and screenshots. It concluded by running the testing subagent.
+    - Status: COMPLETED
+    - Agent Testing Done: Y
+    - Which testing method agent to use? NA
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Backend service fails to start due to a missing  import. (P0)
+  - Issue 1: Performance issues (lagging, freezing) during Encounter Mode recording. (P0 - HIGHEST PRIORITY)
 
-  **Issues Detail:**
-  - **Issue 1:**
-     - **Attempted fixes:** The agent correctly identified the missing environment variable and added  to .
-     - **Next debug checklist:**
-        1. Restart the backend service (backend: stopped
-backend: started).
-        2. Check the backend logs (==> /var/log/supervisor/backend.err.log <==
-WARNING:  WatchFiles detected changes in 'server_backup.py', 'tests/test_batch_pdf_export.py', 'app/core/config.py', 'app/routers/documents.py', 'app/routers/sos.py', 'app/services/attorney_stream.py'. Reloading...
-
-==> /var/log/supervisor/backend.out.log <==) to confirm it starts without the import error.
-     - **Why fix this issue and what will be achieved with the fix?** This is a critical blocker. The backend is currently down, preventing any further development or testing of the newly created Multi-Cloud Backup and Attorney Streaming features.
-     - **Status:**  IN PROGRESS
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** backend
-     - **Blocked on other issue:** None. This is the primary blocker.
+  Issues Detail:
+  - **Issue 1: Encounter Mode Performance Lag**
+     - **Attempted fixes:** The agent implemented significant enhancements. It added two user-facing toggles on the :
+        1.  A Performance Mode toggle () that stops real-time AI analysis during recording.
+        2.  A Browser Transcription toggle () that uses the faster, on-device Web Speech API instead of sending audio to the server.
+        A Web Worker for transcription () was also created as a foundational step.
+     - **Next debug checklist:** The user confirmed at the start of the session that the lag was still present. The next agent's **FIRST ACTION** must be to ask the user to test the Encounter Mode again with the new Performance Mode and Browser Transcription toggles enabled to confirm if these powerful new options have resolved the issue.
+     - **Why fix this issue and what will be achieved with the fix?** This is the app's core functionality. A smooth, non-lagging recording experience is critical for capturing court-admissible evidence.
+     - **Status:** USER VERIFICATION PENDING
+     - **Is recurring issue?** Y
+     - **Should Test frontend/backend/both after fix?** frontend
+     - **Blocked on other issue:** None.
 
 **In progress Task List**:
-  - Task 1: Complete and test **Multi-Cloud Evidence Backup** (#3) (P1)
-  - Task 2: Complete and test **Live Stream to Attorney** (#4) (P1)
+  - Task 1: Complete and Integrate High-Impact Recording Enhancements (P1)
+  - Task 2: Integrate Voice Control for Hands-Free Operation (P1)
 
  Task Detail:
-  - **Task 1:**
-     - **Where to resume:** The backend service () and router exist but are not fully implemented. After fixing the backend startup issue, the next step is to implement the core logic for uploading evidence to multiple providers (S3, IPFS) and then integrate this functionality into the  frontend, likely as a button in the action panel.
-     - **What will be achieved with this?** Fulfills the user's request for redundant, decentralized evidence storage to ensure its preservation.
-     - **Status:**  IN PROGRESS
-     - **Should Test frontend/backend/both after fix?** both
-     - **Blocked on something:** Backend service fails to start issue.
-  - **Task 2:**
-     - **Where to resume:** Backend service () and router have been created. A UI button has been added to . The core WebSocket logic for relaying the video stream to a designated attorney needs to be implemented on both the backend and frontend.
-     - **What will be achieved with this?** Provides users with immediate, real-time legal oversight during a police encounter.
-     - **Status:**  IN PROGRESS
-     - **Should Test frontend/backend/both after fix?** both
-     - **Blocked on something:** Backend service fails to start issue.
+  - **Task 1: High-Impact Recording Enhancements**
+     - **Where to resume:** Two of the three original enhancements are still pending implementation:
+        1.  **Pre-Recording Buffer**: Integrate the existing  hook into  to capture audio/video from before the user hits record.
+        2.  **PWA Quick-Launch**: Create the service worker () and register it in  to enable the Add to Home Screen functionality, allowing the  page to be launched instantly as a home screen widget.
+     - **What will be achieved with this?** This will make the recording feature more reliable (capturing events before hitting record) and more accessible (one-tap home screen widget).
+     - **Status:** IN PROGRESS
+     - **Should Test frontend/backend/both after fix?** frontend
+     - **Blocked on something:** None.
+
+  - **Task 2: Integrate Voice Control for Hands-Free Operation**
+     - **Where to resume:** The  component has been created. It now needs to be imported and rendered within the  component to provide users with the Voice-Only Mode they requested. The existing  hook should be used to wire up the functionality.
+     - **What will be achieved with this?** It will fulfill the user's request for hands-free operation, a critical accessibility and safety feature for users who cannot look at their phone during an encounter.
+     - **Status:** IN PROGRESS
+     - **Should Test frontend/backend/both after fix?** frontend
+     - **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - (P1) **Evidence Chain of Custody Portal (#2):** Build a secure, auditable portal for attorneys and courts to view evidence and its verifiable history.
-    - (P2) **AI Witness Corroboration:** Implement a system to cross-reference a user's encounter evidence with other reports or public data from the same location/officer.
-    - (P2) **Community Incident Mapping:** Create a public-facing map that visualizes incident reports and officer data from the accountability portal.
-    - (P2) **Test Panic Button & Document Sharing E2E:** Conduct end-to-end testing of the SOS alerts and document sharing features to confirm SendGrid email delivery.
+    - (P0) **Complete Real Blockchain Anchoring**: This is blocked pending user credentials (Polygon node URL and private key). The next agent must guide the user on how to obtain these and add them to . The logic in  needs to be completed.
 - **Future Tasks:**
-    - Premium Attorney Network for auto-matching users with lawyers.
-    - Complete Hardware Integration (e.g., GoPro, Dash Cams).
-    - Add 2FA support.
-    - Know Your Rights interactive training modules.
+    - (P1) Add automated tests (e.g., Jest/RTL) for the newly created hooks and components to prevent regressions.
+    - (P2) Qualified Immunity Tracker.
+    - (P2) Expert Witness Network.
+    - (P2) Multi-Language Real-Time Translation.
+    - (P2) Legislative Impact Dashboard.
+    - (P2) Anonymous Tip Submission.
+    - (P2) Premium Attorney Network with live availability indicators.
+    - (P2) Hardware Integration (e.g., GoPro, Dash Cams).
+    - (P2) AI Case Strength Predictor.
+    - (P2) Automated Legal Document Generator.
 
 **Completed work in this session**
-- **Critical Auth Bug Fix:** Resolved long-standing  errors and fixed the Google Sign-in flow.
-- **AI-Powered Encounter Coaching:** Fully implemented the backend service and frontend UI.
-- **Premium Analytics & Court-Grade AI Pages:** Created and populated the frontend dashboards for these features.
-- **Mobile Encounter Mode Fixes:** Corrected video/audio recording and upload issues for mobile browsers.
-- **Stealth Recording & Offline Mode:** Added a stealth UI overlay and offline evidence queuing.
-- **Legal Tools Suite:** Built a new page with a FOIA Generator, Legal Brief Generator, Miranda Detector, and Legal Hotlines directory.
-- **Contextual Location Alerts:** Implemented a dashboard panel to warn users about high-risk precincts.
-- **Evidence Verification Badge Integration:** Added the badge to case and evidence detail pages.
+- **Admin Portal & Support System (FE+BE):** Implemented a full-featured admin dashboard and user-facing support ticket submission page.
+- **Universal Documentation Tool (FE):** Completed the feature by creating and integrating the  component.
+- **Performance Enhancements (FE):** Added UI toggles for Performance Mode (deferring AI analysis) and Browser-Native Transcription to the encounter setup screen.
+- **Dead Man's Switch (FE+BE):** Implemented a configurable safety feature to auto-publish evidence.
+- **Class Action Finder (FE+BE):** Built a tool for users to find legal patterns and connect with others for class-action lawsuits.
+- **Panic Gesture (FE+BE):** Created a feature to let users configure a secret gesture to start recording.
+- **Witness Network (BE):** Implemented the backend services for alerting nearby users.
+- **Voice Control Foundation (FE):** Created the  component.
 
 **Earlier issues found/mentioned but not fixed**
-- None. The critical auth issue from the previous fork has been resolved.
+- The **Pre-Recording Buffer** and **PWA Quick-Launch Widget** features were part of a user-approved task from a previous session but were not worked on. They remain pending.
 
 **Known issue recurrence from previous fork**
-  - **Issue recurrence:** The critical  authentication error.
-  - **Recurrence count:** High.
-  - **Status:** RESOLVED. The agent successfully diagnosed and fixed the root causes in , , and the backend  endpoint.
+  - **Issue recurrence:** Critical  authentication error.
+  - **Recurrence count:** High (in past forks).
+  - **Status:** RESOLVED. The fix has remained stable through this session.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Frontend:** React, Tailwind CSS, shadcn/ui
-- **Backend:** FastAPI, Pydantic
-- **Database:** MongoDB
-- **Real-time:** WebSockets
-- **AI/ML:** RAG, NLP for voice commands, Predictive Analytics
-- **Storage:** AWS S3, IPFS (planned)
-- **Security:** JWT Authentication
-- **New Concepts:** Offline Data Queuing, Multi-Cloud Storage strategy.
+- **Web Workers:** Used to offload intensive tasks (like transcription) from the main UI thread to prevent freezing and lag.
+- **Role-Based Access Control (RBAC):** Implemented on both frontend (UI rendering) and backend (API endpoints) to create a secure Admin Portal.
+- **Dynamic Feature Toggling:** Empowering users to manage performance by providing UI toggles for resource-intensive features like AI analysis and server-side transcription.
+- **Full-Stack Feature Modules:** Rapidly building and integrating new features (Admin, DMS, Class Action, Panic Gesture) across the entire stack from the database to the UI.
 
 **key DB schema**
-  - No new database collections were added in this session.
+The following collections are now implicitly required for the new features. Pydantic models and database interactions are defined in the new router files.
+  - **tickets**: 
+  - **dead_mans_switch_configs**: 
+  - **class_action_patterns**: 
+  - **panic_gesture_configs**: 
+
+**changes in tech stack**
+  - No new dependencies were added. The agent leveraged existing technologies and browser APIs (Web Workers, Web Speech API).
 
 **All files of reference**
-- **New Backend Services/Routers:**
-  - 
-  - 
-  - 
-  - 
-- **New Frontend Pages/Components:**
-  - 
-  - 
-  - 
-  - 
-- **Critically Modified Files:**
-  -  (Auth fix)
-  -  (Auth fix)
-  -  (Multiple feature integrations)
-  -  (New router registrations)
-  -  (New API endpoints)
+- **Admin/Support:** , , 
+- **Performance:** , 
+- **Universal Tool:** , 
+- **Dead Man's Switch:** , 
+- **Class Action:** , 
+- **Panic Gesture:** , 
+- **Core Integration:** , , 
 
 **Areas that need refactoring**:
-- **:** This file has grown to over 2,600 lines and is becoming difficult to maintain. It should be broken down into smaller, specialized components (e.g., , , , ). This should be prioritized after the current features are complete to improve stability and development speed.
+- The  hook was created to batch state updates but it does not appear to have been integrated into . This should be reviewed and implemented to further optimize performance.
 
 **key api endpoints**
-- **Location Alerts:** 
-- **Legal Services:** , , , , 
-- **Attorney Stream:**  (stub)
-- **Multi-Cloud Backup:**  (stub)
+- **Admin:** , , , 
+- **Support:** 
+- **Dead Man's Switch:** , , 
+- **Class Action:** , 
+- **Panic Gesture:** , , 
+- **Witness Network:** , 
 
 **Critical Info for New Agent**
-- **Your immediate first step is to fix the backend startup error.** The agent has already applied a fix to . You need to restart the backend service and verify it runs successfully before proceeding.
-- Once the backend is running, prioritize completing the **Multi-Cloud Backup** and **Live Stream to Attorney** features. The groundwork (services, routers, UI buttons) is laid, but the core implementation is missing.
-- Be aware that  is very large and complex. Propose a refactoring task to the user after completing the current high-priority features.
+- **Verify Performance Fix (P0):** Your absolute first priority is to ask the user to test the Encounter Mode again. Guide them to enable the new Performance Mode and Browser Transcription toggles on the setup screen. Their feedback is required to close the most critical issue.
+- **Integrate Voice Control Panel:** The user requested Voice-Only Mode. The  component was created but is not used anywhere. You need to integrate it into  to complete this feature.
+- **Resume Pending Enhancements:** The Pre-Recording Buffer and PWA Quick-Launch widget are high-impact features approved by the user in a previous session that still need to be implemented.
+- **Blockchain is Blocked:** Remind the user that the blockchain anchoring task is still blocked pending their Polygon node URL and private key.
 
 **documents and test reports created in this job**
--  (Updated)
-- 
-- 
+  - /app/memory/PRD.md (Updated with all new features)
+  - /app/test_reports/iteration_43.json
+  - /app/test_reports/iteration_44.json
+  - /app/test_reports/iteration_45.json
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.   - User confirmed the Google Sign-in fix was successful. (COMPLETED)
-2.   - User reported issues with Encounter Mode on mobile. (COMPLETED)
-3.   - User asked for suggestions to make the app bulletproof. (COMPLETED)
-4.   - User approved the agent's list of enhancements and instructed to start. (IN PROGRESS)
-5.   - User approved moving on to the next set of approved enhancements (#3 and #4). (IN PROGRESS)
-6.   - User confirmed to proceed after the agent applied a fix for the  import error. (IN PROGRESS)
-7.   - User confirmed to proceed with next tasks. (IN PROGRESS)
-8.   - User confirmed that the Google sign-in fix was successful. (COMPLETED)
-9.   - User reported that the Google sign-in fix was not working. (COMPLETED)
-10.  - User reported an issue with Google sign-in. (COMPLETED)
+- : User approved the agent's plan to implement new features. (IN PROGRESS)
+- : User chose to implement Panic Gesture and Witness Network. (COMPLETED)
+- : User approved implementing Dead Man's Switch, Voice-Only Mode, and Class Action Finder. (COMPLETED)
+- : User asked for more feature suggestions. (COMPLETED)
+- : User approved the plan to fix performance lag and build the admin portal. (COMPLETED)
+- : User confirmed performance lag is still an issue, approved continuing the universal tool, requested an Admin Portal, and confirmed no blockchain credentials yet. (ADDRESSED)
 
 **Project Health Check:**
-- **Broken:** The backend service is currently down due to an import error, blocking development.
+- **Broken:** None.
 - **Mocked:**
-    - Multi-Cloud Evidence Backup (backend service and router are stubs).
-    - Live Stream to Attorney (backend service and router are stubs; frontend logic is incomplete).
+    - **Blockchain Anchoring:** The backend service is a stub and does not connect to a real blockchain. It is blocked on user-provided credentials.
 
 **3rd Party Integrations**
 - **OpenAI GPT-5.2 & Whisper** — uses Emergent LLM Key.
-- **SendGrid** — Actively configured with User API Key.
-- **Twilio SMS** — Actively configured with User API Key.
-- **AWS S3 (boto3)** — Actively configured with User API Keys.
-- **Pinata (IPFS Pinning)** — Integrated, requires User API Key ().
-- **Google OAuth** — Configured and now functional.
-- **pyotp** (TOTP 2FA) — Open-source.
+- **SendGrid** — Requires User API Key.
+- **Twilio SMS** — Requires User API Key.
+- **AWS S3 (boto3)** — Requires User API Keys.
+- **Pinata (IPFS Pinning)** — Requires User API Key ().
+- **Google OAuth** — Configured and functional.
+- **** — Backend dependency for Polygon blockchain interaction (stubbed).
 
 **Testing status**
-  - Testing agent used after significant changes: YES (reports  and  were generated for auth fixes and new features).
+  - Testing agent used after significant changes: YES (used 3 times for major feature batches).
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None.
-  - Known regressions: None. The previous Google Auth regression was fixed.
+  - Test files created: None by the main agent. The testing agent created and ran its own tests.
+  - Known regressions: None.
 
 **Credentials to test flow:**
-- **Citizen User:**  / 
-- **Attorney User:**  / 
+- **Admin User:**  / 
+- **Citizen User:** Register a new user.
 
 **What agent forgot to execute**
-- The agent did not verify that the backend restarted successfully after applying the  configuration fix. This is the immediate next action to take.
-- The user-approved enhancement **#2 (Evidence Chain of Custody Portal)** has not been started yet.</analysis>
+- The agent created the  component but did not integrate it into , leaving the Voice-Only Mode feature incomplete.
+- The agent did not resume work on two previously requested high-impact features: the **Pre-Recording Buffer** and the **PWA Quick-Launch Widget**.
+- The  hook was created with the intent to optimize re-renders but was not implemented in .</analysis>
