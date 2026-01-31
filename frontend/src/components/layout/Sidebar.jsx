@@ -56,6 +56,7 @@ const getNavItems = (role) => {
     { icon: Scale, label: 'Court-Grade AI', path: '/court-grade-ai', highlight: true },
     { icon: BarChart3, label: 'Premium Analytics', path: '/premium-analytics', highlight: true },
     { icon: FileText, label: 'Legal Tools', path: '/legal-tools', highlight: true },
+    { icon: Box, label: '3D Reconstruction', path: '/reconstruction-3d', highlight: true },
     { icon: FolderOpen, label: 'My Cases', path: '/cases' },
     { icon: FileBox, label: 'Evidence', path: '/evidence' },
     { icon: Video, label: 'Recordings', path: '/recordings' },
