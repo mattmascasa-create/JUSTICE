@@ -783,6 +783,9 @@ export default function EncounterPage() {
           onRecordingQualityChange={setRecordingQuality}
           deferAnalysis={deferAnalysis}
           onDeferAnalysisChange={setDeferAnalysis}
+          useBrowserTranscription={useBrowserTranscription}
+          onUseBrowserTranscriptionChange={setUseBrowserTranscription}
+          browserTranscriptSupported={browserTranscriptSupported}
           encounterType={encounterType}
           onEncounterTypeChange={setEncounterType}
           broadcastMode={broadcastMode}
