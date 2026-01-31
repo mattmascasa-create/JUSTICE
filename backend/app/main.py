@@ -160,6 +160,7 @@ app.include_router(dead_mans_switch_router, prefix="/api")
 app.include_router(class_action_router, prefix="/api")
 app.include_router(witness_network_router, prefix="/api")
 app.include_router(panic_gesture_router, prefix="/api")
+app.include_router(reconstruction_3d_router, prefix="/api")
 
 
 # Root endpoint
