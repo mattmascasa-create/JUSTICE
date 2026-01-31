@@ -150,11 +150,6 @@ export function useEncounterAnalysis({
       .catch(error => {
         console.error('Coaching error:', error);
       });
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Coaching error:', error);
-    }
   }, [encounter, encounterType, coachingEnabled, lastCoachingTime, encounterCoachAPI]);
 
   /**
