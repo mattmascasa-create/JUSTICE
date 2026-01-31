@@ -12,19 +12,18 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { ScrollArea } from '../components/ui/scroll-area';
-import { Switch } from '../components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Alert, AlertDescription } from './ui/alert';
+import { ScrollArea } from './ui/scroll-area';
 import { toast } from 'sonner';
 import api from '../lib/api';
 import {
-  Mic, MicOff, Volume2, VolumeX, Settings,
-  CheckCircle, XCircle, AlertTriangle, ChevronRight,
+  Mic, MicOff, Volume2, VolumeX,
+  CheckCircle, XCircle, ChevronRight,
   Play, Square, Phone, Shield, Camera, Eye, Home,
-  HelpCircle, Loader2
+  HelpCircle
 } from 'lucide-react';
 
 // Voice Commands API
