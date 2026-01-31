@@ -67,7 +67,7 @@ export function ViolationsPanel({
                       <p className="font-medium text-sm">{violation.type || violation}</p>
                       {violation.quote && (
                         <p className="text-xs text-muted-foreground mt-1 italic">
-                          "{violation.quote}"
+                          &ldquo;{violation.quote}&rdquo;
                         </p>
                       )}
                       {violation.severity && (
