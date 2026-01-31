@@ -32,9 +32,9 @@ export function useEncounterAnalysis({
   const lastAnalysisRef = useRef(0);
 
   /**
-   * Perform real-time AI analysis on transcription text
+   * Perform real-time AI analysis on transcription text (NON-BLOCKING)
    */
-  const performAnalysis = useCallback(async (text) => {
+  const performAnalysis = useCallback((text) => {
     if (!encounter || !text || text.length < 30 || !enabled) return;
     
     // Throttle analysis to every 15 seconds
@@ -52,55 +52,54 @@ export function useEncounterAnalysis({
     // Update full transcript
     setFullTranscript(prev => prev + ' ' + combinedText);
     
-    try {
-      const response = await encounterAPI.analyzeRealtime(
-        encounter.encounter_id,
-        fullTranscript + ' ' + combinedText
-      );
-      
-      const analysis = response.data.analysis;
-      setAiAnalysis(analysis);
-      
-      // Update risk level
-      if (analysis.risk_level) {
-        setRiskLevel(analysis.risk_level);
+    // Fire and forget - don't block UI
+    encounterAPI.analyzeRealtime(encounter.encounter_id, fullTranscript + ' ' + combinedText)
+      .then(response => {
+        const analysis = response.data?.analysis;
+        if (!analysis) return;
         
-        if (analysis.risk_level === 'critical' || analysis.risk_level === 'high') {
-          toast.error(`⚠️ ${analysis.risk_level.toUpperCase()} RISK: Potential violation detected!`, {
-            duration: 10000
+        setAiAnalysis(analysis);
+        
+        // Update risk level
+        if (analysis.risk_level) {
+          setRiskLevel(analysis.risk_level);
+          
+          if (analysis.risk_level === 'critical' || analysis.risk_level === 'high') {
+            toast.error(`⚠️ ${analysis.risk_level.toUpperCase()} RISK: Potential violation detected!`, {
+              duration: 10000
+            });
+          }
+        }
+        
+        // Update violations
+        if (analysis.violations?.length > 0) {
+          setDetectedViolations(prev => {
+            const newViolations = analysis.violations.filter(
+              v => !prev.some(pv => pv.type === v.type && pv.quote === v.quote)
+            );
+            return [...prev, ...newViolations];
           });
         }
-      }
-      
-      // Update violations
-      if (analysis.violations?.length > 0) {
-        setDetectedViolations(prev => {
-          const newViolations = analysis.violations.filter(
-            v => !prev.some(pv => pv.type === v.type && pv.quote === v.quote)
-          );
-          return [...prev, ...newViolations];
-        });
-      }
-      
-      // Update bias indicators
-      if (analysis.bias_indicators?.length > 0) {
-        setBiasIndicators(prev => [...prev, ...analysis.bias_indicators]);
-      }
-      
-      // Update procedural issues
-      if (analysis.procedural_issues?.length > 0) {
-        setProceduralIssues(prev => [...prev, ...analysis.procedural_issues]);
-      }
-      
-      // Show immediate alert if present
-      if (analysis.immediate_alert) {
-        setImmediateAlert(analysis.immediate_alert);
-        toast.warning(analysis.immediate_alert, { duration: 15000 });
-      }
-      
-    } catch (error) {
-      console.error('AI analysis error:', error);
-    }
+        
+        // Update bias indicators
+        if (analysis.bias_indicators?.length > 0) {
+          setBiasIndicators(prev => [...prev, ...analysis.bias_indicators]);
+        }
+        
+        // Update procedural issues
+        if (analysis.procedural_issues?.length > 0) {
+          setProceduralIssues(prev => [...prev, ...analysis.procedural_issues]);
+        }
+        
+        // Show immediate alert if present
+        if (analysis.immediate_alert) {
+          setImmediateAlert(analysis.immediate_alert);
+          toast.warning(analysis.immediate_alert, { duration: 15000 });
+        }
+      })
+      .catch(error => {
+        console.error('AI analysis error:', error);
+      });
   }, [encounter, fullTranscript, enabled, encounterAPI]);
 
   /**
