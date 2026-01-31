@@ -158,6 +158,7 @@ export default function EncounterPage() {
   const [showViolationsPanel, setShowViolationsPanel] = useState(false);
   const [showCoachingPanel, setShowCoachingPanel] = useState(true);
   const [stealthActivated, setStealthActivated] = useState(false);
+  const [showVoiceControlPanel, setShowVoiceControlPanel] = useState(false);
   
   // ===== Officer Info =====
   const [officerInfo, setOfficerInfo] = useState({ name: '', badge: '', department: '' });
