@@ -3,6 +3,7 @@ Smart Guidance API Router
 Provides contextual next-step recommendations for users
 """
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Query
 from typing import Optional
 from app.db.database import db
@@ -15,7 +16,6 @@ router = APIRouter(prefix="/guidance", tags=["guidance"])
 @router.get("/suggestions")
 async def get_suggestions(
     current_page: Optional[str] = Query(None, description="Current page the user is viewing"),
-    db=Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -39,7 +39,6 @@ async def get_suggestions(
 
 @router.get("/onboarding")
 async def get_onboarding(
-    db=Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -59,7 +58,6 @@ async def get_onboarding(
 @router.post("/dismiss/{suggestion_id}")
 async def dismiss_suggestion(
     suggestion_id: str,
-    db=Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -72,7 +70,7 @@ async def dismiss_suggestion(
         {"user_id": user_id},
         {
             "$addToSet": {"dismissed_suggestions": suggestion_id},
-            "$set": {"updated_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc)}
+            "$set": {"updated_at": datetime.now(timezone.utc)}
         },
         upsert=True
     )
@@ -86,7 +84,6 @@ async def dismiss_suggestion(
 @router.post("/complete/{suggestion_id}")
 async def mark_suggestion_complete(
     suggestion_id: str,
-    db=Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -98,7 +95,7 @@ async def mark_suggestion_complete(
         {"user_id": user_id},
         {
             "$addToSet": {"completed_suggestions": suggestion_id},
-            "$set": {"updated_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc)}
+            "$set": {"updated_at": datetime.now(timezone.utc)}
         },
         upsert=True
     )
