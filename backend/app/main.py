@@ -56,6 +56,8 @@ from app.routers.community_map import router as community_map_router
 from app.routers.blockchain import router as blockchain_router
 from app.routers.guidance import router as guidance_router
 from app.routers.admin import router as admin_router
+from app.routers.dead_mans_switch import router as dead_mans_switch_router
+from app.routers.class_action import router as class_action_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
