@@ -5,8 +5,9 @@ Provides contextual next-step recommendations for users
 
 from fastapi import APIRouter, Depends, Query
 from typing import Optional
-from ..dependencies import get_db, get_current_user
-from ..services.guidance_service import get_user_guidance, get_onboarding_checklist
+from app.db.database import db
+from app.core.security import get_current_user
+from app.services.guidance_service import get_user_guidance, get_onboarding_checklist
 
 router = APIRouter(prefix="/guidance", tags=["guidance"])
 
