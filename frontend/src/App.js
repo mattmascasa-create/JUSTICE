@@ -82,6 +82,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const DeadMansSwitchPage = lazy(() => import("./pages/DeadMansSwitchPage"));
 const ClassActionPage = lazy(() => import("./pages/ClassActionPage"));
+const PanicGesturePage = lazy(() => import("./pages/PanicGesturePage"));
 
 // Register service worker
 if ('serviceWorker' in navigator) {
@@ -212,6 +213,7 @@ function AppRouter() {
       <Route path="/support" element={<ProtectedLazyRoute><SupportPage /></ProtectedLazyRoute>} />
       <Route path="/dead-mans-switch" element={<ProtectedLazyRoute><DeadMansSwitchPage /></ProtectedLazyRoute>} />
       <Route path="/class-action" element={<ProtectedLazyRoute><ClassActionPage /></ProtectedLazyRoute>} />
+      <Route path="/panic-gesture" element={<ProtectedLazyRoute><PanicGesturePage /></ProtectedLazyRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
