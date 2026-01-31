@@ -26,6 +26,9 @@ import RegisterPage from "./pages/RegisterPage";
 import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 
+// Quick Record - loads fast for PWA shortcut
+import QuickRecordPage from "./pages/QuickRecordPage";
+
 // Lazy loaded pages - Heavy/Feature-rich pages
 const EncounterPageWithErrorBoundary = lazy(() => 
   import("./pages/EncounterPage").then(module => ({ 
