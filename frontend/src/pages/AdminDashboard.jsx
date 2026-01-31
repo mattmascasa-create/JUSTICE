@@ -387,12 +387,12 @@ export default function AdminDashboard() {
           <TabsContent value="tickets" className="space-y-4">
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
-              <Select value={ticketFilter.status} onValueChange={(v) => setTicketFilter(p => ({ ...p, status: v }))}>
+              <Select value={ticketFilter.status || 'all'} onValueChange={(v) => setTicketFilter(p => ({ ...p, status: v === 'all' ? '' : v }))}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="open">Open</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="resolved">Resolved</SelectItem>
@@ -400,12 +400,12 @@ export default function AdminDashboard() {
                 </SelectContent>
               </Select>
               
-              <Select value={ticketFilter.priority} onValueChange={(v) => setTicketFilter(p => ({ ...p, priority: v }))}>
+              <Select value={ticketFilter.priority || 'all'} onValueChange={(v) => setTicketFilter(p => ({ ...p, priority: v === 'all' ? '' : v }))}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="All Priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Priority</SelectItem>
+                  <SelectItem value="all">All Priority</SelectItem>
                   <SelectItem value="urgent">Urgent</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
