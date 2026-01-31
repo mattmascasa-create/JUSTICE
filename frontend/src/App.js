@@ -83,6 +83,7 @@ const SupportPage = lazy(() => import("./pages/SupportPage"));
 const DeadMansSwitchPage = lazy(() => import("./pages/DeadMansSwitchPage"));
 const ClassActionPage = lazy(() => import("./pages/ClassActionPage"));
 const PanicGesturePage = lazy(() => import("./pages/PanicGesturePage"));
+const Reconstruction3DPage = lazy(() => import("./pages/Reconstruction3DPage"));
 
 // Register service worker
 if ('serviceWorker' in navigator) {
