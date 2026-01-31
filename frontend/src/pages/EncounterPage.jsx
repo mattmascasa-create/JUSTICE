@@ -538,6 +538,10 @@ export default function EncounterPage() {
   const stopRecording = async () => {
     const currentEncounterId = encounter?.encounter_id;
     
+    // Stop browser speech recognition
+    browserSpeechRecognition.stop();
+    setInterimTranscript('');
+    
     // Stop recorders
     if (mediaRecorderRef.current?.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -552,8 +556,13 @@ export default function EncounterPage() {
       videoPreviewRef.current.srcObject = null;
     }
     
+    // Restart pre-recording buffer for next time
+    preRecordingBuffer.stop();
+    preRecordingBuffer.start({ video: enableVideo });
+    
     setIsRecording(false);
     setIsPaused(false);
+    setPreBufferIncluded(false);
     
     if (currentEncounterId) {
       try {
