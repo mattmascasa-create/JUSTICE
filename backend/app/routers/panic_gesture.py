@@ -195,7 +195,11 @@ async def trigger_panic_recording(
     
     if last_trigger:
         cooldown = config.get("cooldown_seconds", 30)
-        time_since = (datetime.now(timezone.utc) - last_trigger["triggered_at"]).total_seconds()
+        # Handle timezone-naive datetime from MongoDB
+        triggered_at = last_trigger["triggered_at"]
+        if triggered_at.tzinfo is None:
+            triggered_at = triggered_at.replace(tzinfo=timezone.utc)
+        time_since = (datetime.now(timezone.utc) - triggered_at).total_seconds()
         if time_since < cooldown:
             return {
                 "success": False,
