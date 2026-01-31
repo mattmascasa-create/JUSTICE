@@ -210,6 +210,8 @@ function AppRouter() {
       <Route path="/legal-tools" element={<ProtectedLazyRoute><LegalToolsPage /></ProtectedLazyRoute>} />
       <Route path="/admin" element={<ProtectedLazyRoute><AdminDashboard /></ProtectedLazyRoute>} />
       <Route path="/support" element={<ProtectedLazyRoute><SupportPage /></ProtectedLazyRoute>} />
+      <Route path="/dead-mans-switch" element={<ProtectedLazyRoute><DeadMansSwitchPage /></ProtectedLazyRoute>} />
+      <Route path="/class-action" element={<ProtectedLazyRoute><ClassActionPage /></ProtectedLazyRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
