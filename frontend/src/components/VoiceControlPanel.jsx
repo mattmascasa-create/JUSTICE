@@ -351,7 +351,7 @@ export function VoiceControlPanel({
                       className="flex items-center gap-2 p-2 rounded hover:bg-muted/50 text-sm"
                     >
                       <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="flex-1">"{cmd.phrases[0]}"</span>
+                      <span className="flex-1">&quot;{cmd.phrases[0]}&quot;</span>
                       <Badge variant="outline" className="text-xs">
                         {cmd.category}
                       </Badge>
