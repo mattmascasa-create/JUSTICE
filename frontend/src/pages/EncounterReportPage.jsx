@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { encounterAPI, API_URL } from '../lib/api';
 import CorroborationPanel from '../components/CorroborationPanel';
 import IntegrityBadge from '../components/IntegrityBadge';
+import BlockchainAnchor from '../components/BlockchainAnchor';
 import { 
   Shield, MapPin, Clock, Video, Mic, FileText, AlertTriangle,
   CheckCircle, ExternalLink, Download, Scale, Users, ArrowLeft,
