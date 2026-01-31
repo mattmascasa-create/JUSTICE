@@ -52,7 +52,7 @@ import browserSpeechRecognition from '../services/browserSpeechRecognition';
 import {
   encounterTypes,
   broadcastModes,
-  rightsReminders,
+  rightsReminders as defaultRightsReminders,
   voiceCommandsConfig,
   riskLevelColors,
   riskLevelLabels,
@@ -62,6 +62,9 @@ import {
   highlightText,
   formatDuration
 } from './encounter/constants';
+
+// Universal encounter types config
+import { getRightsReminders } from '../config/encounterTypes';
 
 // Extracted components
 import { EncounterSetupScreen } from './encounter/EncounterSetupScreen';
