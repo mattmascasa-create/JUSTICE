@@ -5,14 +5,13 @@
  * Uses React Three Fiber for declarative 3D rendering.
  */
 
+/* eslint-disable react/no-unknown-property */
 import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { 
   OrbitControls, 
   Grid, 
-  Text, 
   Html,
-  Environment,
   Sky,
   Stars
 } from '@react-three/drei';
