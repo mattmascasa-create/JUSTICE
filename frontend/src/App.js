@@ -164,6 +164,9 @@ function AppRouter() {
       {/* Protected Routes - Critical (Dashboard not lazy for fast access) */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       
+      {/* Quick Record - PWA shortcut, starts recording immediately */}
+      <Route path="/quick-record" element={<ProtectedRoute><QuickRecordPage /></ProtectedRoute>} />
+      
       {/* Protected Routes - Heavy pages (Lazy loaded) */}
       <Route path="/encounter" element={<ProtectedLazyRoute><EncounterPageWithErrorBoundary /></ProtectedLazyRoute>} />
       <Route path="/encounters/:encounterId" element={<ProtectedLazyRoute><EncounterReportPage /></ProtectedLazyRoute>} />
