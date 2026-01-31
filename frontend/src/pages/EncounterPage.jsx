@@ -42,6 +42,9 @@ import DeadMansSwitchPanel from '../components/DeadMansSwitchPanel';
 import { QuickOfficerLookup } from '../components/QuickOfficerLookup';
 import RecordingStatus from '../components/RecordingStatus';
 import VoiceControlPanel from '../components/VoiceControlPanel';
+import SOSPanel from '../components/SOSPanel';
+import SharingPanel from '../components/SharingPanel';
+import RecordingControls from '../components/RecordingControls';
 
 // Services
 import evidenceStorage from '../services/evidenceStorage';
