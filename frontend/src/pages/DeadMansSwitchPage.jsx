@@ -1,5 +1,5 @@
 /**
- * Dead Man's Switch Page
+ * Dead Man&apos;s Switch Page
  * 
  * Safety-critical feature that automatically publishes evidence
  * if the user fails to check in during an active encounter.
@@ -33,7 +33,7 @@ import {
   RefreshCw, Play, Square, Bell, Lock, Loader2
 } from 'lucide-react';
 
-// Dead Man's Switch API
+// Dead Man&apos;s Switch API
 const deadMansSwitchAPI = {
   getConfig: () => api.get('/dead-mans-switch/config'),
   updateConfig: (config) => api.put('/dead-mans-switch/config', config),
@@ -230,9 +230,9 @@ export default function DeadMansSwitchPage() {
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-red-500/20">
             <Shield className="h-12 w-12 text-red-500" />
           </div>
-          <h1 className="text-3xl font-bold">Dead Man's Switch</h1>
+          <h1 className="text-3xl font-bold">Dead Man&apos;s Switch</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            If you don't check in during an encounter, your evidence is automatically
+            If you don&apos;t check in during an encounter, your evidence is automatically
             sent to trusted contacts. <strong>Your safety backup plan.</strong>
           </p>
         </div>
@@ -248,7 +248,7 @@ export default function DeadMansSwitchPage() {
                     <span className="font-bold text-red-500">SWITCH ACTIVE</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {sessionStatus.contacts_to_notify} contacts will be notified if you don't check in
+                    {sessionStatus.contacts_to_notify} contacts will be notified if you don&apos;t check in
                   </p>
                 </div>
                 
@@ -267,7 +267,7 @@ export default function DeadMansSwitchPage() {
                   onClick={handleCheckIn}
                 >
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  I'm OK - Check In
+                  I&apos;m OK - Check In
                 </Button>
               </div>
               
@@ -293,7 +293,7 @@ export default function DeadMansSwitchPage() {
                   Configuration
                 </CardTitle>
                 <CardDescription>
-                  Set up how the Dead Man's Switch behaves
+                  Set up how the Dead Man&apos;s Switch behaves
                 </CardDescription>
               </div>
               <Switch
@@ -587,7 +587,7 @@ export default function DeadMansSwitchPage() {
                 </div>
                 <h4 className="font-medium mb-1">2. Check In</h4>
                 <p className="text-sm text-muted-foreground">
-                  Tap "I'm OK" every {config.check_in_interval_minutes} minutes to reset the timer
+                  Tap &quot;I&apos;m OK&quot; every {config.check_in_interval_minutes} minutes to reset the timer
                 </p>
               </div>
               

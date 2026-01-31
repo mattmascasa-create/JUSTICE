@@ -510,7 +510,7 @@ export default function ClassActionPage() {
                       </div>
                     ) : (
                       <p className="text-center text-muted-foreground py-8">
-                        You haven't expressed interest in any patterns yet.
+                        You haven&apos;t expressed interest in any patterns yet.
                       </p>
                     )}
                   </ScrollArea>
