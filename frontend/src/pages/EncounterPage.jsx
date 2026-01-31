@@ -371,7 +371,7 @@ export default function EncounterPage() {
           // Save pre-buffer as first chunk (fire and forget)
           evidenceStorage.saveChunk(response.data.encounter_id, preBuffer.blob, 'video', -1, { isPreBuffer: true })
             .then(() => {
-              setChunksSaved(prev => prev + 1);
+              incrementChunksSaved(preBuffer.blob.size);
               toast.success(`📹 +${Math.round(preBuffer.duration / 1000)}s pre-buffer captured!`);
             })
             .catch(err => console.log('Pre-buffer save error:', err));
