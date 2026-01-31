@@ -131,6 +131,12 @@ const getNavItems = (role) => {
         highlight: true
       },
       {
+        icon: Vibrate,
+        label: 'Panic Gesture',
+        path: '/panic-gesture',
+        highlight: true
+      },
+      {
         icon: Scale,
         label: 'Class Action Finder',
         path: '/class-action'
