@@ -46,7 +46,7 @@ async def get_onboarding(
     
     Returns a checklist of setup items with completion status.
     """
-    user_id = str(current_user["_id"])
+    user_id = current_user["user_id"]
     checklist = get_onboarding_checklist(db, user_id)
     
     return {
