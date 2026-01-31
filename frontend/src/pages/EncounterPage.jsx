@@ -1114,36 +1114,16 @@ export default function EncounterPage() {
                 }
               }
             };
-                      if (result.data.transcription.violations_detected?.length > 0) {
-                        setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
-                        toast.warning('⚠️ Potential violation detected!', {
-                          description: result.data.transcription.violations_detected.join(', ')
-                        });
-                      }
-                    }
-                  } catch (err) {
-                    console.error('Audio upload/transcription error:', err);
-                    // Queue failed upload for retry
-                    setPendingUploads(prev => [...prev, {
-                      type: 'audio',
-                      encounterId: response.data.encounter_id,
-                      blob: blob,
-                      chunkIndex: chunkIndexRef.current - 1,
-                      timestamp: Date.now()
-                    }]);
-                  }
-                }
-              }
-            };
 
             audioRecorder.onerror = (error) => {
               console.error('Audio recorder error:', error);
               toast.error('Audio recording error - transcription may be affected');
             };
 
-            // Start the audio recorder for transcription (10-second chunks)
-            audioRecorder.start(10000);
-            console.log('Audio recorder for transcription started');
+            // Start the audio recorder for transcription (5-second chunks for faster feedback)
+            const chunkIntervalMs = recordingQuality === 'performance' ? 5000 : 5000;
+            audioRecorder.start(chunkIntervalMs);
+            console.log('Audio recorder for transcription started with', chunkIntervalMs, 'ms chunks');
           }
         } catch (audioErr) {
           console.error('Failed to set up audio recorder for transcription:', audioErr);
@@ -1156,7 +1136,7 @@ export default function EncounterPage() {
         if (event.data.size > 0) {
           videoChunksRef.current.push(event.data);
           
-          // Upload video chunk every 15 seconds
+          // Upload video chunk every 5 seconds (smaller chunks = less lag)
           if (videoChunksRef.current.length >= 1) {
             // Use actual MIME type from recorder
             const blobType = mediaRecorder.mimeType || (enableVideo ? 'video/webm' : 'audio/webm');
