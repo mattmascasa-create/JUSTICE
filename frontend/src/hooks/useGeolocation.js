@@ -51,10 +51,14 @@ export function useGeolocation(options = {}) {
     );
   }, [enableHighAccuracy, showErrors]);
 
-  // Initial position fetch
+  // Initial position fetch - using a ref to track if we've already fetched
+  const hasInitializedRef = useRef(false);
   useEffect(() => {
-    getPosition();
-  }, [getPosition]);
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      getPosition();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Optional: Watch position for continuous updates
   useEffect(() => {
