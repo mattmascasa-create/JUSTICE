@@ -1933,6 +1933,13 @@ export default function EncounterPage() {
           </AlertDescription>
         </Alert>
 
+        {/* Evidence Storage Status */}
+        <RecordingStatus 
+          isRecording={isRecording}
+          chunksSaved={chunksSaved}
+          chunksUploaded={chunksUploaded}
+        />
+
         {/* Voice Commands Panel */}
         <Card className={`border-2 ${voiceCommandsEnabled ? 'border-purple-500/50 bg-purple-500/5' : 'border-gray-500/30'}`}>
           <CardContent className="p-4">
