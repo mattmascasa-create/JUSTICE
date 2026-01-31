@@ -76,6 +76,7 @@ import { TranscriptionPanel } from './encounter/TranscriptionPanel';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
 import { useEncounterAnalysis } from '../hooks/useEncounterAnalysis';
+import { useRecordingStats } from '../hooks/useRecordingStats';
 
 // ============== Error Boundary ==============
 class EncounterErrorBoundary extends Component {
