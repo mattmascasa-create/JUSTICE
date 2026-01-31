@@ -533,9 +533,7 @@ export default function EncounterPage() {
       mediaRecorder.start(5000);
       setIsRecording(true);
       setDuration(0);
-      setChunksSaved(0);
-      setChunksUploaded(0);
-      setVideoChunkCount(0);
+      resetRecordingStats(); // Reset the batched recording stats
       
       toast.success('🔴 Recording Started - Evidence saved locally');
     } catch (error) {
