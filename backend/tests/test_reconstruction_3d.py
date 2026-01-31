@@ -37,7 +37,7 @@ class TestReconstruction3DAPI:
         })
         
         if login_response.status_code == 200:
-            token = login_response.json().get("token")
+            token = login_response.json().get("access_token")
             self.session.headers.update({"Authorization": f"Bearer {token}"})
             self.authenticated = True
         else:
@@ -296,7 +296,7 @@ class TestReconstruction3DEdgeCases:
         })
         
         if login_response.status_code == 200:
-            token = login_response.json().get("token")
+            token = login_response.json().get("access_token")
             self.session.headers.update({"Authorization": f"Bearer {token}"})
         else:
             pytest.skip("Authentication failed")
