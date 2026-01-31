@@ -100,15 +100,32 @@ export function VoiceControlPanel({
     // Speech synthesis
     synthRef.current = window.speechSynthesis;
     
-    // Load available commands
-    loadCommands();
-    
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
-  }, [loadCommands]);
+  }, []);
+  
+  // Load commands on mount (separate effect for async data fetching)
+  useEffect(() => {
+    let mounted = true;
+    const fetchCommands = async () => {
+      try {
+        const res = await voiceCommandsAPI.getCommands();
+        if (mounted) {
+          setAvailableCommands(Object.entries(res.data.commands || {}).map(([key, value]) => ({
+            key,
+            ...value
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to load commands:', error);
+      }
+    };
+    fetchCommands();
+    return () => { mounted = false; };
+  }, []);
 
   // Speak text (audio feedback)
   const speak = useCallback((text) => {
