@@ -148,6 +148,7 @@ app.include_router(custody_portal_router, prefix="/api")
 app.include_router(witness_corroboration_router, prefix="/api")
 app.include_router(community_map_router, prefix="/api")
 app.include_router(blockchain_router, prefix="/api")
+app.include_router(guidance_router, prefix="/api")
 
 
 # Root endpoint
