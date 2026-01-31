@@ -471,7 +471,7 @@ export default function EncounterPage() {
             // Save locally first (fire and forget)
             evidenceStorage.saveChunk(encounterId, audioBlob, 'audio', chunkIndex, { forTranscription: true })
               .then(chunkId => {
-                setChunksSaved(prev => prev + 1);
+                incrementChunksSaved(audioBlob.size);
                 uploadManager.queueUpload(encounterId, chunkId, 'audio', 'high');
               })
               .catch(err => console.log('Audio save error:', err));
@@ -507,8 +507,8 @@ export default function EncounterPage() {
             // Save locally (fire and forget)
             evidenceStorage.saveChunk(encounterId, audioBlob, 'audio', chunkIndex)
               .then(chunkId => {
-                setChunksSaved(prev => prev + 1);
-                setVideoChunkCount(prev => prev + 1);
+                incrementChunksSaved(audioBlob.size);
+                incrementVideoChunks();
                 uploadManager.queueUpload(encounterId, chunkId, 'audio', 'normal');
               })
               .catch(err => console.error('Failed to save chunk:', err));
