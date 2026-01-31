@@ -52,7 +52,7 @@ export function useGuidance(currentPage = null) {
 
   const completeSuggestion = useCallback(async (suggestionId) => {
     try {
-      await api.post(`/api/guidance/complete/${suggestionId}`);
+      await api.post(`/guidance/complete/${suggestionId}`);
       setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
       setAllSuggestions(prev => prev.filter(s => s.id !== suggestionId));
       // Refresh to get updated completion score
