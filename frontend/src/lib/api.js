@@ -231,7 +231,15 @@ export const encounterAPI = {
   exportReport: (encounterId, style = 'formal') =>
     `${API_URL}/encounters/${encounterId}/highlights/export?style=${style}`,
   exportSharedReport: (encounterId, token, style = 'formal') =>
-    `${API_URL}/encounters/shared/${encounterId}/highlights/export?token=${token}&style=${style}`
+    `${API_URL}/encounters/shared/${encounterId}/highlights/export?token=${token}&style=${style}`,
+  
+  // Evidence Integrity Verification
+  registerHashes: (encounterId, hashes) =>
+    api.post(`/encounters/${encounterId}/integrity/register`, hashes),
+  verifyIntegrity: (encounterId) =>
+    api.get(`/encounters/${encounterId}/integrity/verify`),
+  getIntegrityCertificate: (encounterId) =>
+    api.get(`/encounters/${encounterId}/integrity/certificate`)
 };
 
 // Helper to get the API URL for direct media access
