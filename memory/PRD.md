@@ -1482,3 +1482,63 @@ EncounterPage.jsx (1048 lines)
 - Recording Mode: ✅ Components render correctly
 - Lazy Loading: ✅ Still working
 
+
+---
+
+### Smart Guidance System - IMPLEMENTED ✅ (Jan 31, 2026)
+
+A new AI-driven wizard/suggestion system that predicts and guides users to their next logical steps.
+
+#### Features:
+1. **Contextual Suggestions**: Analyzes user state (profile, cases, encounters, evidence) and provides personalized next-step recommendations
+2. **Priority System**: Critical → High → Medium → Low prioritization
+3. **Categories**: Setup, Safety, Legal, Evidence, Action Required
+4. **Progress Tracking**: Shows profile completion score
+5. **Page-Specific Guidance**: Different suggestions based on current page
+6. **Dismissable**: Users can dismiss suggestions they don't want to see
+
+#### Backend Implementation:
+- **Service**: `/backend/app/services/guidance_service.py`
+  - `get_user_guidance()` - Main guidance logic
+  - `get_page_specific_guidance()` - Page-context suggestions
+  - `get_onboarding_checklist()` - New user checklist
+- **Router**: `/backend/app/routers/guidance.py`
+  - `GET /api/guidance/suggestions` - Get suggestions
+  - `GET /api/guidance/onboarding` - Get onboarding checklist
+  - `POST /api/guidance/dismiss/{id}` - Dismiss suggestion
+  - `POST /api/guidance/complete/{id}` - Mark complete
+
+#### Frontend Implementation:
+- **Hook**: `/hooks/useGuidance.js` - Fetches and manages suggestions
+- **Component**: `/components/SmartGuidancePanel.jsx`
+  - Multiple variants: card, floating, minimal, inline
+  - Collapsible panel
+  - User stats display
+  - "Show More" functionality
+- **FloatingGuidanceButton**: Available on all pages (except encounter)
+
+#### Suggestion Types:
+1. **Critical (Safety)**:
+   - Add Emergency Contacts (if none set)
+2. **High Priority**:
+   - Verify Email
+   - Connect with Attorney
+   - Review Recent Encounter (if unanalyzed)
+3. **Medium Priority**:
+   - Complete Rights Training (with progress)
+   - Continue Open Case
+   - Prepare for First Encounter
+   - Backup Evidence
+4. **Page-Specific**:
+   - Encounter page: Warning if no contacts
+   - Cases page: Suggest creating first case
+   - Evidence page: Tag unorganized files
+
+#### UI Features:
+- Sparkle icon ✨ for "Smart Guide" branding
+- Color-coded priority borders (red/orange/blue/gray)
+- Progress bars for training completion
+- User stats footer (encounters, cases, contacts, attorney status)
+- Floating button with badge showing suggestion count
+- Animations for new suggestions
+
