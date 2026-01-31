@@ -6,6 +6,37 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
+// Initialize geolocation outside of React's render cycle
+function initializeGeolocation(options, callbacks) {
+  const { enableHighAccuracy, showErrors } = options;
+  const { onSuccess, onError, onNotSupported } = callbacks;
+
+  if (!navigator.geolocation) {
+    onNotSupported();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      onSuccess({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        timestamp: position.timestamp
+      });
+    },
+    (err) => {
+      console.error('Geolocation error:', err);
+      onError(err.message);
+      
+      if (showErrors) {
+        toast.error('Could not get your location. Please enable location services.');
+      }
+    },
+    { enableHighAccuracy }
+  );
+}
+
 export function useGeolocation(options = {}) {
   const {
     enableHighAccuracy = true,
@@ -19,39 +50,28 @@ export function useGeolocation(options = {}) {
   const [loading, setLoading] = useState(true);
   const hasInitializedRef = useRef(false);
 
-  // Initial position fetch
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // Initial position fetch using external function
   useEffect(() => {
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
 
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
-      setLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: position.timestamp
-        });
-        setError(null);
-        setLoading(false);
-      },
-      (err) => {
-        console.error('Geolocation error:', err);
-        setError(err.message);
-        setLoading(false);
-        
-        if (showErrors) {
-          toast.error('Could not get your location. Please enable location services.');
+    initializeGeolocation(
+      { enableHighAccuracy, showErrors },
+      {
+        onSuccess: (loc) => {
+          setLocation(loc);
+          setError(null);
+          setLoading(false);
+        },
+        onError: (errMsg) => {
+          setError(errMsg);
+          setLoading(false);
+        },
+        onNotSupported: () => {
+          setError('Geolocation is not supported by your browser');
+          setLoading(false);
         }
-      },
-      { enableHighAccuracy }
+      }
     );
   }, [enableHighAccuracy, showErrors]);
 
