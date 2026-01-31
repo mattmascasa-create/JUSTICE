@@ -32,8 +32,9 @@ class TestAdminAuth:
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "token" in data, "No token in response"
-        return data["token"]
+        # API returns access_token, not token
+        assert "access_token" in data, "No access_token in response"
+        return data["access_token"]
     
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
@@ -65,7 +66,7 @@ class TestAdminDashboard:
             "password": ADMIN_PASSWORD
         })
         assert response.status_code == 200
-        token = response.json()["token"]
+        token = response.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
     
     def test_get_dashboard_stats(self, auth_headers):
@@ -111,7 +112,7 @@ class TestUserManagement:
             "password": ADMIN_PASSWORD
         })
         assert response.status_code == 200
-        token = response.json()["token"]
+        token = response.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
     
     def test_list_users(self, auth_headers):
@@ -169,7 +170,7 @@ class TestSupportTickets:
             "password": ADMIN_PASSWORD
         })
         assert response.status_code == 200
-        token = response.json()["token"]
+        token = response.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
     
     @pytest.fixture(scope="class")
@@ -342,7 +343,7 @@ class TestAdminAnalytics:
             "password": ADMIN_PASSWORD
         })
         assert response.status_code == 200
-        token = response.json()["token"]
+        token = response.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
     
     def test_get_analytics(self, auth_headers):
