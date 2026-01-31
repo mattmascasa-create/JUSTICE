@@ -36,7 +36,9 @@ import {
   Users,
   Eye,
   Camera,
-  FileText
+  FileText,
+  HelpCircle,
+  ShieldAlert
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 import ConnectionIndicator from '../ConnectionIndicator';
@@ -93,6 +95,26 @@ const getNavItems = (role) => {
       label: 'Moderation',
       path: '/moderation',
       highlight: true
+    });
+  }
+
+  // Add admin dashboard for admins only
+  if (role === 'admin') {
+    baseItems.splice(1, 0, {
+      icon: ShieldAlert,
+      label: 'Admin Dashboard',
+      path: '/admin',
+      highlight: true
+    });
+  }
+
+  // Add support page for all users (near settings)
+  const settingsIndex = baseItems.findIndex(item => item.path === '/settings');
+  if (settingsIndex !== -1) {
+    baseItems.splice(settingsIndex, 0, {
+      icon: HelpCircle,
+      label: 'Support',
+      path: '/support'
     });
   }
 
