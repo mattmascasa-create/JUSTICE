@@ -1262,3 +1262,25 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
   - `evidenceStorage.js`: IndexedDB wrapper for persistent local storage
   - `uploadManager.js`: Background upload queue with retry logic
 - **Evidence Protection Notice**: Clear messaging that evidence is safe even offline
+
+
+##### Evidence Integrity Verification (SHA-256) ✅
+- **Cryptographic Hashing**: Every chunk hashed with SHA-256 at recording time
+- **Blockchain-Style Chain**: Each chunk links to the previous via chain hash
+- **Tamper Detection**: Any modification breaks the hash chain
+- **Frontend Components**:
+  - `IntegrityBadge.jsx`: Visual indicator showing verification status
+  - Evidence verification dialog with detailed breakdown
+- **Backend Endpoints**:
+  - `POST /api/encounters/{id}/integrity/register`: Register hashes from client
+  - `GET /api/encounters/{id}/integrity/verify`: Verify entire evidence chain
+  - `GET /api/encounters/{id}/integrity/certificate`: Generate court-ready certificate
+- **Certificate Generation**: Downloadable JSON certificate for legal proceedings
+- **Chain Verification**: Validates each chunk's hash AND its link to previous chunk
+- **Court Statement**: Certificate includes certification statement for legal use
+- **evidenceStorage.js Updates**:
+  - `generateHash()`: SHA-256 hash of blob content
+  - `generateChainHash()`: Links current chunk to previous
+  - `verifyChunkIntegrity()`: Re-calculates and compares hash
+  - `verifyEncounterIntegrity()`: Full chain verification
+  - `generateIntegrityReport()`: Court-ready report generation
