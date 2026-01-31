@@ -17,8 +17,49 @@ export function useGeolocation(options = {}) {
   const [address, setAddress] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasInitializedRef = useRef(false);
+  const optionsRef = useRef({ enableHighAccuracy, showErrors });
+  
+  // Keep options ref updated
+  optionsRef.current = { enableHighAccuracy, showErrors };
 
-  const getPosition = useCallback(() => {
+  // Initial position fetch
+  useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: position.timestamp
+        });
+        setError(null);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Geolocation error:', err);
+        setError(err.message);
+        setLoading(false);
+        
+        if (optionsRef.current.showErrors) {
+          toast.error('Could not get your location. Please enable location services.');
+        }
+      },
+      { enableHighAccuracy: optionsRef.current.enableHighAccuracy }
+    );
+  }, []);
+
+  // Manual refresh function
+  const refresh = useCallback(() => {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser');
       setLoading(false);
@@ -51,15 +92,6 @@ export function useGeolocation(options = {}) {
     );
   }, [enableHighAccuracy, showErrors]);
 
-  // Initial position fetch - using a ref to track if we've already fetched
-  const hasInitializedRef = useRef(false);
-  useEffect(() => {
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true;
-      getPosition();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Optional: Watch position for continuous updates
   useEffect(() => {
     if (!watchPosition || !navigator.geolocation) return;
@@ -83,10 +115,6 @@ export function useGeolocation(options = {}) {
       navigator.geolocation.clearWatch(watchId);
     };
   }, [watchPosition, enableHighAccuracy]);
-
-  const refresh = useCallback(() => {
-    getPosition();
-  }, [getPosition]);
 
   const formatCoordinates = useCallback(() => {
     if (!location) return 'Location unavailable';
