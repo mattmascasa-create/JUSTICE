@@ -1,60 +1,80 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { Toaster } from "./components/ui/sonner";
 import PanicButton from "./components/PanicButton";
+import IncomingCallModal from "./components/IncomingCallModal";
 
-// Pages
+// Loading Spinner Component for Suspense fallback
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground text-sm">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Critical pages loaded immediately (landing, auth, dashboard)
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
-import CasesPage from "./pages/CasesPage";
-import CaseDetailPage from "./pages/CaseDetailPage";
-import NewCasePage from "./pages/NewCasePage";
-import EvidencePage from "./pages/EvidencePage";
-import AIAttorneyPage from "./pages/AIAttorneyPage";
-import SOSPage from "./pages/SOSPage";
-import AttorneysPage from "./pages/AttorneysPage";
-import KnowYourRightsPage from "./pages/KnowYourRightsPage";
-import MessagesPage from "./pages/MessagesPage";
-import TransparencyPage from "./pages/TransparencyPage";
-import IncidentMapPage from "./pages/IncidentMapPage";
-import SettingsPage from "./pages/SettingsPage";
-import { EncounterPageWithErrorBoundary } from "./pages/EncounterPage";
-import EncounterReportPage from "./pages/EncounterReportPage";
-import LiveStreamPage from "./pages/LiveStreamPage";
-import DocumentAnalysisPage from "./pages/DocumentAnalysisPage";
-import CommunityVaultPage from "./pages/CommunityVaultPage";
-import PolicyDashboardPage from "./pages/PolicyDashboardPage";
-import EncounterAnalytics from "./pages/EncounterAnalytics";
-import SharedEncounterView from "./pages/SharedEncounterView";
-import AttorneyDashboardPage from "./pages/AttorneyDashboardPage";
-import AttorneyAcceptInvitePage from "./pages/AttorneyAcceptInvitePage";
-import AttorneyEncounterWorkspacePage from "./pages/AttorneyEncounterWorkspacePage";
-import VideoCallPage from "./pages/VideoCallPage";
-import IncomingCallModal from "./components/IncomingCallModal";
-import RecordingsPage from "./pages/RecordingsPage";
-import ScheduledReportsPage from "./pages/ScheduledReportsPage";
-import ReportTemplatesPage from "./pages/ReportTemplatesPage";
-import NotificationPreferencesPage from "./pages/NotificationPreferencesPage";
-import AdvancedFeaturesPage from "./pages/AdvancedFeaturesPage";
-import EmergencyContactsPage from "./pages/EmergencyContactsPage";
-import WitnessNetworkPage from "./pages/WitnessNetworkPage";
-import HardwareIntegrationPage from "./pages/HardwareIntegrationPage";
-import TwoFactorSettingsPage from "./pages/TwoFactorSettingsPage";
-import RightsTrainingPage from "./pages/RightsTrainingPage";
-import LegalDocumentsPage from "./pages/LegalDocumentsPage";
-import AccountabilityPortalPage from "./pages/AccountabilityPortalPage";
-import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
-import CourtGradeAIPage from "./pages/CourtGradeAIPage";
-import LegalToolsPage from "./pages/LegalToolsPage";
-import CustodyPortalPage from "./pages/CustodyPortalPage";
-import CommunityMapPage from "./pages/CommunityMapPage";
-import ModerationDashboardPage from "./pages/ModerationDashboardPage";
+
+// Lazy loaded pages - Heavy/Feature-rich pages
+const EncounterPageWithErrorBoundary = lazy(() => 
+  import("./pages/EncounterPage").then(module => ({ 
+    default: module.EncounterPageWithErrorBoundary 
+  }))
+);
+const EncounterReportPage = lazy(() => import("./pages/EncounterReportPage"));
+const CommunityMapPage = lazy(() => import("./pages/CommunityMapPage"));
+const AccountabilityPortalPage = lazy(() => import("./pages/AccountabilityPortalPage"));
+const PremiumAnalyticsPage = lazy(() => import("./pages/PremiumAnalyticsPage"));
+const CourtGradeAIPage = lazy(() => import("./pages/CourtGradeAIPage"));
+const AIAttorneyPage = lazy(() => import("./pages/AIAttorneyPage"));
+const DocumentAnalysisPage = lazy(() => import("./pages/DocumentAnalysisPage"));
+const AttorneyDashboardPage = lazy(() => import("./pages/AttorneyDashboardPage"));
+const AttorneyEncounterWorkspacePage = lazy(() => import("./pages/AttorneyEncounterWorkspacePage"));
+const ModerationDashboardPage = lazy(() => import("./pages/ModerationDashboardPage"));
+const CustodyPortalPage = lazy(() => import("./pages/CustodyPortalPage"));
+const PolicyDashboardPage = lazy(() => import("./pages/PolicyDashboardPage"));
+const EncounterAnalytics = lazy(() => import("./pages/EncounterAnalytics"));
+const VideoCallPage = lazy(() => import("./pages/VideoCallPage"));
+const LiveStreamPage = lazy(() => import("./pages/LiveStreamPage"));
+const SharedEncounterView = lazy(() => import("./pages/SharedEncounterView"));
+
+// Lazy loaded pages - Secondary pages
+const CasesPage = lazy(() => import("./pages/CasesPage"));
+const CaseDetailPage = lazy(() => import("./pages/CaseDetailPage"));
+const NewCasePage = lazy(() => import("./pages/NewCasePage"));
+const EvidencePage = lazy(() => import("./pages/EvidencePage"));
+const SOSPage = lazy(() => import("./pages/SOSPage"));
+const AttorneysPage = lazy(() => import("./pages/AttorneysPage"));
+const KnowYourRightsPage = lazy(() => import("./pages/KnowYourRightsPage"));
+const MessagesPage = lazy(() => import("./pages/MessagesPage"));
+const TransparencyPage = lazy(() => import("./pages/TransparencyPage"));
+const IncidentMapPage = lazy(() => import("./pages/IncidentMapPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const CommunityVaultPage = lazy(() => import("./pages/CommunityVaultPage"));
+const AttorneyAcceptInvitePage = lazy(() => import("./pages/AttorneyAcceptInvitePage"));
+const RecordingsPage = lazy(() => import("./pages/RecordingsPage"));
+const ScheduledReportsPage = lazy(() => import("./pages/ScheduledReportsPage"));
+const ReportTemplatesPage = lazy(() => import("./pages/ReportTemplatesPage"));
+const NotificationPreferencesPage = lazy(() => import("./pages/NotificationPreferencesPage"));
+const AdvancedFeaturesPage = lazy(() => import("./pages/AdvancedFeaturesPage"));
+const EmergencyContactsPage = lazy(() => import("./pages/EmergencyContactsPage"));
+const WitnessNetworkPage = lazy(() => import("./pages/WitnessNetworkPage"));
+const HardwareIntegrationPage = lazy(() => import("./pages/HardwareIntegrationPage"));
+const TwoFactorSettingsPage = lazy(() => import("./pages/TwoFactorSettingsPage"));
+const RightsTrainingPage = lazy(() => import("./pages/RightsTrainingPage"));
+const LegalDocumentsPage = lazy(() => import("./pages/LegalDocumentsPage"));
+const LegalToolsPage = lazy(() => import("./pages/LegalToolsPage"));
 
 // Register service worker
 if ('serviceWorker' in navigator) {
@@ -75,11 +95,7 @@ function ProtectedRoute({ children }) {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   // Check both user and token for authentication
@@ -96,6 +112,26 @@ function ProtectedRoute({ children }) {
   return <WebSocketProvider>{children}</WebSocketProvider>;
 }
 
+// Suspense wrapper for lazy routes
+function LazyRoute({ children }) {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      {children}
+    </Suspense>
+  );
+}
+
+// Protected + Lazy Route combo
+function ProtectedLazyRoute({ children }) {
+  return (
+    <ProtectedRoute>
+      <Suspense fallback={<PageLoader />}>
+        {children}
+      </Suspense>
+    </ProtectedRoute>
+  );
+}
+
 // App Router with OAuth handling
 function AppRouter() {
   const location = useLocation();
@@ -107,55 +143,61 @@ function AppRouter() {
 
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Public Routes - Critical (not lazy) */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/transparency" element={<TransparencyPage />} />
-      <Route path="/incident-map" element={<IncidentMapPage />} />
-      <Route path="/live/:encounterId" element={<LiveStreamPage />} />
-      <Route path="/shared/:encounterId" element={<SharedEncounterView />} />
-      <Route path="/attorney/accept-invite" element={<AttorneyAcceptInvitePage />} />
       
-      {/* Protected Routes */}
+      {/* Public Routes - Lazy loaded */}
+      <Route path="/transparency" element={<LazyRoute><TransparencyPage /></LazyRoute>} />
+      <Route path="/incident-map" element={<LazyRoute><IncidentMapPage /></LazyRoute>} />
+      <Route path="/live/:encounterId" element={<LazyRoute><LiveStreamPage /></LazyRoute>} />
+      <Route path="/shared/:encounterId" element={<LazyRoute><SharedEncounterView /></LazyRoute>} />
+      <Route path="/attorney/accept-invite" element={<LazyRoute><AttorneyAcceptInvitePage /></LazyRoute>} />
+      <Route path="/accountability" element={<LazyRoute><AccountabilityPortalPage /></LazyRoute>} />
+      <Route path="/custody-portal" element={<LazyRoute><CustodyPortalPage /></LazyRoute>} />
+      <Route path="/community-map" element={<LazyRoute><CommunityMapPage /></LazyRoute>} />
+      
+      {/* Protected Routes - Critical (Dashboard not lazy for fast access) */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/encounter" element={<ProtectedRoute><EncounterPageWithErrorBoundary /></ProtectedRoute>} />
-      <Route path="/encounters/:encounterId" element={<ProtectedRoute><EncounterReportPage /></ProtectedRoute>} />
-      <Route path="/cases" element={<ProtectedRoute><CasesPage /></ProtectedRoute>} />
-      <Route path="/cases/new" element={<ProtectedRoute><NewCasePage /></ProtectedRoute>} />
-      <Route path="/cases/:caseId" element={<ProtectedRoute><CaseDetailPage /></ProtectedRoute>} />
-      <Route path="/evidence" element={<ProtectedRoute><EvidencePage /></ProtectedRoute>} />
-      <Route path="/ai-attorney" element={<ProtectedRoute><AIAttorneyPage /></ProtectedRoute>} />
-      <Route path="/analyze" element={<ProtectedRoute><DocumentAnalysisPage /></ProtectedRoute>} />
-      <Route path="/community" element={<ProtectedRoute><CommunityVaultPage /></ProtectedRoute>} />
-      <Route path="/policy" element={<ProtectedRoute><PolicyDashboardPage /></ProtectedRoute>} />
-      <Route path="/analytics" element={<ProtectedRoute><EncounterAnalytics /></ProtectedRoute>} />
-      <Route path="/sos" element={<ProtectedRoute><SOSPage /></ProtectedRoute>} />
-      <Route path="/attorneys" element={<ProtectedRoute><AttorneysPage /></ProtectedRoute>} />
-      <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-      <Route path="/rights" element={<ProtectedRoute><KnowYourRightsPage /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-      <Route path="/attorney-dashboard" element={<ProtectedRoute><AttorneyDashboardPage /></ProtectedRoute>} />
-      <Route path="/attorney/encounter/:encounterId" element={<ProtectedRoute><AttorneyEncounterWorkspacePage /></ProtectedRoute>} />
-      <Route path="/call/:callId" element={<ProtectedRoute><VideoCallPage /></ProtectedRoute>} />
-      <Route path="/recordings" element={<ProtectedRoute><RecordingsPage /></ProtectedRoute>} />
-      <Route path="/scheduled-reports" element={<ProtectedRoute><ScheduledReportsPage /></ProtectedRoute>} />
-      <Route path="/report-templates" element={<ProtectedRoute><ReportTemplatesPage /></ProtectedRoute>} />
-      <Route path="/notification-preferences" element={<ProtectedRoute><NotificationPreferencesPage /></ProtectedRoute>} />
-      <Route path="/advanced-features" element={<ProtectedRoute><AdvancedFeaturesPage /></ProtectedRoute>} />
-      <Route path="/emergency-contacts" element={<ProtectedRoute><EmergencyContactsPage /></ProtectedRoute>} />
-      <Route path="/witness-network" element={<ProtectedRoute><WitnessNetworkPage /></ProtectedRoute>} />
-      <Route path="/hardware" element={<ProtectedRoute><HardwareIntegrationPage /></ProtectedRoute>} />
-      <Route path="/security/2fa" element={<ProtectedRoute><TwoFactorSettingsPage /></ProtectedRoute>} />
-      <Route path="/training" element={<ProtectedRoute><RightsTrainingPage /></ProtectedRoute>} />
-      <Route path="/legal-documents" element={<ProtectedRoute><LegalDocumentsPage /></ProtectedRoute>} />
-      <Route path="/premium-analytics" element={<ProtectedRoute><PremiumAnalyticsPage /></ProtectedRoute>} />
-      <Route path="/court-grade-ai" element={<ProtectedRoute><CourtGradeAIPage /></ProtectedRoute>} />
-      <Route path="/legal-tools" element={<ProtectedRoute><LegalToolsPage /></ProtectedRoute>} />
-      <Route path="/accountability" element={<AccountabilityPortalPage />} />
-      <Route path="/custody-portal" element={<CustodyPortalPage />} />
-      <Route path="/community-map" element={<CommunityMapPage />} />
-      <Route path="/moderation" element={<ModerationDashboardPage />} />
+      
+      {/* Protected Routes - Heavy pages (Lazy loaded) */}
+      <Route path="/encounter" element={<ProtectedLazyRoute><EncounterPageWithErrorBoundary /></ProtectedLazyRoute>} />
+      <Route path="/encounters/:encounterId" element={<ProtectedLazyRoute><EncounterReportPage /></ProtectedLazyRoute>} />
+      <Route path="/ai-attorney" element={<ProtectedLazyRoute><AIAttorneyPage /></ProtectedLazyRoute>} />
+      <Route path="/analyze" element={<ProtectedLazyRoute><DocumentAnalysisPage /></ProtectedLazyRoute>} />
+      <Route path="/policy" element={<ProtectedLazyRoute><PolicyDashboardPage /></ProtectedLazyRoute>} />
+      <Route path="/analytics" element={<ProtectedLazyRoute><EncounterAnalytics /></ProtectedLazyRoute>} />
+      <Route path="/attorney-dashboard" element={<ProtectedLazyRoute><AttorneyDashboardPage /></ProtectedLazyRoute>} />
+      <Route path="/attorney/encounter/:encounterId" element={<ProtectedLazyRoute><AttorneyEncounterWorkspacePage /></ProtectedLazyRoute>} />
+      <Route path="/premium-analytics" element={<ProtectedLazyRoute><PremiumAnalyticsPage /></ProtectedLazyRoute>} />
+      <Route path="/court-grade-ai" element={<ProtectedLazyRoute><CourtGradeAIPage /></ProtectedLazyRoute>} />
+      <Route path="/moderation" element={<ProtectedLazyRoute><ModerationDashboardPage /></ProtectedLazyRoute>} />
+      <Route path="/call/:callId" element={<ProtectedLazyRoute><VideoCallPage /></ProtectedLazyRoute>} />
+      
+      {/* Protected Routes - Secondary pages (Lazy loaded) */}
+      <Route path="/cases" element={<ProtectedLazyRoute><CasesPage /></ProtectedLazyRoute>} />
+      <Route path="/cases/new" element={<ProtectedLazyRoute><NewCasePage /></ProtectedLazyRoute>} />
+      <Route path="/cases/:caseId" element={<ProtectedLazyRoute><CaseDetailPage /></ProtectedLazyRoute>} />
+      <Route path="/evidence" element={<ProtectedLazyRoute><EvidencePage /></ProtectedLazyRoute>} />
+      <Route path="/community" element={<ProtectedLazyRoute><CommunityVaultPage /></ProtectedLazyRoute>} />
+      <Route path="/sos" element={<ProtectedLazyRoute><SOSPage /></ProtectedLazyRoute>} />
+      <Route path="/attorneys" element={<ProtectedLazyRoute><AttorneysPage /></ProtectedLazyRoute>} />
+      <Route path="/messages" element={<ProtectedLazyRoute><MessagesPage /></ProtectedLazyRoute>} />
+      <Route path="/rights" element={<ProtectedLazyRoute><KnowYourRightsPage /></ProtectedLazyRoute>} />
+      <Route path="/settings" element={<ProtectedLazyRoute><SettingsPage /></ProtectedLazyRoute>} />
+      <Route path="/recordings" element={<ProtectedLazyRoute><RecordingsPage /></ProtectedLazyRoute>} />
+      <Route path="/scheduled-reports" element={<ProtectedLazyRoute><ScheduledReportsPage /></ProtectedLazyRoute>} />
+      <Route path="/report-templates" element={<ProtectedLazyRoute><ReportTemplatesPage /></ProtectedLazyRoute>} />
+      <Route path="/notification-preferences" element={<ProtectedLazyRoute><NotificationPreferencesPage /></ProtectedLazyRoute>} />
+      <Route path="/advanced-features" element={<ProtectedLazyRoute><AdvancedFeaturesPage /></ProtectedLazyRoute>} />
+      <Route path="/emergency-contacts" element={<ProtectedLazyRoute><EmergencyContactsPage /></ProtectedLazyRoute>} />
+      <Route path="/witness-network" element={<ProtectedLazyRoute><WitnessNetworkPage /></ProtectedLazyRoute>} />
+      <Route path="/hardware" element={<ProtectedLazyRoute><HardwareIntegrationPage /></ProtectedLazyRoute>} />
+      <Route path="/security/2fa" element={<ProtectedLazyRoute><TwoFactorSettingsPage /></ProtectedLazyRoute>} />
+      <Route path="/training" element={<ProtectedLazyRoute><RightsTrainingPage /></ProtectedLazyRoute>} />
+      <Route path="/legal-documents" element={<ProtectedLazyRoute><LegalDocumentsPage /></ProtectedLazyRoute>} />
+      <Route path="/legal-tools" element={<ProtectedLazyRoute><LegalToolsPage /></ProtectedLazyRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
