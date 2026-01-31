@@ -60,6 +60,7 @@ from app.routers.dead_mans_switch import router as dead_mans_switch_router
 from app.routers.class_action import router as class_action_router
 from app.routers.witness_network import router as witness_network_router
 from app.routers.panic_gesture import router as panic_gesture_router
+from app.routers.reconstruction_3d import router as reconstruction_3d_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
