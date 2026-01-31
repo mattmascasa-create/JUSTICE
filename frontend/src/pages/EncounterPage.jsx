@@ -6,6 +6,8 @@
  * 
  * Core features:
  * - Video/audio recording with local-first storage
+ * - Pre-recording buffer (captures 30 seconds BEFORE you hit record)
+ * - Browser-native speech recognition (instant transcription)
  * - Real-time transcription and AI analysis
  * - Voice commands for hands-free operation
  * - Live sharing and attorney streaming
@@ -30,7 +32,7 @@ import {
   Shield, AlertTriangle, Mic, Video, 
   StopCircle, Play, Pause, Users, Share2,
   Eye, EyeOff, AlertCircle, Scale, CheckCircle, Volume2, VolumeX,
-  MessageCircle, Copy, Siren, Loader2, Wifi
+  MessageCircle, Copy, Siren, Loader2, Wifi, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,6 +45,8 @@ import RecordingStatus from '../components/RecordingStatus';
 // Services
 import evidenceStorage from '../services/evidenceStorage';
 import uploadManager from '../services/uploadManager';
+import preRecordingBuffer from '../services/preRecordingBuffer';
+import browserSpeechRecognition from '../services/browserSpeechRecognition';
 
 // Extracted constants
 import {
