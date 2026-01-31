@@ -84,12 +84,6 @@ export function useEncounterRecording(options = {}) {
     };
   }, [isRecording, isPaused]);
 
-  // Check browser speech recognition support
-  useEffect(() => {
-    const supported = browserSpeechRecognition.isSupported();
-    setBrowserTranscriptSupported(supported);
-  }, []);
-
   // Upload manager subscription
   useEffect(() => {
     const unsubscribe = uploadManager.subscribe((event, data) => {
