@@ -58,6 +58,8 @@ from app.routers.guidance import router as guidance_router
 from app.routers.admin import router as admin_router
 from app.routers.dead_mans_switch import router as dead_mans_switch_router
 from app.routers.class_action import router as class_action_router
+from app.routers.witness_network import router as witness_network_router
+from app.routers.panic_gesture import router as panic_gesture_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
@@ -155,6 +157,8 @@ app.include_router(guidance_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 app.include_router(dead_mans_switch_router, prefix="/api")
 app.include_router(class_action_router, prefix="/api")
+app.include_router(witness_network_router, prefix="/api")
+app.include_router(panic_gesture_router, prefix="/api")
 
 
 # Root endpoint
