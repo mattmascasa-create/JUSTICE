@@ -502,19 +502,28 @@ class Reconstruction3DService:
         
         # Create point density based on speech activity
         for i, trans in enumerate(transcriptions[:100]):  # Limit to 100 segments
-            # More words = more points in that time region
-            word_count = len(trans.get("text", "").split())
+            # Handle both string IDs and object transcriptions
+            if isinstance(trans, str):
+                # Transcription ID - skip or fetch if needed
+                # For now, generate placeholder point
+                word_count = 3
+                text = trans
+                speaker = "unknown"
+            else:
+                word_count = len(trans.get("text", "").split())
+                text = trans.get("text", "")
+                speaker = trans.get("speaker", "unknown")
+            
             x_base = i * 0.5
             
             for j in range(min(word_count, 10)):
                 points.append([
                     x_base + (j * 0.1),
                     1 + (j * 0.2),
-                    (hash(trans.get("text", "")) % 10) * 0.1
+                    (hash(text) % 10) * 0.1
                 ])
                 
                 # Color based on speaker
-                speaker = trans.get("speaker", "unknown")
                 if speaker == "officer":
                     colors.append([0.2, 0.4, 1.0])  # Blue
                 elif speaker == "citizen":
