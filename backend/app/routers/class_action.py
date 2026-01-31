@@ -165,7 +165,7 @@ Be specific and actionable. Focus on 42 USC 1983 and constitutional violations w
         response = await llm.chat(user_message=prompt)
         return response
         
-    except Exception as e:
+    except Exception:
         # Fallback analysis
         strength = pattern_data.get('strength', {}).get('strength', 'unknown')
         users = pattern_data.get('users_affected', 0)
