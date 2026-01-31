@@ -103,9 +103,9 @@ export function useEncounterAnalysis({
   }, [encounter, fullTranscript, enabled, encounterAPI]);
 
   /**
-   * Perform real-time coaching based on transcription
+   * Perform real-time coaching based on transcription (NON-BLOCKING)
    */
-  const performCoaching = useCallback(async (text) => {
+  const performCoaching = useCallback((text) => {
     if (!encounter || !text || text.length < 10 || !coachingEnabled) return;
     
     // Throttle coaching to every 3 seconds
@@ -113,41 +113,43 @@ export function useEncounterAnalysis({
     if (now - lastCoachingTime < 3000) return;
     setLastCoachingTime(now);
     
-    try {
-      const response = await encounterCoachAPI.analyze(
-        text,
-        encounterType,
-        encounter.encounter_id
-      );
-      
-      if (response.data.coaching?.length > 0) {
-        setCoachingMessages(prev => {
-          const newMessages = response.data.coaching.map(msg => ({
-            ...msg,
-            id: `${msg.coaching_id}_${Date.now()}`,
-            isNew: true
-          }));
+    // Fire and forget - don't block UI
+    encounterCoachAPI.analyze(text, encounterType, encounter.encounter_id)
+      .then(response => {
+        if (response.data?.coaching?.length > 0) {
+          setCoachingMessages(prev => {
+            const newMessages = response.data.coaching.map(msg => ({
+              ...msg,
+              id: `${msg.coaching_id}_${Date.now()}`,
+              isNew: true
+            }));
+            
+            // Keep only last 10 messages
+            const combined = [...newMessages, ...prev].slice(0, 10);
+            
+            // Announce urgent messages
+            const urgent = newMessages.find(m => m.tone === 'urgent');
+            if (urgent) {
+              toast.warning(urgent.message, { 
+                duration: 8000,
+                icon: '🛡️'
+              });
+            }
+            
+            return combined;
+          });
           
-          // Keep only last 10 messages
-          const combined = [...newMessages, ...prev].slice(0, 10);
-          
-          // Announce urgent messages
-          const urgent = newMessages.find(m => m.tone === 'urgent');
-          if (urgent) {
-            toast.warning(urgent.message, { 
-              duration: 8000,
-              icon: '🛡️'
-            });
-          }
-          
-          return combined;
-        });
-        
-        // Clear "new" status after animation
-        setTimeout(() => {
-          setCoachingMessages(prev => 
-            prev.map(m => ({ ...m, isNew: false }))
-          );
+          // Clear "new" status after animation
+          setTimeout(() => {
+            setCoachingMessages(prev => 
+              prev.map(m => ({ ...m, isNew: false }))
+            );
+          }, 2000);
+        }
+      })
+      .catch(error => {
+        console.error('Coaching error:', error);
+      });
         }, 2000);
       }
     } catch (error) {
