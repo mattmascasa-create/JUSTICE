@@ -445,8 +445,8 @@ export default function EncounterPage() {
           // Fire and forget - don't await
           evidenceStorage.saveChunk(encounterId, event.data, type, chunkIndex)
             .then(chunkId => {
-              setChunksSaved(prev => prev + 1);
-              setVideoChunkCount(prev => prev + 1);
+              incrementChunksSaved(event.data.size);
+              incrementVideoChunks();
               uploadManager.queueUpload(encounterId, chunkId, type, 'normal');
             })
             .catch(err => console.error('Failed to save chunk:', err));
