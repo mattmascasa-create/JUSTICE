@@ -7,7 +7,7 @@ API endpoints for creating and viewing 3D reconstructions of encounters.
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
-from app.db.database import get_database
+from app.db.database import db
 from app.core.security import get_current_user
 from app.services.reconstruction_3d import get_reconstruction_service
 
@@ -29,8 +29,7 @@ class ReconstructionResponse(BaseModel):
 @router.post("/create", response_model=ReconstructionResponse)
 async def create_reconstruction(
     request: CreateReconstructionRequest,
-    current_user: dict = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Create a new 3D reconstruction from an encounter.
@@ -60,8 +59,7 @@ async def create_reconstruction(
 @router.get("/{reconstruction_id}")
 async def get_reconstruction(
     reconstruction_id: str,
-    current_user: dict = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: dict = Depends(get_current_user)
 ):
     """Get a specific 3D reconstruction with full scene data."""
     service = get_reconstruction_service(db)
@@ -82,8 +80,7 @@ async def get_reconstruction(
 @router.get("/encounter/{encounter_id}")
 async def get_reconstruction_by_encounter(
     encounter_id: str,
-    current_user: dict = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: dict = Depends(get_current_user)
 ):
     """Get reconstruction for a specific encounter (creates if doesn't exist)."""
     service = get_reconstruction_service(db)
@@ -119,8 +116,7 @@ async def get_reconstruction_by_encounter(
 @router.get("/")
 async def list_reconstructions(
     limit: int = 20,
-    current_user: dict = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: dict = Depends(get_current_user)
 ):
     """List user's 3D reconstructions."""
     service = get_reconstruction_service(db)
@@ -139,8 +135,7 @@ async def list_reconstructions(
 @router.delete("/{reconstruction_id}")
 async def delete_reconstruction(
     reconstruction_id: str,
-    current_user: dict = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: dict = Depends(get_current_user)
 ):
     """Delete a 3D reconstruction."""
     service = get_reconstruction_service(db)
@@ -161,8 +156,7 @@ async def delete_reconstruction(
 @router.get("/preview/{encounter_id}")
 async def get_reconstruction_preview(
     encounter_id: str,
-    current_user: dict = Depends(get_current_user),
-    db = Depends(get_database)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Get a lightweight preview of what the reconstruction would look like.
