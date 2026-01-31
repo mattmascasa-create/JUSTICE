@@ -24,6 +24,7 @@ export function useGeolocation(options = {}) {
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser');
       setLoading(false);
