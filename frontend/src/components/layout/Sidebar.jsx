@@ -41,7 +41,8 @@ import {
   ShieldAlert,
   Timer,
   Mic,
-  Vibrate
+  Vibrate,
+  Box
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 import ConnectionIndicator from '../ConnectionIndicator';
