@@ -139,6 +139,16 @@ export default function EncounterPage() {
   const [chunksUploaded, setChunksUploaded] = useState(0);
   const [videoChunkCount, setVideoChunkCount] = useState(0);
   
+  // ===== Pre-Recording Buffer State =====
+  const [preBufferActive, setPreBufferActive] = useState(false);
+  const [preBufferStats, setPreBufferStats] = useState(null);
+  const [preBufferIncluded, setPreBufferIncluded] = useState(false);
+  
+  // ===== Browser Speech Recognition State =====
+  const [useBrowserTranscription, setUseBrowserTranscription] = useState(true);
+  const [browserTranscriptSupported, setBrowserTranscriptSupported] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
+  
   // ===== UI State =====
   const [currentRightsIndex, setCurrentRightsIndex] = useState(0);
   const [showViolationsPanel, setShowViolationsPanel] = useState(false);
