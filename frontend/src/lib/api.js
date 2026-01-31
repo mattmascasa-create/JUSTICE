@@ -1136,4 +1136,29 @@ export const corroborationAPI = {
   getSummary: (encounterId) => api.get(`/corroboration/encounter/${encounterId}/summary`)
 };
 
+// Admin API
+export const adminAPI = {
+  // Dashboard
+  getDashboard: () => api.get('/admin/dashboard'),
+  getAnalytics: (days = 30) => api.get('/admin/analytics', { params: { days } }),
+  
+  // User Management
+  getUsers: (params) => api.get('/admin/users', { params }),
+  updateUser: (userId, data) => api.put(`/admin/users/${userId}`, data),
+  
+  // Ticket Management (Admin)
+  getTickets: (params) => api.get('/admin/tickets', { params }),
+  updateTicket: (ticketId, data) => api.put(`/admin/tickets/${ticketId}`, data),
+  respondToTicket: (ticketId, response) => api.post(`/admin/tickets/${ticketId}/respond`, response),
+  getAiSuggestion: (ticketId) => api.post(`/admin/tickets/${ticketId}/ai-suggest`),
+  
+  // Ticket Management (User)
+  createTicket: (data) => api.post('/admin/tickets', data),
+  getMyTickets: (status) => api.get('/admin/tickets/my', { params: status ? { status } : {} }),
+  getTicket: (ticketId) => api.get(`/admin/tickets/${ticketId}`),
+  
+  // Admin Setup
+  createFirstAdmin: (email) => api.post('/admin/setup/create-admin', null, { params: { email } })
+};
+
 export default api;

@@ -55,6 +55,7 @@ from app.routers.witness_corroboration import router as witness_corroboration_ro
 from app.routers.community_map import router as community_map_router
 from app.routers.blockchain import router as blockchain_router
 from app.routers.guidance import router as guidance_router
+from app.routers.admin import router as admin_router
 
 # Import config and services
 from app.core.config import IPFS_ENABLED, S3_ENABLED, UPLOADS_DIR
@@ -149,6 +150,7 @@ app.include_router(witness_corroboration_router, prefix="/api")
 app.include_router(community_map_router, prefix="/api")
 app.include_router(blockchain_router, prefix="/api")
 app.include_router(guidance_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 
 # Root endpoint
