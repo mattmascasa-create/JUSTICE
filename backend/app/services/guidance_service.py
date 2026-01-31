@@ -26,7 +26,7 @@ def get_user_guidance(db, user_id: str, current_page: Optional[str] = None) -> d
     """
     Analyze user state and return contextual guidance suggestions.
     """
-    user = db.users.find_one({"_id": ObjectId(user_id)}, {"_id": 0, "password": 0})
+    user = db.users.find_one({"user_id": user_id}, {"_id": 0, "password": 0})
     if not user:
         return {"suggestions": [], "completion_score": 0}
     
