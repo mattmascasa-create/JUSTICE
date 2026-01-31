@@ -39,7 +39,10 @@ export function useEncounterRecording(options = {}) {
   
   // Browser speech recognition
   const [interimTranscript, setInterimTranscript] = useState('');
-  const [browserTranscriptSupported, setBrowserTranscriptSupported] = useState(false);
+  
+  // Check browser speech recognition support (computed once, not reactive)
+  const browserTranscriptSupported = typeof window !== 'undefined' && 
+    browserSpeechRecognition.isSupported();
 
   // Refs
   const mediaRecorderRef = useRef(null);
