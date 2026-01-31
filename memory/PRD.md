@@ -1734,11 +1734,16 @@ Toggle between:
 
 ### New Backend Files
 - `/backend/app/routers/admin.py` - Admin router with 15+ endpoints
+- `/backend/app/routers/dead_mans_switch.py` - Dead Man's Switch safety feature
+- `/backend/app/routers/class_action.py` - Class Action Finder AI analysis
 
 ### New Frontend Files
 - `/frontend/src/pages/AdminDashboard.jsx` - Admin control panel
 - `/frontend/src/pages/SupportPage.jsx` - Support ticket page
+- `/frontend/src/pages/DeadMansSwitchPage.jsx` - Dead Man's Switch configuration
+- `/frontend/src/pages/ClassActionPage.jsx` - Class Action Finder
 - `/frontend/src/pages/encounter/EncounterTypeSelector.jsx` - Universal encounter selector
+- `/frontend/src/components/VoiceControlPanel.jsx` - Hands-free voice control
 - `/frontend/src/hooks/useRecordingStats.js` - Optimized stats hook
 - `/frontend/src/hooks/useTranscriptionWorker.js` - Web Worker for transcription
 - `/frontend/src/workers/transcriptionWorker.js` - Transcription processing worker
@@ -1746,9 +1751,116 @@ Toggle between:
 ### Modified Frontend Files
 - `/frontend/src/pages/encounter/EncounterSetupScreen.jsx` - Added Performance Mode, Browser Transcription
 - `/frontend/src/pages/EncounterPage.jsx` - Dynamic rights reminders
-- `/frontend/src/components/layout/Sidebar.jsx` - Admin Dashboard, Support links
+- `/frontend/src/components/layout/Sidebar.jsx` - Admin Dashboard, Support, Dead Man's Switch, Class Action links
 - `/frontend/src/lib/api.js` - Admin API endpoints
-- `/frontend/src/App.js` - Admin and Support routes
+- `/frontend/src/App.js` - Admin, Support, Dead Man's Switch, Class Action routes
+
+---
+
+### Three Safety-Critical Features - IMPLEMENTED ✅ (Jan 31, 2026)
+
+#### 1. Dead Man's Switch ✅
+**Page:** `/pages/DeadMansSwitchPage.jsx`
+**Route:** `/dead-mans-switch`
+**Backend:** `/backend/app/routers/dead_mans_switch.py`
+
+Safety-critical auto-publish feature:
+
+**Configuration:**
+- Check-in interval (5-60 minutes)
+- Grace period before trigger (1-15 minutes)
+- Auto-actions: Notify contacts, publish to cloud, alert attorney
+- Secret disable phrase for duress situations
+
+**Trusted Contacts:**
+- Add/remove emergency contacts
+- Email and/or SMS notification methods
+- Relationship types (emergency contact, attorney, family, friend)
+
+**Session Management:**
+- Start session during encounters
+- Visual countdown timer
+- Check-in button resets timer
+- Auto-trigger sends alerts if user doesn't check in
+
+**API Endpoints:**
+- `GET /api/dead-mans-switch/config` - Get configuration
+- `PUT /api/dead-mans-switch/config` - Update configuration
+- `GET /api/dead-mans-switch/contacts` - List trusted contacts
+- `POST /api/dead-mans-switch/contacts` - Add contact
+- `DELETE /api/dead-mans-switch/contacts/{id}` - Remove contact
+- `POST /api/dead-mans-switch/start-session` - Start safety session
+- `POST /api/dead-mans-switch/end-session` - End session safely
+- `POST /api/dead-mans-switch/check-in` - User check-in
+- `GET /api/dead-mans-switch/status` - Session status
+- `POST /api/dead-mans-switch/trigger/{encounter_id}` - Manual emergency trigger
+
+---
+
+#### 2. Class Action Finder ✅
+**Page:** `/pages/ClassActionPage.jsx`
+**Route:** `/class-action`
+**Backend:** `/backend/app/routers/class_action.py`
+
+AI-powered pattern matching for collective legal action:
+
+**Features:**
+- Analyzes user's violations against database
+- Finds similar violations from other users
+- Calculates pattern strength (very_strong, strong, moderate, weak, insufficient)
+- AI-generated legal analysis (using GPT via Emergent LLM Key)
+- Express interest in class action
+- Connect affected users for collective action
+
+**Pattern Strength Factors:**
+- Users affected (most important)
+- Total similar violations
+- Average severity
+- Departments involved
+
+**Tabs:**
+1. **Analyze My Case** - Run pattern analysis
+2. **Active Patterns** - Browse viable class actions
+3. **My Activity** - User's analyses and interests
+
+**API Endpoints:**
+- `GET /api/class-action/stats` - Platform statistics
+- `POST /api/class-action/analyze` - Run pattern analysis
+- `GET /api/class-action/patterns` - Active patterns
+- `GET /api/class-action/my-patterns` - User's patterns
+- `POST /api/class-action/express-interest` - Express interest
+- `GET /api/class-action/pattern/{id}` - Pattern details
+
+---
+
+#### 3. Voice-Only Mode ✅
+**Component:** `/components/VoiceControlPanel.jsx`
+**Backend:** `/backend/app/routers/voice_commands.py`
+
+Hands-free app control for dangerous situations:
+
+**Voice Commands:**
+- **Recording:** "start recording", "stop recording", "pause", "resume"
+- **Emergency:** "emergency", "SOS", "help me", "send alert"
+- **Legal:** "call my lawyer", "read my rights", "stream to attorney"
+- **Evidence:** "mark violation", "take photo", "save evidence"
+- **Navigation:** "go home", "open cases", "settings"
+- **Modes:** "stealth mode", "exit stealth"
+- **Status:** "status", "battery level"
+
+**Features:**
+- Web Speech API for browser-native recognition
+- Audio feedback via speech synthesis
+- Visual command status indicators
+- Command history
+- Multi-language support (14 languages)
+- Quick command buttons for common actions
+
+**API Endpoints:**
+- `POST /api/voice-commands/process` - Process voice command
+- `GET /api/voice-commands/commands` - List available commands
+- `GET /api/voice-commands/rights-script/{type}` - Rights script for TTS
+- `GET /api/voice-commands/supported-languages` - Supported languages
 
 ---
 
