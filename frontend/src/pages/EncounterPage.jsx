@@ -1240,11 +1240,19 @@ export default function EncounterPage() {
         };
       }
 
-      // Record in 15-second chunks for video (larger chunks for better quality)
-      mediaRecorder.start(15000);
+      // Record in 5-second chunks for smoother experience and less data loss per error
+      const videoChunkInterval = recordingQuality === 'performance' ? 5000 : 5000;
+      mediaRecorder.start(videoChunkInterval);
       setIsRecording(true);
       setDuration(0);
       setVideoChunkCount(0);
+      setChunksSaved(0);
+      setChunksUploaded(0);
+      
+      toast.success('🔴 Recording Started - Evidence is being saved locally', {
+        description: 'Your evidence is protected even if connection is lost',
+        duration: 5000
+      });
       
       // Start screen recording if enabled and supported
       if (enableScreenRecording && screenRecordingSupported) {
