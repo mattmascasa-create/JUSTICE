@@ -73,19 +73,6 @@ export function VoiceControlPanel({
   const isSupported = typeof window !== 'undefined' && 
     !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  // Load available commands
-  const loadCommands = useCallback(async () => {
-    try {
-      const res = await voiceCommandsAPI.getCommands();
-      setAvailableCommands(Object.entries(res.data.commands || {}).map(([key, value]) => ({
-        key,
-        ...value
-      })));
-    } catch (error) {
-      console.error('Failed to load commands:', error);
-    }
-  }, []);
-
   // Initialize speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
