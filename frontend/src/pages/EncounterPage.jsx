@@ -212,6 +212,14 @@ export default function EncounterPage() {
   const [voiceCommandsEnabled, setVoiceCommandsEnabled] = useState(true);
   const [manualViolationMarks, setManualViolationMarks] = useState([]);
 
+  // ===== Dynamic Rights Reminders based on Encounter Type =====
+  const rightsReminders = useMemo(() => {
+    // Get rights specific to the encounter type category
+    const typeSpecificRights = getRightsReminders(encounterType);
+    // Fall back to default if not found
+    return typeSpecificRights.length > 0 ? typeSpecificRights : defaultRightsReminders;
+  }, [encounterType]);
+
   // ===== Duration Timer =====
   useEffect(() => {
     if (isRecording && !isPaused) {
