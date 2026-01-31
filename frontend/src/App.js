@@ -78,6 +78,8 @@ const TwoFactorSettingsPage = lazy(() => import("./pages/TwoFactorSettingsPage")
 const RightsTrainingPage = lazy(() => import("./pages/RightsTrainingPage"));
 const LegalDocumentsPage = lazy(() => import("./pages/LegalDocumentsPage"));
 const LegalToolsPage = lazy(() => import("./pages/LegalToolsPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
 
 // Register service worker
 if ('serviceWorker' in navigator) {
@@ -204,6 +206,8 @@ function AppRouter() {
       <Route path="/training" element={<ProtectedLazyRoute><RightsTrainingPage /></ProtectedLazyRoute>} />
       <Route path="/legal-documents" element={<ProtectedLazyRoute><LegalDocumentsPage /></ProtectedLazyRoute>} />
       <Route path="/legal-tools" element={<ProtectedLazyRoute><LegalToolsPage /></ProtectedLazyRoute>} />
+      <Route path="/admin" element={<ProtectedLazyRoute><AdminDashboard /></ProtectedLazyRoute>} />
+      <Route path="/support" element={<ProtectedLazyRoute><SupportPage /></ProtectedLazyRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
