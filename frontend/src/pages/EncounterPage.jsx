@@ -41,6 +41,7 @@ import RightsCoachPanel from '../components/RightsCoachPanel';
 import DeadMansSwitchPanel from '../components/DeadMansSwitchPanel';
 import { QuickOfficerLookup } from '../components/QuickOfficerLookup';
 import RecordingStatus from '../components/RecordingStatus';
+import VoiceControlPanel from '../components/VoiceControlPanel';
 
 // Services
 import evidenceStorage from '../services/evidenceStorage';
