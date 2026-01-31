@@ -247,18 +247,7 @@ function Scene3D({ sceneData, onMarkerClick, currentTime = 0 }) {
       <Ground encounterType={sceneData?.type} />
       
       {/* Grid */}
-      <Grid
-        args={[100, 100]}
-        cellSize={1}
-        cellThickness={0.5}
-        cellColor="#444444"
-        sectionSize={5}
-        sectionThickness={1}
-        sectionColor="#666666"
-        fadeDistance={50}
-        fadeStrength={1}
-        position={[0, 0.01, 0]}
-      />
+      <gridHelper args={[100, 50, "#444444", "#222222"]} position={[0, 0.01, 0]} />
       
       {/* Point Cloud */}
       {point_cloud && point_cloud.points?.length > 0 && (
