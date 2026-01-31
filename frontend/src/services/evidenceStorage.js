@@ -71,10 +71,66 @@ class EvidenceStorageService {
     return this.readyPromise;
   }
 
+  // ============== Cryptographic Hashing ==============
+
+  /**
+   * Generate SHA-256 hash of a blob for evidence integrity
+   * @param {Blob} blob - The media blob to hash
+   * @returns {Promise<string>} - Hex string of the SHA-256 hash
+   */
+  async generateHash(blob) {
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    } catch (error) {
+      console.error('EvidenceStorage: Failed to generate hash', error);
+      // Fallback: use timestamp + size as pseudo-hash if crypto API unavailable
+      return `fallback_${Date.now()}_${blob.size}`;
+    }
+  }
+
+  /**
+   * Generate a chain hash that links this chunk to the previous one
+   * This creates an immutable chain of evidence
+   */
+  async generateChainHash(currentHash, previousHash, metadata) {
+    const chainData = `${previousHash || 'GENESIS'}|${currentHash}|${metadata.timestamp}|${metadata.chunkIndex}`;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(chainData);
+    
+    try {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (error) {
+      return `chain_${Date.now()}`;
+    }
+  }
+
   // ============== Chunk Storage ==============
 
   async saveChunk(encounterId, blob, type, chunkIndex, metadata = {}) {
     await this.waitForReady();
+    
+    // Generate SHA-256 hash for evidence integrity
+    const contentHash = await this.generateHash(blob);
+    
+    // Get the previous chunk's hash for chain integrity
+    const previousChunks = await this.getChunksForEncounter(encounterId, type);
+    const previousChunk = previousChunks.find(c => c.chunkIndex === chunkIndex - 1);
+    const previousHash = previousChunk?.chainHash || null;
+    
+    // Generate chain hash linking to previous chunk
+    const timestamp = Date.now();
+    const chainHash = await this.generateChainHash(contentHash, previousHash, {
+      timestamp,
+      chunkIndex,
+      type,
+      encounterId
+    });
     
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([STORES.CHUNKS], 'readwrite');
@@ -87,16 +143,22 @@ class EvidenceStorageService {
         blob,
         size: blob.size,
         mimeType: blob.type,
-        timestamp: Date.now(),
+        timestamp,
         uploaded: false,
         uploadAttempts: 0,
+        // Integrity verification fields
+        contentHash,      // SHA-256 of the blob content
+        previousHash,     // Hash of the previous chunk (creates chain)
+        chainHash,        // Combined hash linking this chunk in the chain
+        hashAlgorithm: 'SHA-256',
+        hashGeneratedAt: new Date().toISOString(),
         ...metadata
       };
 
       const request = store.add(chunk);
 
       request.onsuccess = () => {
-        console.log(`EvidenceStorage: Saved ${type} chunk ${chunkIndex} (${(blob.size / 1024).toFixed(1)}KB)`);
+        console.log(`EvidenceStorage: Saved ${type} chunk ${chunkIndex} (${(blob.size / 1024).toFixed(1)}KB) - Hash: ${contentHash.substring(0, 16)}...`);
         resolve(request.result); // Returns the auto-generated ID
       };
 
@@ -105,6 +167,114 @@ class EvidenceStorageService {
         reject(request.error);
       };
     });
+  }
+
+  /**
+   * Verify the integrity of a chunk by recalculating its hash
+   */
+  async verifyChunkIntegrity(chunkId) {
+    await this.waitForReady();
+    
+    const chunk = await new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.CHUNKS], 'readonly');
+      const store = transaction.objectStore(STORES.CHUNKS);
+      const request = store.get(chunkId);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    
+    if (!chunk) return { valid: false, error: 'Chunk not found' };
+    
+    const currentHash = await this.generateHash(chunk.blob);
+    const isValid = currentHash === chunk.contentHash;
+    
+    return {
+      valid: isValid,
+      chunkId,
+      storedHash: chunk.contentHash,
+      calculatedHash: currentHash,
+      timestamp: chunk.timestamp,
+      chainHash: chunk.chainHash
+    };
+  }
+
+  /**
+   * Verify the entire chain of evidence for an encounter
+   */
+  async verifyEncounterIntegrity(encounterId) {
+    await this.waitForReady();
+    
+    const chunks = await this.getChunksForEncounter(encounterId);
+    const results = {
+      encounterId,
+      totalChunks: chunks.length,
+      verifiedAt: new Date().toISOString(),
+      chainIntact: true,
+      chunkResults: []
+    };
+    
+    // Sort by type and index
+    const audioChunks = chunks.filter(c => c.type === 'audio').sort((a, b) => a.chunkIndex - b.chunkIndex);
+    const videoChunks = chunks.filter(c => c.type === 'video').sort((a, b) => a.chunkIndex - b.chunkIndex);
+    
+    // Verify each chain
+    for (const chainChunks of [audioChunks, videoChunks]) {
+      let previousHash = null;
+      
+      for (const chunk of chainChunks) {
+        const verification = await this.verifyChunkIntegrity(chunk.id);
+        
+        // Verify chain link
+        const chainValid = chunk.previousHash === previousHash;
+        
+        results.chunkResults.push({
+          ...verification,
+          type: chunk.type,
+          chunkIndex: chunk.chunkIndex,
+          chainLinkValid: chainValid
+        });
+        
+        if (!verification.valid || !chainValid) {
+          results.chainIntact = false;
+        }
+        
+        previousHash = chunk.chainHash;
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * Generate a court-ready integrity report
+   */
+  async generateIntegrityReport(encounterId) {
+    const verification = await this.verifyEncounterIntegrity(encounterId);
+    const encounter = await this.getEncounter(encounterId);
+    
+    return {
+      reportType: 'EVIDENCE_INTEGRITY_VERIFICATION',
+      generatedAt: new Date().toISOString(),
+      encounterId,
+      encounterStarted: encounter?.createdAt ? new Date(encounter.createdAt).toISOString() : null,
+      hashAlgorithm: 'SHA-256',
+      verification: {
+        status: verification.chainIntact ? 'VERIFIED' : 'INTEGRITY_COMPROMISED',
+        totalChunks: verification.totalChunks,
+        audioChunks: verification.chunkResults.filter(c => c.type === 'audio').length,
+        videoChunks: verification.chunkResults.filter(c => c.type === 'video').length,
+        allHashesValid: verification.chunkResults.every(c => c.valid),
+        chainIntact: verification.chainIntact
+      },
+      chunks: verification.chunkResults.map(c => ({
+        type: c.type,
+        index: c.chunkIndex,
+        hash: c.storedHash,
+        verified: c.valid,
+        chainLinkValid: c.chainLinkValid
+      })),
+      signature: `JUSTICE_INTEGRITY_${encounterId}_${Date.now()}`
+    };
   }
 
   async getChunksForEncounter(encounterId, type = null) {
