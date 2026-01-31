@@ -6,8 +6,8 @@
  */
 
 /* eslint-disable react/no-unknown-property */
-import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { useRef, useState, useMemo, Suspense, Component } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { 
   OrbitControls, 
   Html,
@@ -15,6 +15,42 @@ import {
   Stars
 } from '@react-three/drei';
 import * as THREE from 'three';
+
+// Error Boundary for Three.js components
+class ThreeErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Three.js Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-full bg-gray-900 text-white p-4">
+          <div className="text-center">
+            <p className="text-lg mb-2">3D Viewer Error</p>
+            <p className="text-sm text-gray-400">Unable to render 3D scene</p>
+            <button 
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="mt-4 px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Animated floating marker component
 function FloatingMarker({ position, color, data, onClick, type = 'evidence' }) {
@@ -175,19 +211,6 @@ function Ground({ size = 100, encounterType = 'traffic_stop' }) {
   );
 }
 
-// Camera controller with animation
-function CameraController({ target, animate }) {
-  const { camera } = useThree();
-  
-  useEffect(() => {
-    if (target) {
-      camera.lookAt(target[0], target[1], target[2]);
-    }
-  }, [camera, target]);
-  
-  return null;
-}
-
 // Timeline indicator
 function TimelineIndicator({ currentTime, duration, position }) {
   const progress = duration > 0 ? currentTime / duration : 0;
@@ -289,13 +312,14 @@ function Scene3D({ sceneData, onMarkerClick, currentTime = 0 }) {
         />
       )}
       
-      {/* Controls */}
+      {/* Controls - wrapped in try-catch via error boundary */}
       <OrbitControls
-        enableDamping
+        enableDamping={true}
         dampingFactor={0.05}
         minDistance={5}
         maxDistance={100}
         maxPolarAngle={Math.PI / 2.1}
+        makeDefault
       />
     </>
   );
@@ -322,26 +346,31 @@ export default function Scene3DViewer({
   style = {}
 }) {
   return (
-    <div className={`w-full h-full ${className}`} style={{ minHeight: '400px', ...style }}>
-      <Canvas
-        shadows
-        camera={{ 
-          position: [0, 15, 20], 
-          fov: 60,
-          near: 0.1,
-          far: 1000
-        }}
-        gl={{ antialias: true }}
-      >
-        <Suspense fallback={<LoadingFallback />}>
-          <Scene3D 
-            sceneData={sceneData} 
-            onMarkerClick={onMarkerClick}
-            currentTime={currentTime}
-          />
-        </Suspense>
-      </Canvas>
-    </div>
+    <ThreeErrorBoundary>
+      <div className={`w-full h-full ${className}`} style={{ minHeight: '400px', ...style }}>
+        <Canvas
+          shadows
+          camera={{ 
+            position: [0, 15, 20], 
+            fov: 60,
+            near: 0.1,
+            far: 1000
+          }}
+          gl={{ antialias: true }}
+          onCreated={({ gl }) => {
+            gl.setClearColor('#1a1a2e');
+          }}
+        >
+          <Suspense fallback={<LoadingFallback />}>
+            <Scene3D 
+              sceneData={sceneData} 
+              onMarkerClick={onMarkerClick}
+              currentTime={currentTime}
+            />
+          </Suspense>
+        </Canvas>
+      </div>
+    </ThreeErrorBoundary>
   );
 }
 
