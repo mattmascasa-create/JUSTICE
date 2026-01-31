@@ -1855,9 +1855,18 @@ Created reusable components extracted from EncounterPage:
 - `/frontend/src/components/SOSPanel.jsx` - Emergency SOS functionality (~140 lines)
 - `/frontend/src/components/SharingPanel.jsx` - Live sharing & attorney streaming (~200 lines)
 - `/frontend/src/components/RecordingControls.jsx` - Recording buttons & stats display (~120 lines)
+- `/frontend/src/components/EncounterRecordingView.jsx` - Active recording view (~300 lines)
 
-**Status:** Components created and ready for integration. EncounterPage still needs to import and use these components to achieve the target of <500 lines. Current: ~1200 lines.
+**Status:** Components created. useRecordingStats hook successfully integrated into EncounterPage. Components are ready for final integration to reduce EncounterPage from ~1200 to <500 lines.
 
+#### Test Results (Jan 31, 2026)
+**Test Suite:** 17/17 tests pass
+- `useRecordingStats.test.js` - 9 tests (batched state updates)
+- `VoiceControlPanel.test.js` - 4 tests (component interface)
+- `useTranscriptionWorker.test.js` - 2 tests (hook interface)
+- `usePreRecordingBuffer.test.js` - 2 tests (hook interface)
+
+**Run Tests:** `cd /app/frontend && CI=true yarn test --watchAll=false`
 
 
 ### Performance Mode & Browser Transcription - IMPLEMENTED ✅ (Jan 31, 2026)
