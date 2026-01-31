@@ -19,13 +19,17 @@ import {
   MapPin, Clock, FileText, Send, Users, Radio, 
   StopCircle, Play, Pause, ChevronRight, Phone, Share2,
   Eye, EyeOff, AlertCircle, Scale, CheckCircle, Camera, Volume2, VolumeX,
-  MessageCircle, Copy, ExternalLink, Siren, Search, Loader2, Wifi, WifiOff
+  MessageCircle, Copy, ExternalLink, Siren, Search, Loader2, Wifi, WifiOff,
+  HardDrive, Cloud, Settings2
 } from 'lucide-react';
 import { sosAPI } from '../lib/api';
 import { toast } from 'sonner';
 import RightsCoachPanel from '../components/RightsCoachPanel';
 import DeadMansSwitchPanel from '../components/DeadMansSwitchPanel';
 import { QuickOfficerLookup } from '../components/QuickOfficerLookup';
+import RecordingStatus from '../components/RecordingStatus';
+import evidenceStorage from '../services/evidenceStorage';
+import uploadManager from '../services/uploadManager';
 
 // Error Boundary to catch runtime errors
 class EncounterErrorBoundary extends Component {
