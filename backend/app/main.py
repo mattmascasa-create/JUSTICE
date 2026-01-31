@@ -153,6 +153,8 @@ app.include_router(community_map_router, prefix="/api")
 app.include_router(blockchain_router, prefix="/api")
 app.include_router(guidance_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
+app.include_router(dead_mans_switch_router, prefix="/api")
+app.include_router(class_action_router, prefix="/api")
 
 
 # Root endpoint
