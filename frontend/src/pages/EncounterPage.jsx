@@ -264,12 +264,12 @@ export default function EncounterPage() {
 
   // ===== Rights Reminder Rotation =====
   useEffect(() => {
-    if (!isRecording) return;
+    if (!isRecording || rightsReminders.length === 0) return;
     const interval = setInterval(() => {
       setCurrentRightsIndex(prev => (prev + 1) % rightsReminders.length);
     }, 15000);
     return () => clearInterval(interval);
-  }, [isRecording]);
+  }, [isRecording, rightsReminders.length]);
 
   // ===== Upload Manager Subscription =====
   useEffect(() => {
