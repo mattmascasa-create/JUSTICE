@@ -28,7 +28,7 @@ async def get_suggestions(
     - Category (setup, safety, legal, evidence, action)
     - Estimated time to complete
     """
-    user_id = str(current_user["_id"])
+    user_id = current_user["user_id"]
     guidance = get_user_guidance(db, user_id, current_page)
     
     return {
