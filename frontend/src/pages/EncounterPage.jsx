@@ -1015,6 +1015,15 @@ export default function EncounterPage() {
       const actualMimeType = mediaRecorder.mimeType || (enableVideo ? 'video/webm' : 'audio/webm');
       console.log('MediaRecorder using MIME type:', actualMimeType);
 
+      // Save encounter metadata to IndexedDB for crash recovery
+      await evidenceStorage.saveEncounter(response.data.encounter_id, {
+        type: encounterType,
+        location,
+        quality: recordingQuality,
+        enableVideo,
+        startedAt: Date.now()
+      });
+
       // Also create a separate audio recorder for transcription (when video is enabled)
       if (enableVideo) {
         try {
@@ -1048,41 +1057,63 @@ export default function EncounterPage() {
                   const blobType = audioRecorder.mimeType || 'audio/webm';
                   const blob = new Blob(audioChunksRef.current, { type: blobType });
                   audioChunksRef.current = [];
+                  const currentChunkIndex = chunkIndexRef.current++;
                   
-                  console.log('Transcription: Uploading audio blob:', blob.size, 'bytes, type:', blobType);
+                  console.log('Transcription: Saving audio blob locally first:', blob.size, 'bytes');
                   
-                  // Check if offline - queue for later
-                  if (!navigator.onLine) {
-                    setPendingUploads(prev => [...prev, {
-                      type: 'audio',
-                      encounterId: response.data.encounter_id,
-                      blob: blob,
-                      chunkIndex: chunkIndexRef.current++,
-                      timestamp: Date.now()
-                    }]);
-                    console.log('Offline: Audio chunk queued for sync');
-                    return;
-                  }
-                  
+                  // LOCAL-FIRST: Save to IndexedDB immediately
                   try {
-                    const result = await encounterAPI.uploadAudio(
+                    const chunkId = await evidenceStorage.saveChunk(
                       response.data.encounter_id,
                       blob,
-                      chunkIndexRef.current++
+                      'audio',
+                      currentChunkIndex,
+                      { forTranscription: true }
                     );
+                    setChunksSaved(prev => prev + 1);
                     
-                    console.log('Transcription result:', result.data);
-                    
-                    if (result.data.transcription) {
-                      setTranscriptions(prev => [...prev, result.data.transcription]);
+                    // Queue for background upload
+                    await uploadManager.queueUpload(
+                      response.data.encounter_id, 
+                      chunkId, 
+                      'audio', 
+                      'high' // High priority for transcription
+                    );
+                  } catch (saveErr) {
+                    console.error('Failed to save audio chunk locally:', saveErr);
+                  }
+                  
+                  // Also try direct upload if online (for faster transcription)
+                  if (navigator.onLine && !deferAnalysis) {
+                    try {
+                      const result = await encounterAPI.uploadAudio(
+                        response.data.encounter_id,
+                        blob,
+                        currentChunkIndex
+                      );
                       
-                      // Trigger AI analysis with new transcription
-                      if (result.data.transcription.text) {
-                        performAIAnalysis(result.data.transcription.text);
-                        // Trigger AI coaching
-                        performCoaching(result.data.transcription.text);
+                      if (result.data.transcription) {
+                        setTranscriptions(prev => [...prev, result.data.transcription]);
+                        
+                        if (result.data.transcription.text) {
+                          performAIAnalysis(result.data.transcription.text);
+                          performCoaching(result.data.transcription.text);
+                        }
+                        
+                        if (result.data.transcription.violations_detected?.length > 0) {
+                          setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+                          toast.warning('⚠️ Potential violation detected!', {
+                            description: result.data.transcription.violations_detected.join(', ')
+                          });
+                        }
                       }
-                      
+                    } catch (uploadErr) {
+                      console.log('Direct upload failed, will retry via background queue');
+                    }
+                  }
+                }
+              }
+            };
                       if (result.data.transcription.violations_detected?.length > 0) {
                         setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
                         toast.warning('⚠️ Potential violation detected!', {
