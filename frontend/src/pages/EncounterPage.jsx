@@ -916,7 +916,17 @@ export default function EncounterPage() {
                   </p>
                 </div>
               </div>
-              <Switch checked={voiceCommandsEnabled} onCheckedChange={setVoiceCommandsEnabled} />
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowVoiceControlPanel(!showVoiceControlPanel)}
+                  className="text-xs"
+                >
+                  {showVoiceControlPanel ? 'Hide Panel' : 'Full Control'}
+                </Button>
+                <Switch checked={voiceCommandsEnabled} onCheckedChange={setVoiceCommandsEnabled} />
+              </div>
             </div>
             {manualViolationMarks.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
@@ -929,6 +939,38 @@ export default function EncounterPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Full Voice Control Panel - Hands-Free Mode */}
+        {showVoiceControlPanel && (
+          <VoiceControlPanel 
+            isRecording={isRecording}
+            encounterId={encounter?.encounter_id}
+            onAction={(action, data) => {
+              // Handle voice control actions
+              switch (action) {
+                case 'START_RECORDING':
+                  if (!isRecording) startRecording();
+                  break;
+                case 'STOP_RECORDING':
+                  if (isRecording) stopRecording();
+                  break;
+                case 'TRIGGER_SOS':
+                  triggerQuickSOS();
+                  break;
+                case 'MARK_VIOLATION':
+                  setManualViolationMarks(prev => [...prev, {
+                    timestamp: duration,
+                    time: new Date().toISOString(),
+                    note: 'Voice command: violation marked'
+                  }]);
+                  toast.success('📍 Violation marked at ' + formatDuration(duration));
+                  break;
+                default:
+                  console.log('Voice action:', action, data);
+              }
+            }}
+          />
+        )}
 
         {/* AI Rights Coach */}
         <RightsCoachPanel
