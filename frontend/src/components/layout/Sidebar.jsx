@@ -120,6 +120,24 @@ const getNavItems = (role) => {
     });
   }
 
+  // Add Dead Man's Switch and Class Action after Safety features
+  const sosIndex = baseItems.findIndex(item => item.path === '/sos');
+  if (sosIndex !== -1) {
+    baseItems.splice(sosIndex + 1, 0, 
+      {
+        icon: Timer,
+        label: "Dead Man's Switch",
+        path: '/dead-mans-switch',
+        highlight: true
+      },
+      {
+        icon: Scale,
+        label: 'Class Action Finder',
+        path: '/class-action'
+      }
+    );
+  }
+
   return baseItems;
 };
 
