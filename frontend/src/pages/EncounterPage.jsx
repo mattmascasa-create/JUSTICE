@@ -291,7 +291,7 @@ export default function EncounterPage() {
   useEffect(() => {
     const unsubscribe = uploadManager.subscribe((event, data) => {
       if (event === 'uploaded') {
-        setChunksUploaded(prev => prev + 1);
+        incrementChunksUploaded(data?.size || 0);
       } else if (event === 'transcription' && encounter && data.encounterId === encounter.encounter_id) {
         if (data.transcription && !deferAnalysis) {
           setTranscriptions(prev => [...prev, data.transcription]);
