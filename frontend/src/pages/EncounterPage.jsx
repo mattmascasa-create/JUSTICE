@@ -140,9 +140,22 @@ export default function EncounterPage() {
   // ===== Recording Data =====
   const [transcriptions, setTranscriptions] = useState([]);
   const [violations, setViolations] = useState([]);
-  const [chunksSaved, setChunksSaved] = useState(0);
-  const [chunksUploaded, setChunksUploaded] = useState(0);
-  const [videoChunkCount, setVideoChunkCount] = useState(0);
+  
+  // Use optimized recording stats hook (batches updates to reduce re-renders)
+  const recordingStats = useRecordingStats({
+    batchInterval: 1000, // Sync to UI every second
+    enabled: isRecording
+  });
+  
+  // Destructure for easy access (these update every batchInterval, not on every chunk)
+  const { 
+    stats: { chunksSaved, chunksUploaded, videoChunkCount },
+    incrementChunksSaved,
+    incrementChunksUploaded,
+    incrementVideoChunks,
+    resetStats: resetRecordingStats,
+    forceSync: forceStatsSync
+  } = recordingStats;
   
   // ===== Pre-Recording Buffer State =====
   const [preBufferActive, setPreBufferActive] = useState(false);
