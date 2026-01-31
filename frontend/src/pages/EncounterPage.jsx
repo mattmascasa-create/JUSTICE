@@ -134,12 +134,7 @@ export default function EncounterPage() {
   const [deferAnalysis, setDeferAnalysis] = useState(false); // Defer AI analysis for better performance
   const [showQualitySettings, setShowQualitySettings] = useState(false);
   
-  // Quality presets for UI
-  const qualityPresets = {
-    maximum: { label: 'Maximum (Court Quality)', desc: '1080p, highest quality', icon: '⚖️' },
-    balanced: { label: 'Balanced (Recommended)', desc: '720p, good quality', icon: '✓' },
-    performance: { label: 'Performance Mode', desc: '480p, smoothest recording', icon: '⚡' }
-  };
+  // Note: qualityPresets is now imported from './encounter/constants'
   
   // Stealth Mode State
   const [stealthMode, setStealthMode] = useState(false);
