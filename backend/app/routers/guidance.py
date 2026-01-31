@@ -89,7 +89,7 @@ async def mark_suggestion_complete(
     """
     Mark a suggestion as completed.
     """
-    user_id = str(current_user["_id"])
+    user_id = current_user["user_id"]
     
     db.user_preferences.update_one(
         {"user_id": user_id},
