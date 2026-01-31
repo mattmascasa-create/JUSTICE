@@ -385,7 +385,7 @@ export default function DeadMansSwitchPage() {
                 onChange={(e) => setConfig(c => ({ ...c, secret_disable_phrase: e.target.value }))}
               />
               <p className="text-xs text-muted-foreground">
-                If set, you'll need this phrase to cancel an impending trigger
+                If set, you&apos;ll need this phrase to cancel an impending trigger
               </p>
             </div>
 

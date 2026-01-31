@@ -487,7 +487,7 @@ export default function ClassActionPage() {
               {/* My Interests */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Patterns I'm Following</CardTitle>
+                  <CardTitle className="text-lg">Patterns I&apos;m Following</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[300px]">
@@ -562,7 +562,7 @@ export default function ClassActionPage() {
               <div className="text-sm text-muted-foreground">
                 <p><strong>What happens next:</strong></p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>You'll be notified when a class action is formally initiated</li>
+                  <li>You&apos;ll be notified when a class action is formally initiated</li>
                   <li>Attorneys monitoring this pattern will see aggregated interest</li>
                   <li>Your info is only shared if you consented above</li>
                 </ul>
