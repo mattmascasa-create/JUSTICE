@@ -40,7 +40,8 @@ import {
   HelpCircle,
   ShieldAlert,
   Timer,
-  Mic
+  Mic,
+  Vibrate
 } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 import ConnectionIndicator from '../ConnectionIndicator';
