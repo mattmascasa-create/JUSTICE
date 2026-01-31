@@ -424,6 +424,12 @@ async def get_session_status(current_user: dict = Depends(get_current_user)):
     next_deadline = session.get("next_check_in_deadline")
     trigger_time = session.get("trigger_time")
     
+    # Handle timezone-naive datetimes from MongoDB
+    if next_deadline and next_deadline.tzinfo is None:
+        next_deadline = next_deadline.replace(tzinfo=timezone.utc)
+    if trigger_time and trigger_time.tzinfo is None:
+        trigger_time = trigger_time.replace(tzinfo=timezone.utc)
+    
     time_until_deadline = (next_deadline - now).total_seconds() if next_deadline else 0
     time_until_trigger = (trigger_time - now).total_seconds() if trigger_time else 0
     

@@ -244,7 +244,7 @@ async def analyze_patterns(
     pattern_data = {
         "violation_types": violation_types,
         "similar_count": len(similar),
-        "users_affected": strength["factors"]["users_affected"],
+        "users_affected": strength.get("factors", {}).get("users_affected", 0),
         "departments": [dept_names.get(d, d) for d in dept_ids],
         "days": request.date_range_days,
         "strength": strength
