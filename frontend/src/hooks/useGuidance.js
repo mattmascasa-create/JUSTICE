@@ -18,7 +18,7 @@ export function useGuidance(currentPage = null) {
     try {
       setLoading(true);
       const params = currentPage ? { current_page: currentPage } : {};
-      const response = await api.get('/api/guidance/suggestions', { params });
+      const response = await api.get('/guidance/suggestions', { params });
       
       if (response.data.success) {
         const data = response.data.data;
