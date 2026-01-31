@@ -437,7 +437,7 @@ async def register_witness_recording(
         "user_id": original["user_id"],
         "type": "witness_recording",
         "title": "📹 Witness Recording Started",
-        "message": f"A nearby witness has started recording to support your encounter.",
+        "message": "A nearby witness has started recording to support your encounter.",
         "data": {"recording_id": recording_id, "encounter_id": recording.original_encounter_id},
         "read": False,
         "created_at": datetime.now(timezone.utc)
