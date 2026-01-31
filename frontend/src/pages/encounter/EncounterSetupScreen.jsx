@@ -3,7 +3,7 @@
  * Pre-recording setup UI for encounter mode
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -11,12 +11,13 @@ import { Switch } from '../../components/ui/switch';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible';
 import { 
   Shield, Camera, Video, MapPin, CheckCircle, 
-  FileText, Users, Scale, Radio, Share2
+  FileText, Users, Scale, Radio, Share2, ChevronDown
 } from 'lucide-react';
-import { encounterTypes, broadcastModes, qualityPresets } from './constants';
+import { broadcastModes, qualityPresets } from './constants';
+import { EncounterTypeSelector } from './EncounterTypeSelector';
 
 // Icon mapping for broadcast modes
 const broadcastIcons = {
@@ -40,6 +41,8 @@ export function EncounterSetupScreen({
   onStartRecording,
   isStarting = false
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
   return (
     <div className="max-w-2xl mx-auto space-y-6" data-testid="encounter-setup">
       {/* Emergency Header */}
@@ -163,60 +166,58 @@ export function EncounterSetupScreen({
         </CardContent>
       </Card>
 
-      {/* Encounter Type */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Type of Encounter</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select value={encounterType} onValueChange={onEncounterTypeChange}>
-            <SelectTrigger data-testid="encounter-type-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {encounterTypes.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      {/* Encounter Type - Enhanced Universal Selector */}
+      <EncounterTypeSelector
+        selectedType={encounterType}
+        onSelectType={onEncounterTypeChange}
+        showRightsPreview={true}
+        compact={false}
+      />
 
-      {/* Broadcast Mode */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Protection Level</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {broadcastModes.map(mode => {
-            const IconComponent = broadcastIcons[mode.icon] || FileText;
-            return (
-              <button
-                key={mode.value}
-                onClick={() => onBroadcastModeChange(mode.value)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                  broadcastMode === mode.value 
-                    ? 'border-primary bg-primary/10' 
-                    : 'border-border hover:bg-muted'
-                }`}
-              >
-                <div className={`p-2 rounded-lg ${broadcastMode === mode.value ? 'bg-primary/20' : 'bg-muted'}`}>
-                  <IconComponent className="h-5 w-5" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">{mode.label}</p>
-                  <p className="text-sm text-muted-foreground">{mode.desc}</p>
-                </div>
-                {broadcastMode === mode.value && (
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                )}
-              </button>
-            );
-          })}
-        </CardContent>
-      </Card>
+      {/* Advanced Settings - Collapsible */}
+      <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full justify-between">
+            <span>Protection Level & Advanced Settings</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-4">
+          {/* Broadcast Mode */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Protection Level</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {broadcastModes.map(mode => {
+                const IconComponent = broadcastIcons[mode.icon] || FileText;
+                return (
+                  <button
+                    key={mode.value}
+                    onClick={() => onBroadcastModeChange(mode.value)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                      broadcastMode === mode.value 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:bg-muted'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${broadcastMode === mode.value ? 'bg-primary/20' : 'bg-muted'}`}>
+                      <IconComponent className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium">{mode.label}</p>
+                      <p className="text-sm text-muted-foreground">{mode.desc}</p>
+                    </div>
+                    {broadcastMode === mode.value && (
+                      <CheckCircle className="h-5 w-5 text-primary" />
+                    )}
+                  </button>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Start Button */}
       <Button 
