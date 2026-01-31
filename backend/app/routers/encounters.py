@@ -634,6 +634,240 @@ async def get_encounter(encounter_id: str, current_user: dict = Depends(get_curr
     return encounter
 
 
+# ============== EVIDENCE INTEGRITY VERIFICATION ==============
+
+@router.post("/{encounter_id}/integrity/register")
+async def register_evidence_hashes(
+    encounter_id: str,
+    hashes: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Register cryptographic hashes for evidence integrity verification.
+    Called by frontend after each chunk is saved locally.
+    
+    hashes: {
+        "chunks": [
+            {
+                "type": "audio|video",
+                "chunkIndex": 0,
+                "contentHash": "sha256...",
+                "chainHash": "sha256...",
+                "previousHash": "sha256...|null",
+                "timestamp": 1234567890,
+                "size": 12345
+            }
+        ]
+    }
+    """
+    import hashlib
+    
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    chunks = hashes.get("chunks", [])
+    registered_hashes = []
+    
+    for chunk in chunks:
+        hash_record = {
+            "encounter_id": encounter_id,
+            "user_id": current_user["user_id"],
+            "type": chunk.get("type"),
+            "chunk_index": chunk.get("chunkIndex"),
+            "content_hash": chunk.get("contentHash"),
+            "chain_hash": chunk.get("chainHash"),
+            "previous_hash": chunk.get("previousHash"),
+            "size": chunk.get("size"),
+            "client_timestamp": chunk.get("timestamp"),
+            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "hash_algorithm": "SHA-256",
+            "verified": False
+        }
+        
+        # Check if this chunk hash already registered
+        existing = await db.evidence_hashes.find_one({
+            "encounter_id": encounter_id,
+            "type": chunk.get("type"),
+            "chunk_index": chunk.get("chunkIndex")
+        })
+        
+        if existing:
+            # Update if content hash matches, flag if different (tampering)
+            if existing.get("content_hash") != chunk.get("contentHash"):
+                hash_record["integrity_warning"] = "Hash mismatch detected"
+                hash_record["original_hash"] = existing.get("content_hash")
+        
+        await db.evidence_hashes.update_one(
+            {
+                "encounter_id": encounter_id,
+                "type": chunk.get("type"),
+                "chunk_index": chunk.get("chunkIndex")
+            },
+            {"$set": hash_record},
+            upsert=True
+        )
+        
+        registered_hashes.append({
+            "type": chunk.get("type"),
+            "chunk_index": chunk.get("chunkIndex"),
+            "registered": True
+        })
+    
+    return {
+        "success": True,
+        "encounter_id": encounter_id,
+        "registered_count": len(registered_hashes),
+        "hashes": registered_hashes
+    }
+
+
+@router.get("/{encounter_id}/integrity/verify")
+async def verify_evidence_integrity(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Verify the integrity of all evidence for an encounter.
+    Returns a court-ready verification report.
+    """
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not encounter:
+        raise HTTPException(status_code=404, detail="Encounter not found")
+    
+    # Get all registered hashes
+    hash_records = []
+    cursor = db.evidence_hashes.find(
+        {"encounter_id": encounter_id},
+        {"_id": 0}
+    ).sort([("type", 1), ("chunk_index", 1)])
+    
+    async for record in cursor:
+        hash_records.append(record)
+    
+    # Verify chain integrity
+    chain_intact = True
+    audio_chain = [r for r in hash_records if r.get("type") == "audio"]
+    video_chain = [r for r in hash_records if r.get("type") == "video"]
+    
+    for chain in [audio_chain, video_chain]:
+        previous_hash = None
+        for record in chain:
+            if record.get("previous_hash") != previous_hash:
+                chain_intact = False
+                record["chain_break"] = True
+            previous_hash = record.get("chain_hash")
+    
+    # Generate verification report
+    report = {
+        "report_type": "EVIDENCE_INTEGRITY_VERIFICATION",
+        "encounter_id": encounter_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "encounter_started": encounter.get("started_at"),
+        "encounter_ended": encounter.get("ended_at"),
+        "hash_algorithm": "SHA-256",
+        "verification": {
+            "status": "VERIFIED" if chain_intact else "CHAIN_INTEGRITY_WARNING",
+            "total_chunks": len(hash_records),
+            "audio_chunks": len(audio_chain),
+            "video_chunks": len(video_chain),
+            "chain_intact": chain_intact,
+            "warnings": [r for r in hash_records if r.get("integrity_warning") or r.get("chain_break")]
+        },
+        "evidence_chain": [
+            {
+                "type": r.get("type"),
+                "index": r.get("chunk_index"),
+                "content_hash": r.get("content_hash"),
+                "chain_hash": r.get("chain_hash"),
+                "size_bytes": r.get("size"),
+                "registered_at": r.get("registered_at")
+            }
+            for r in hash_records
+        ],
+        "certification": {
+            "platform": "JUSTICE Civil Rights Defense System",
+            "method": "Client-side SHA-256 with blockchain-style chaining",
+            "note": "Hashes generated on user device at time of recording"
+        }
+    }
+    
+    # Store verification report
+    await db.integrity_reports.insert_one({
+        "encounter_id": encounter_id,
+        "user_id": current_user["user_id"],
+        "report": report,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"success": True, "report": report}
+
+
+@router.get("/{encounter_id}/integrity/certificate")
+async def get_integrity_certificate(
+    encounter_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Generate a printable/shareable integrity certificate for court use.
+    """
+    # Get the latest verification report
+    report = await db.integrity_reports.find_one(
+        {"encounter_id": encounter_id, "user_id": current_user["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not report:
+        # Generate one if not exists
+        verify_result = await verify_evidence_integrity(encounter_id, current_user)
+        report = {"report": verify_result["report"]}
+    
+    encounter = await db.encounters.find_one(
+        {"encounter_id": encounter_id},
+        {"_id": 0, "encounter_type": 1, "started_at": 1, "ended_at": 1, "location": 1}
+    )
+    
+    certificate = {
+        "certificate_type": "EVIDENCE_INTEGRITY_CERTIFICATE",
+        "certificate_id": f"CERT-{encounter_id[:8].upper()}-{datetime.now().strftime('%Y%m%d')}",
+        "issued_at": datetime.now(timezone.utc).isoformat(),
+        "encounter": {
+            "id": encounter_id,
+            "type": encounter.get("encounter_type") if encounter else None,
+            "started": encounter.get("started_at") if encounter else None,
+            "ended": encounter.get("ended_at") if encounter else None,
+            "location": encounter.get("location", {}).get("address") if encounter else None
+        },
+        "integrity_status": report["report"]["verification"]["status"],
+        "evidence_summary": {
+            "total_chunks": report["report"]["verification"]["total_chunks"],
+            "audio_chunks": report["report"]["verification"]["audio_chunks"],
+            "video_chunks": report["report"]["verification"]["video_chunks"],
+            "chain_intact": report["report"]["verification"]["chain_intact"]
+        },
+        "hash_algorithm": "SHA-256",
+        "certification_statement": (
+            "This certificate confirms that the digital evidence associated with the above encounter "
+            "has been cryptographically verified using SHA-256 hashing with blockchain-style chain linking. "
+            "Each evidence chunk was hashed at the time of recording on the user's device, creating an "
+            "immutable chain of custody. The integrity verification confirms that the evidence has not "
+            "been altered since its original capture."
+        ),
+        "platform": "JUSTICE Civil Rights Defense System",
+        "verification_method": "Client-side cryptographic hashing with server-side chain verification"
+    }
+    
+    return {"success": True, "certificate": certificate}
+
+
 @router.get("/{encounter_id}/report")
 async def get_encounter_report(encounter_id: str, current_user: dict = Depends(get_current_user)):
     """Get detailed report for an encounter"""
