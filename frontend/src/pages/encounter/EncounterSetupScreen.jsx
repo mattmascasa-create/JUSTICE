@@ -183,6 +183,23 @@ export function EncounterSetupScreen({
               </AlertDescription>
             </Alert>
           )}
+          
+          {/* Browser Speech Recognition Toggle */}
+          {browserTranscriptSupported && !deferAnalysis && (
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+              <div>
+                <p className="text-sm font-medium">🎤 Browser Transcription</p>
+                <p className="text-xs text-muted-foreground">
+                  Real-time on-device transcription (faster, no network needed)
+                </p>
+              </div>
+              <Switch 
+                checked={useBrowserTranscription} 
+                onCheckedChange={onUseBrowserTranscriptionChange}
+                data-testid="browser-transcription-toggle"
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
