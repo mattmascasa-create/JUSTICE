@@ -259,6 +259,7 @@ export default function EncounterReportPage() {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
+                <BlockchainAnchor encounterId={encounterId} />
                 <IntegrityBadge encounterId={encounterId} />
                 {report.court_admissible && (
                   <Badge className="bg-green-500/10 text-green-500 text-sm px-3 py-1">
