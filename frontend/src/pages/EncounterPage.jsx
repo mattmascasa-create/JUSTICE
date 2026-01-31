@@ -585,6 +585,9 @@ export default function EncounterPage() {
     preRecordingBuffer.stop();
     preRecordingBuffer.start({ video: enableVideo });
     
+    // Force sync final stats before stopping
+    forceStatsSync();
+    
     setIsRecording(false);
     setIsPaused(false);
     setPreBufferIncluded(false);
