@@ -29,7 +29,7 @@ async def get_suggestions(
     - Estimated time to complete
     """
     user_id = current_user["user_id"]
-    guidance = get_user_guidance(db, user_id, current_page)
+    guidance = await get_user_guidance(db, user_id, current_page)
     
     return {
         "success": True,
