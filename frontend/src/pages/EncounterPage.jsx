@@ -314,28 +314,25 @@ export default function EncounterPage() {
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
 
-      mediaRecorder.ondataavailable = async (event) => {
+      // NON-BLOCKING: Video/audio chunk handler - fire and forget
+      mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           const type = enableVideo ? 'video' : 'audio';
           const chunkIndex = videoChunkIndexRef.current++;
+          const encounterId = response.data.encounter_id;
           
-          try {
-            const chunkId = await evidenceStorage.saveChunk(
-              response.data.encounter_id,
-              event.data,
-              type,
-              chunkIndex
-            );
-            setChunksSaved(prev => prev + 1);
-            setVideoChunkCount(prev => prev + 1);
-            uploadManager.queueUpload(response.data.encounter_id, chunkId, type, 'normal');
-          } catch (err) {
-            console.error('Failed to save chunk:', err);
-          }
+          // Fire and forget - don't await
+          evidenceStorage.saveChunk(encounterId, event.data, type, chunkIndex)
+            .then(chunkId => {
+              setChunksSaved(prev => prev + 1);
+              setVideoChunkCount(prev => prev + 1);
+              uploadManager.queueUpload(encounterId, chunkId, type, 'normal');
+            })
+            .catch(err => console.error('Failed to save chunk:', err));
         }
       };
 
-      // Setup separate audio recorder for transcription
+      // Setup separate audio recorder for transcription (only if video enabled)
       if (enableVideo) {
         const audioStream = new MediaStream(stream.getAudioTracks());
         const audioRecorder = new MediaRecorder(audioStream, {
@@ -343,37 +340,73 @@ export default function EncounterPage() {
         });
         audioRecorderRef.current = audioRecorder;
 
-        audioRecorder.ondataavailable = async (event) => {
+        // NON-BLOCKING: Audio chunk handler for transcription - fire and forget
+        audioRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             const chunkIndex = chunkIndexRef.current++;
-            try {
-              const chunkId = await evidenceStorage.saveChunk(
-                response.data.encounter_id,
-                event.data,
-                'audio',
-                chunkIndex,
-                { forTranscription: true }
-              );
-              setChunksSaved(prev => prev + 1);
-              await uploadManager.queueUpload(response.data.encounter_id, chunkId, 'audio', 'high');
-              
-              // Direct upload for faster transcription
-              if (navigator.onLine && !deferAnalysis) {
-                const result = await encounterAPI.uploadAudio(response.data.encounter_id, event.data, chunkIndex);
-                if (result.data.transcription) {
-                  setTranscriptions(prev => [...prev, result.data.transcription]);
-                  analysis.processTranscription(result.data.transcription.text);
-                  if (result.data.transcription.violations_detected?.length > 0) {
-                    setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+            const encounterId = response.data.encounter_id;
+            const audioBlob = event.data;
+            
+            // Save locally first (fire and forget)
+            evidenceStorage.saveChunk(encounterId, audioBlob, 'audio', chunkIndex, { forTranscription: true })
+              .then(chunkId => {
+                setChunksSaved(prev => prev + 1);
+                uploadManager.queueUpload(encounterId, chunkId, 'audio', 'high');
+              })
+              .catch(err => console.log('Audio save error:', err));
+            
+            // Transcription upload in background (fire and forget)
+            if (navigator.onLine && !deferAnalysis) {
+              encounterAPI.uploadAudio(encounterId, audioBlob, chunkIndex)
+                .then(result => {
+                  if (result.data?.transcription) {
+                    setTranscriptions(prev => [...prev, result.data.transcription]);
+                    if (result.data.transcription.text) {
+                      analysis.processTranscription(result.data.transcription.text);
+                    }
+                    if (result.data.transcription.violations_detected?.length > 0) {
+                      setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+                    }
                   }
-                }
-              }
-            } catch (err) {
-              console.log('Audio processing error:', err);
+                })
+                .catch(err => console.log('Transcription error:', err));
             }
           }
         };
         audioRecorder.start(5000);
+      } else {
+        // Audio-only mode: Use main recorder for transcription too
+        // NON-BLOCKING transcription for audio-only
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            const chunkIndex = videoChunkIndexRef.current++;
+            const encounterId = response.data.encounter_id;
+            const audioBlob = event.data;
+            
+            // Save locally (fire and forget)
+            evidenceStorage.saveChunk(encounterId, audioBlob, 'audio', chunkIndex)
+              .then(chunkId => {
+                setChunksSaved(prev => prev + 1);
+                setVideoChunkCount(prev => prev + 1);
+                uploadManager.queueUpload(encounterId, chunkId, 'audio', 'normal');
+              })
+              .catch(err => console.error('Failed to save chunk:', err));
+            
+            // Transcription (fire and forget)
+            if (navigator.onLine && !deferAnalysis) {
+              encounterAPI.uploadAudio(encounterId, audioBlob, chunkIndex)
+                .then(result => {
+                  if (result.data?.transcription) {
+                    setTranscriptions(prev => [...prev, result.data.transcription]);
+                    if (result.data.transcription.text) {
+                      analysis.processTranscription(result.data.transcription.text);
+                    }
+                  }
+                })
+                .catch(err => console.log('Transcription error:', err));
+            }
+          }
+        };
       }
 
       mediaRecorder.start(5000);
