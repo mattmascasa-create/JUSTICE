@@ -257,12 +257,15 @@ export default function EncounterReportPage() {
                   Report ID: {report.report_id}
                 </CardDescription>
               </div>
-              {report.court_admissible && (
-                <Badge className="bg-green-500/10 text-green-500 text-sm px-3 py-1">
-                  <Gavel className="h-4 w-4 mr-1" />
-                  Court Admissible
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                <IntegrityBadge encounterId={encounterId} />
+                {report.court_admissible && (
+                  <Badge className="bg-green-500/10 text-green-500 text-sm px-3 py-1">
+                    <Gavel className="h-4 w-4 mr-1" />
+                    Court Admissible
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
