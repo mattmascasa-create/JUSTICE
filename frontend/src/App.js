@@ -215,6 +215,8 @@ function AppRouter() {
       <Route path="/dead-mans-switch" element={<ProtectedLazyRoute><DeadMansSwitchPage /></ProtectedLazyRoute>} />
       <Route path="/class-action" element={<ProtectedLazyRoute><ClassActionPage /></ProtectedLazyRoute>} />
       <Route path="/panic-gesture" element={<ProtectedLazyRoute><PanicGesturePage /></ProtectedLazyRoute>} />
+      <Route path="/reconstruction-3d" element={<ProtectedLazyRoute><Reconstruction3DPage /></ProtectedLazyRoute>} />
+      <Route path="/reconstruction-3d/:encounterId" element={<ProtectedLazyRoute><Reconstruction3DPage /></ProtectedLazyRoute>} />
       
       {/* Auth Callback */}
       <Route path="/auth/callback" element={<AuthCallback />} />
