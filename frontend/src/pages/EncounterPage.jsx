@@ -222,6 +222,20 @@ export default function EncounterPage() {
   const [videoChunkCount, setVideoChunkCount] = useState(0);
   const [uploadingChunk, setUploadingChunk] = useState(false);
   
+  // NEW: Bulletproof Recording State
+  const [recordingQuality, setRecordingQuality] = useState('balanced'); // 'maximum', 'balanced', 'performance'
+  const [chunksSaved, setChunksSaved] = useState(0);
+  const [chunksUploaded, setChunksUploaded] = useState(0);
+  const [deferAnalysis, setDeferAnalysis] = useState(false); // Defer AI analysis for better performance
+  const [showQualitySettings, setShowQualitySettings] = useState(false);
+  
+  // Quality presets for UI
+  const qualityPresets = {
+    maximum: { label: 'Maximum (Court Quality)', desc: '1080p, highest quality', icon: '⚖️' },
+    balanced: { label: 'Balanced (Recommended)', desc: '720p, good quality', icon: '✓' },
+    performance: { label: 'Performance Mode', desc: '480p, smoothest recording', icon: '⚡' }
+  };
+  
   // Stealth Mode State
   const [stealthMode, setStealthMode] = useState(false);
   const [stealthActivated, setStealthActivated] = useState(false);
