@@ -1183,55 +1183,57 @@ export default function EncounterPage() {
               const blobType = mediaRecorder.mimeType || 'audio/webm';
               const blob = new Blob(audioChunksRef.current, { type: blobType });
               audioChunksRef.current = [];
+              const currentChunkIndex = chunkIndexRef.current++;
               
-              console.log('Audio-only: Uploading blob for transcription:', blob.size, 'bytes, type:', blobType);
+              console.log('Audio-only: Saving locally first:', blob.size, 'bytes');
               
-              // Check if offline - queue for later
-              if (!navigator.onLine) {
-                setPendingUploads(prev => [...prev, {
-                  type: 'audio',
-                  encounterId: response.data.encounter_id,
-                  blob: blob,
-                  chunkIndex: chunkIndexRef.current++,
-                  timestamp: Date.now()
-                }]);
-                console.log('Offline: Audio chunk queued for sync');
-                return;
-              }
-              
+              // LOCAL-FIRST: Save to IndexedDB immediately
               try {
-                const result = await encounterAPI.uploadAudio(
+                const chunkId = await evidenceStorage.saveChunk(
                   response.data.encounter_id,
                   blob,
-                  chunkIndexRef.current++
+                  'audio',
+                  currentChunkIndex,
+                  { forTranscription: true }
                 );
+                setChunksSaved(prev => prev + 1);
                 
-                console.log('Transcription result:', result.data);
-                
-                if (result.data.transcription) {
-                  setTranscriptions(prev => [...prev, result.data.transcription]);
-                  // Trigger AI coaching
-                  if (result.data.transcription.text) {
-                    performAIAnalysis(result.data.transcription.text);
-                    performCoaching(result.data.transcription.text);
+                // Queue for background upload
+                await uploadManager.queueUpload(
+                  response.data.encounter_id, 
+                  chunkId, 
+                  'audio', 
+                  'high'
+                );
+              } catch (saveErr) {
+                console.error('Failed to save audio chunk locally:', saveErr);
+              }
+              
+              // Also try direct upload if online (for faster transcription)
+              if (navigator.onLine && !deferAnalysis) {
+                try {
+                  const result = await encounterAPI.uploadAudio(
+                    response.data.encounter_id,
+                    blob,
+                    currentChunkIndex
+                  );
+                  
+                  if (result.data.transcription) {
+                    setTranscriptions(prev => [...prev, result.data.transcription]);
+                    if (result.data.transcription.text) {
+                      performAIAnalysis(result.data.transcription.text);
+                      performCoaching(result.data.transcription.text);
+                    }
+                    if (result.data.transcription.violations_detected?.length > 0) {
+                      setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
+                      toast.warning('⚠️ Potential violation detected!', {
+                        description: result.data.transcription.violations_detected.join(', ')
+                      });
+                    }
                   }
-                  if (result.data.transcription.violations_detected?.length > 0) {
-                    setViolations(prev => [...prev, ...result.data.transcription.violations_detected]);
-                    toast.warning('⚠️ Potential violation detected!', {
-                      description: result.data.transcription.violations_detected.join(', ')
-                    });
-                  }
+                } catch (err) {
+                  console.log('Direct upload failed, will retry via background queue');
                 }
-              } catch (err) {
-                console.error('Audio upload/transcription error:', err);
-                // Queue failed upload for retry
-                setPendingUploads(prev => [...prev, {
-                  type: 'audio',
-                  encounterId: response.data.encounter_id,
-                  blob: blob,
-                  chunkIndex: chunkIndexRef.current - 1,
-                  timestamp: Date.now()
-                }]);
               }
             }
           }
