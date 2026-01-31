@@ -146,7 +146,7 @@ export function RecordingStatus({
       <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded border border-green-500/20">
         <Shield className="h-4 w-4 text-green-500 shrink-0" />
         <p className="text-xs text-green-700 dark:text-green-300">
-          <strong>Evidence Protected:</strong> All recordings are saved locally first. 
+          <strong>Evidence Protected:</strong> All recordings are hashed with SHA-256 for tamper-proof verification.
           {isOnline 
             ? ' Cloud backup is active.' 
             : ' Will automatically sync when connection is restored.'}
