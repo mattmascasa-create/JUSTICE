@@ -57,7 +57,6 @@ export function VoiceControlPanel({
 }) {
   // State
   const [isListening, setIsListening] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
   const [audioFeedback, setAudioFeedback] = useState(true);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
@@ -69,8 +68,11 @@ export function VoiceControlPanel({
   // Refs
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
+  
+  // Check for speech recognition support (computed, not state)
+  const isSupported = typeof window !== 'undefined' && 
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  // Check for speech recognition support
   // Load available commands
   const loadCommands = useCallback(async () => {
     try {
@@ -84,10 +86,9 @@ export function VoiceControlPanel({
     }
   }, []);
 
-  // Check for speech recognition support
+  // Initialize speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setIsSupported(!!SpeechRecognition);
     
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
