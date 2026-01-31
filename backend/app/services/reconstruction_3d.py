@@ -241,7 +241,7 @@ class Reconstruction3DService:
             try:
                 dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                 hour = dt.hour
-            except:
+            except (ValueError, AttributeError):
                 pass
         
         # Determine lighting based on time
