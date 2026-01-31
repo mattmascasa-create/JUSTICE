@@ -93,6 +93,14 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Smart Guidance - AI Next Steps */}
+        <SmartGuidancePanel 
+          currentPage="dashboard" 
+          variant="card"
+          maxSuggestions={3}
+          showProgress={true}
+        />
+
         {/* Stats Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card data-testid="stat-total-cases">
