@@ -151,18 +151,35 @@ export function EncounterSetupScreen({
           </div>
           
           {/* Performance Mode Toggle */}
-          <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+          <div className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+            deferAnalysis ? 'bg-green-500/10 border-green-500/30' : 'bg-muted/30 border-transparent'
+          }`}>
             <div>
-              <p className="text-sm font-medium">Defer AI Analysis</p>
+              <p className="text-sm font-medium flex items-center gap-2">
+                ⚡ Performance Mode
+                {deferAnalysis && <Badge className="bg-green-500 text-white text-xs">ON</Badge>}
+              </p>
               <p className="text-xs text-muted-foreground">
-                Faster recording, analyze after encounter
+                {deferAnalysis 
+                  ? 'Recording optimized for smooth performance. AI analysis will run after encounter ends.' 
+                  : 'Enable for smoother recording (recommended if experiencing lag)'
+                }
               </p>
             </div>
             <Switch 
               checked={deferAnalysis} 
               onCheckedChange={onDeferAnalysisChange}
+              data-testid="performance-mode-toggle"
             />
           </div>
+          
+          {deferAnalysis && (
+            <Alert className="bg-green-500/10 border-green-500/20">
+              <AlertDescription className="text-green-600 text-xs">
+                📹 Recording priority: All evidence is being captured. AI analysis & transcription will process after you stop recording.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
 
