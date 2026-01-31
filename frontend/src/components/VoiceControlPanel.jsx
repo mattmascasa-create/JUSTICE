@@ -71,6 +71,20 @@ export function VoiceControlPanel({
   const synthRef = useRef(null);
 
   // Check for speech recognition support
+  // Load available commands
+  const loadCommands = useCallback(async () => {
+    try {
+      const res = await voiceCommandsAPI.getCommands();
+      setAvailableCommands(Object.entries(res.data.commands || {}).map(([key, value]) => ({
+        key,
+        ...value
+      })));
+    } catch (error) {
+      console.error('Failed to load commands:', error);
+    }
+  }, []);
+
+  // Check for speech recognition support
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     setIsSupported(!!SpeechRecognition);
@@ -93,20 +107,7 @@ export function VoiceControlPanel({
         recognitionRef.current.stop();
       }
     };
-  }, []);
-
-  // Load available commands
-  const loadCommands = async () => {
-    try {
-      const res = await voiceCommandsAPI.getCommands();
-      setAvailableCommands(Object.entries(res.data.commands || {}).map(([key, value]) => ({
-        key,
-        ...value
-      })));
-    } catch (error) {
-      console.error('Failed to load commands:', error);
-    }
-  };
+  }, [loadCommands]);
 
   // Speak text (audio feedback)
   const speak = useCallback((text) => {
