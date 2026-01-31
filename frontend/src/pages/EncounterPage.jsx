@@ -221,6 +221,36 @@ export default function EncounterPage() {
     return () => clearInterval(timerRef.current);
   }, [isRecording, isPaused]);
 
+  // ===== Pre-Recording Buffer Initialization =====
+  useEffect(() => {
+    // Start pre-recording buffer on component mount
+    setBrowserTranscriptSupported(browserSpeechRecognition.isSupported);
+    
+    const startPreBuffer = async () => {
+      if (preRecordingBuffer.constructor.isSupported()) {
+        const success = await preRecordingBuffer.start({ video: enableVideo });
+        setPreBufferActive(success);
+        if (success) {
+          console.log('Pre-recording buffer started');
+        }
+      }
+    };
+    
+    startPreBuffer();
+    
+    // Update pre-buffer stats periodically
+    const statsInterval = setInterval(() => {
+      if (preRecordingBuffer.isActive) {
+        setPreBufferStats(preRecordingBuffer.getStats());
+      }
+    }, 2000);
+    
+    return () => {
+      clearInterval(statsInterval);
+      // Don't stop pre-buffer on unmount - it runs in background
+    };
+  }, [enableVideo]);
+
   // ===== Rights Reminder Rotation =====
   useEffect(() => {
     if (!isRecording) return;
