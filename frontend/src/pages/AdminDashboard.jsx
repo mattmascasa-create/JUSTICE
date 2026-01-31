@@ -491,12 +491,12 @@ export default function AdminDashboard() {
                 />
               </div>
               
-              <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
+              <Select value={userRoleFilter || 'all'} onValueChange={(v) => setUserRoleFilter(v === 'all' ? '' : v)}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="citizen">Citizens</SelectItem>
                   <SelectItem value="attorney">Attorneys</SelectItem>
                   <SelectItem value="admin">Admins</SelectItem>
