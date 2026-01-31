@@ -80,6 +80,8 @@ const LegalDocumentsPage = lazy(() => import("./pages/LegalDocumentsPage"));
 const LegalToolsPage = lazy(() => import("./pages/LegalToolsPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
+const DeadMansSwitchPage = lazy(() => import("./pages/DeadMansSwitchPage"));
+const ClassActionPage = lazy(() => import("./pages/ClassActionPage"));
 
 // Register service worker
 if ('serviceWorker' in navigator) {
