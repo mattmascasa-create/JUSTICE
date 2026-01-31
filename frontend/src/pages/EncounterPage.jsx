@@ -31,6 +31,26 @@ import RecordingStatus from '../components/RecordingStatus';
 import evidenceStorage from '../services/evidenceStorage';
 import uploadManager from '../services/uploadManager';
 
+// Import extracted constants and utilities
+import {
+  encounterTypes,
+  broadcastModes,
+  rightsReminders,
+  voiceCommandsConfig,
+  riskLevelColors,
+  riskLevelLabels,
+  toneColors,
+  toneIcons,
+  toneSeverityColors,
+  highlightKeywords,
+  qualityPresets,
+  highlightText,
+  formatDuration
+} from './encounter/constants';
+
+// Import custom hooks
+import { useGeolocation } from '../hooks/useGeolocation';
+
 // Error Boundary to catch runtime errors
 class EncounterErrorBoundary extends Component {
   constructor(props) {
