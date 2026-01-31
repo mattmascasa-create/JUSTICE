@@ -20,7 +20,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { toast } from 'sonner';
 import api from '../lib/api';
 import {
-  Mic, MicOff, Volume2, VolumeX,
+  Mic, MicOff, Volume2, VolumeX, AlertTriangle,
   CheckCircle, XCircle, ChevronRight,
   Play, Square, Phone, Shield, Camera, Eye, Home,
   HelpCircle
