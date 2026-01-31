@@ -1236,3 +1236,28 @@ PINATA_JWT=<your-pinata-jwt-token>  # For IPFS
 - **Non-Anonymous Only**: Emails only sent when user provided contact_email and anonymous=false
 - **Background Tasks**: Emails sent asynchronously via FastAPI BackgroundTasks
 - **Response Flag**: API returns `notification_sent: true/false` to indicate email status
+
+
+##### Bulletproof Recording System ✅
+- **Local-First Architecture**: All recordings saved to IndexedDB immediately before any network operation
+- **Background Uploads**: New `uploadManager` service handles all uploads in background without blocking UI
+- **Crash Recovery**: Evidence persists even if app crashes or browser closes
+- **Offline Resilient**: Automatically syncs when connection is restored
+- **Quality Presets**:
+  - Maximum (Court Quality): 1080p, 2.5 Mbps video
+  - Balanced (Recommended): 720p, 1.5 Mbps video
+  - Performance Mode: 480p, 800 Kbps video (for older devices)
+- **Smaller Chunks**: 5-second chunks (down from 15) for:
+  - Less memory pressure
+  - Faster recovery from errors
+  - Smoother UI during recording
+- **Defer AI Analysis**: Option to disable real-time AI analysis during recording for maximum performance
+- **RecordingStatus Component**: Visual indicator showing:
+  - Chunks saved locally (with HardDrive icon)
+  - Chunks synced to cloud (with Cloud icon)
+  - Upload progress bar
+  - Online/offline status
+- **New Services**:
+  - `evidenceStorage.js`: IndexedDB wrapper for persistent local storage
+  - `uploadManager.js`: Background upload queue with retry logic
+- **Evidence Protection Notice**: Clear messaging that evidence is safe even offline
