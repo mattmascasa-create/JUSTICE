@@ -303,7 +303,16 @@ export default function QuickRecordPage() {
 
   // Auto-start on mount
   useEffect(() => {
-    startRecording();
+    // Use a flag to ensure we only start once
+    let mounted = true;
+    
+    const initRecording = async () => {
+      if (mounted) {
+        await startRecording();
+      }
+    };
+    
+    initRecording();
     
     // Network status
     const handleOnline = () => setIsOffline(false);
@@ -312,6 +321,7 @@ export default function QuickRecordPage() {
     window.addEventListener('offline', handleOffline);
     
     return () => {
+      mounted = false;
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       
