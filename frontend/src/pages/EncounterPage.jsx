@@ -14,7 +14,7 @@
  * - SOS/Panic button functionality
  */
 
-import React, { useState, useEffect, useRef, useCallback, Component } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Component, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
