@@ -150,7 +150,7 @@ export function IntegrityBadge({ encounterId, compact = false }) {
             Evidence Integrity Verification
           </DialogTitle>
           <DialogDescription>
-            Cryptographic verification ensures your evidence hasn't been tampered with
+            Cryptographic verification ensures your evidence has not been tampered with
           </DialogDescription>
         </DialogHeader>
 
