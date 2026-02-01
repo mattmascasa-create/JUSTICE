@@ -134,5 +134,3 @@ pillow==12.1.0
 pyotp==2.9.0
 qrcode==8.2
 pydub==0.25.1
-web3==7.14.0
-eth-account
